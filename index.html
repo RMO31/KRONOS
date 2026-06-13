@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>كرونوس — التاريخ والجغرافيا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Cinzel:wght@400;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim: #8a6f2e;
+  --dark: #0e0c09;
+  --dark2: #161410;
+  --dark3: #1f1c16;
+  --dark4: #2a2620;
+  --parchment: #f5edd8;
+  --parchment2: #ede0c4;
+  --text: #e8dfc8;
+  --text-dim: #9e9080;
+  --text-dimmer: #5c5448;
+  --red-accent: #8b2020;
+  --teal-accent: #1a5f5a;
+  --radius: 4px;
+  --font-ar: 'Tajawal', sans-serif;
+  --font-title: 'Amiri', serif;
+  --font-latin: 'Lora', serif;
+  --font-display: 'Cinzel', serif;
+}
+[lang="en"] { direction: ltr; }
+[lang="fr"] { direction: ltr; }
+[lang="es"] { direction: ltr; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-ar);
+  background: var(--dark);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.07) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%230e0c09'/%3E%3Crect x='0' y='0' width='1' height='1' fill='%23ffffff' opacity='0.015'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ───── SCROLLBAR ───── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--dark2); }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+/* ───── NAV ───── */
+#nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: linear-gradient(to bottom, rgba(14,12,9,0.97), rgba(14,12,9,0.85));
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  gap: 2rem;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: .1em;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nav-logo span { color: var(--text-dim); font-size: 13px; font-family: var(--font-ar); font-weight: 300; display: block; letter-spacing: 0; margin-top: -2px; }
+
+.nav-links {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  flex: 1;
+  justify-content: center;
+}
+.nav-links a {
+  display: block;
+  padding: .4rem .9rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .02em;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+}
+.nav-links a:hover, .nav-links a.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-shrink: 0;
+}
+
+/* Language selector */
+.lang-select {
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--text-dim);
+  font-family: var(--font-ar);
+  font-size: 12px;
+  padding: .3rem .6rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  outline: none;
+  transition: border-color .2s;
+}
+.lang-select:hover { border-color: var(--gold); }
+.lang-select option { background: var(--dark2); }
+
+.btn-login {
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.4);
+  color: var(--gold);
+  font-family: var(--font-ar);
+  font-size: 12px;
+  padding: .35rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all .2s;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-login:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+
+.btn-gold {
+  background: var(--gold);
+  border: none;
+  color: var(--dark);
+  font-family: var(--font-ar);
+  font-size: 13px;
+  font-weight: 700;
+  padding: .5rem 1.4rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-gold:hover { background: var(--gold-light); }
+
+/* ───── SECTIONS ───── */
+.room {
+  display: none;
+  min-height: 100vh;
+  padding-top: 60px;
+  position: relative;
+  z-index: 1;
+}
+.room.active { display: block; }
+
+/* ───── HOME ───── */
+#room-home .hero {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.hero-ornament {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: .3em;
+  color: var(--gold-dim);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-family: var(--font-title);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  color: var(--parchment);
+  line-height: 1.1;
+  margin-bottom: .5rem;
+}
+.hero-title .gold { color: var(--gold); }
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--text-dim);
+  font-weight: 300;
+  max-width: 500px;
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.hero-line {
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  margin: 0 auto 2.5rem;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* News ticker */
+.news-ticker-wrap {
+  background: rgba(201,168,76,0.07);
+  border-top: 1px solid rgba(201,168,76,0.15);
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+  padding: .6rem 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+.news-ticker-wrap::before, .news-ticker-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 80px;
+  z-index: 2;
+}
+.news-ticker-wrap::before { left: 0; background: linear-gradient(to right, var(--dark), transparent); }
+.news-ticker-wrap::after { right: 0; background: linear-gradient(to left, var(--dark), transparent); }
+
+.news-ticker-label {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: .15rem .7rem;
+  margin-inline-end: 1rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.news-ticker-inner {
+  display: inline-block;
+  animation: ticker 40s linear infinite;
+}
+.news-ticker-inner:hover { animation-play-state: paused; }
+.news-item-tick {
+  display: inline-block;
+  padding: 0 2.5rem;
+  font-size: 13px;
+  color: var(--text);
+  vertical-align: middle;
+}
+.news-item-tick::before { content: '◆'; color: var(--gold-dim); margin-inline-end: .6rem; font-size: 8px; vertical-align: middle; }
+
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* Featured cards */
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  padding: 3rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.feat-card {
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .25s, border-color .25s, box-shadow .25s;
+}
+.feat-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(201,168,76,0.35);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.feat-card-img {
+  height: 140px;
+  background: var(--dark4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+}
+.feat-card-body { padding: 1rem; }
+.feat-card-tag {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 500;
+  letter-spacing: .05em;
+  margin-bottom: .3rem;
+}
+.feat-card-title { font-family: var(--font-title); font-size: 18px; color: var(--parchment); margin-bottom: .4rem; }
+.feat-card-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+/* ───── SECTION HEADERS ───── */
+.section-header {
+  padding: 3rem 2rem 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  margin-bottom: 2rem;
+}
+.section-header h2 {
+  font-family: var(--font-title);
+  font-size: 2.2rem;
+  color: var(--parchment);
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+}
+.section-header h2 .icon { font-size: 1.5rem; }
+.section-header p { color: var(--text-dim); font-size: 14px; margin-top: .4rem; }
+
+.content-wrap { max-width: 1200px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+/* ───── ARCHIVE ───── */
+
+/* Era selector grid */
+.era-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.era-tile {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.12);
+  border-radius: 8px;
+  padding: 1.4rem 1.2rem;
+  cursor: pointer;
+  transition: all .25s;
+  position: relative;
+  overflow: hidden;
+}
+.era-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity .25s;
+}
+.era-tile:hover::before, .era-tile.active::before { opacity: 1; }
+.era-tile:hover, .era-tile.active {
+  border-color: rgba(201,168,76,0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+.era-tile.active { border-color: var(--gold); }
+.era-tile-icon { font-size: 2rem; margin-bottom: .6rem; }
+.era-tile-name { font-family: var(--font-title); font-size: 1.15rem; color: var(--parchment); margin-bottom: .3rem; }
+.era-tile-range { font-size: 11px; color: var(--gold-dim); margin-bottom: .8rem; }
+
+.era-powers-row { display: flex; flex-direction: column; gap: .35rem; }
+.powers-label { font-size: 10px; letter-spacing: .06em; color: var(--text-dimmer); text-transform: uppercase; }
+.powers-list { display: flex; flex-wrap: wrap; gap: .3rem; }
+.power-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.power-tag.superpower { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.35); color: var(--gold); }
+.power-tag.golden { background: rgba(26,95,90,0.2); border-color: rgba(26,95,90,0.5); color: #6ecfc9; }
+
+/* Era inner view */
+.era-inner-view { display: none; }
+.era-inner-view.active { display: block; }
+
+.era-inner-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  flex-wrap: wrap;
+}
+.era-back-btn {
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.2);
+  color: var(--text-dim);
+  font-family: var(--font-ar);
+  font-size: 13px;
+  padding: .4rem .9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.era-back-btn:hover { border-color: var(--gold); color: var(--gold); }
+.era-inner-title { font-family: var(--font-title); font-size: 1.5rem; color: var(--parchment); flex: 1; }
+.era-inner-range { font-size: 12px; color: var(--gold-dim); }
+
+/* Info banner */
+.era-info-banner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media(max-width:600px){ .era-info-banner { grid-template-columns: 1fr; } }
+.info-banner-box {
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.info-banner-label { font-size: 10px; letter-spacing: .07em; color: var(--text-dimmer); text-transform: uppercase; margin-bottom: .5rem; }
+.info-banner-tags { display: flex; flex-wrap: wrap; gap: .3rem; }
+
+/* Archive search + filter bar */
+.archive-search-bar {
+  display: flex;
+  gap: .6rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+.archive-search-input {
+  flex: 1;
+  min-width: 180px;
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-ar);
+  font-size: 13px;
+  padding: .55rem 1rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.archive-search-input:focus { border-color: var(--gold-dim); }
+.archive-filter-btn {
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.15);
+  color: var(--text-dim);
+  font-family: var(--font-ar);
+  font-size: 12px;
+  padding: .5rem .9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: .3rem;
+}
+.archive-filter-btn:hover, .archive-filter-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201,168,76,0.07);
+}
+
+/* Post type chips (branch shortcuts) */
+.branch-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.2rem; }
+.branch-chip {
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.12);
+  color: var(--text-dim);
+  font-family: var(--font-ar);
+  font-size: 12px;
+  padding: .3rem .8rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.branch-chip:hover, .branch-chip.active {
+  background: rgba(201,168,76,0.1);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+
+/* Powers panel */
+.era-powers-panel { margin-bottom: 1.5rem; }
+.powers-panel-header { display:flex; align-items:center; gap:.6rem; margin-bottom:1.2rem; flex-wrap:wrap; padding-bottom:.8rem; border-bottom:1px solid rgba(201,168,76,0.1); }
+.powers-panel-tabs { display:flex; gap:.4rem; }
+.powers-ptab { background:var(--dark3); border:1px solid rgba(201,168,76,0.12); color:var(--text-dim); font-family:var(--font-ar); font-size:12px; padding:.4rem 1rem; border-radius:20px; cursor:pointer; transition:all .2s; }
+.powers-ptab.active { background:rgba(201,168,76,0.12); border-color:var(--gold); color:var(--gold); }
+.powers-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:.9rem; }
+.power-card { background:var(--dark2); border:1px solid rgba(201,168,76,0.1); border-radius:8px; padding:1rem; position:relative; transition:border-color .2s,transform .2s; overflow:hidden; }
+.power-card:hover { border-color:rgba(201,168,76,0.35); transform:translateY(-2px); }
+.power-card::before { content:""; position:absolute; top:0; inset-inline-start:0; width:3px; height:100%; background:var(--gold); opacity:.6; }
+.power-card.golden-card::before { background:#6ecfc9; }
+.power-rank { position:absolute; top:.7rem; inset-inline-end:.8rem; font-family:var(--font-display); font-size:1.4rem; color:rgba(201,168,76,0.15); font-weight:600; line-height:1; }
+.power-flag { font-size:1.6rem; margin-bottom:.4rem; }
+.power-name { font-family:var(--font-title); font-size:1.1rem; color:var(--parchment); margin-bottom:.2rem; }
+.power-period { font-size:11px; color:var(--gold-dim); margin-bottom:.7rem; }
+.power-stats { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin-bottom:.7rem; }
+.pstat { background:var(--dark3); border-radius:4px; padding:.4rem .6rem; }
+.pstat-label { font-size:10px; color:var(--text-dimmer); letter-spacing:.04em; }
+.pstat-value { font-size:12px; color:var(--text); font-weight:500; margin-top:1px; }
+.power-continents { display:flex; flex-wrap:wrap; gap:.25rem; margin-bottom:.6rem; }
+.cont-tag { font-size:10px; padding:2px 7px; border-radius:20px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); color:var(--gold-dim); }
+.power-desc { font-size:12px; color:var(--text-dimmer); line-height:1.55; border-top:1px solid rgba(201,168,76,0.06); padding-top:.5rem; margin-top:.3rem; }
+/* Archive posts feed */
+.archive-post {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.08);
+  border-radius: 6px;
+  padding: 1.2rem;
+  margin-bottom: .9rem;
+  transition: border-color .2s;
+}
+.archive-post:hover { border-color: rgba(201,168,76,0.22); }
+.archive-post-head {
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
+  margin-bottom: .7rem;
+}
+.archive-post-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--dark4);
+  border: 1px solid rgba(201,168,76,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.archive-post-meta { flex: 1; }
+.archive-post-author { font-size: 14px; font-weight: 500; color: var(--parchment); }
+.archive-post-info { display: flex; gap: .6rem; margin-top: .2rem; flex-wrap: wrap; }
+.archive-post-date { font-size: 11px; color: var(--text-dimmer); }
+.archive-post-type {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--gold);
+}
+.archive-post-branch {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: rgba(26,95,90,0.15);
+  border: 1px solid rgba(26,95,90,0.35);
+  color: #6ecfc9;
+}
+.archive-post-title {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  color: var(--parchment);
+  margin-bottom: .4rem;
+  line-height: 1.4;
+}
+.archive-post-body { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-bottom: .8rem; }
+.archive-post-actions {
+  display: flex;
+  gap: .4rem;
+  border-top: 1px solid rgba(201,168,76,0.06);
+  padding-top: .7rem;
+  flex-wrap: wrap;
+}
+.archive-post-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-dimmer);
+  font-size: 14px;
+}
+.archive-post-empty .empty-icon { font-size: 2.5rem; margin-bottom: .8rem; }
+
+/* ───── POSTS ───── */
+.posts-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  align-items: start;
+}
+@media(max-width:800px){ .posts-layout { grid-template-columns: 1fr; } }
+
+.post-compose {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.12);
+  border-radius: 6px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.post-compose textarea {
+  width: 100%;
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-ar);
+  font-size: 14px;
+  padding: .8rem;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: border-color .2s;
+}
+.post-compose textarea:focus { border-color: var(--gold-dim); }
+.post-compose-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: .8rem;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.post-type-btns { display: flex; gap: .4rem; }
+.post-type-btn {
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.15);
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: .3rem .7rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: var(--font-ar);
+}
+.post-type-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.post-card {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 6px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  transition: border-color .2s;
+}
+.post-card:hover { border-color: rgba(201,168,76,0.2); }
+.post-card.pinned { border-color: rgba(201,168,76,0.35); }
+.pin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: 11px;
+  color: var(--gold);
+  margin-bottom: .5rem;
+}
+
+.post-user {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin-bottom: .8rem;
+}
+.post-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--dark4);
+  border: 1px solid rgba(201,168,76,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.post-username { font-size: 14px; font-weight: 500; color: var(--parchment); }
+.post-date { font-size: 11px; color: var(--text-dimmer); }
+
+.post-body { font-size: 14px; line-height: 1.75; color: var(--text); margin-bottom: 1rem; }
+
+.post-actions {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(201,168,76,0.07);
+  padding-top: .8rem;
+}
+.post-action-btn {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  background: transparent;
+  border: none;
+  color: var(--text-dimmer);
+  font-family: var(--font-ar);
+  font-size: 12px;
+  cursor: pointer;
+  padding: .3rem .6rem;
+  border-radius: 3px;
+  transition: all .2s;
+}
+.post-action-btn:hover { color: var(--gold); background: rgba(201,168,76,0.07); }
+.post-action-btn.liked { color: #e05555; }
+.post-action-btn.liked:hover { color: #c04040; background: rgba(224,85,85,0.07); }
+
+.comments-section { margin-top: .8rem; display: none; }
+.comments-section.open { display: block; }
+.comment-input-row {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: .7rem;
+}
+.comment-input {
+  flex: 1;
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.12);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-ar);
+  font-size: 13px;
+  padding: .4rem .7rem;
+  outline: none;
+}
+.comment {
+  display: flex;
+  gap: .6rem;
+  padding: .5rem 0;
+  border-bottom: 1px solid rgba(201,168,76,0.06);
+}
+.comment-body { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.comment-author { font-size: 12px; font-weight: 500; color: var(--parchment); margin-bottom: .2rem; }
+
+/* Posts sidebar */
+.posts-sidebar {}
+.sidebar-card {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 6px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: .05em;
+  margin-bottom: 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+}
+.trending-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .4rem 0;
+  border-bottom: 1px solid rgba(201,168,76,0.06);
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.trending-item:hover { color: var(--gold); }
+.trending-num { color: var(--gold-dim); font-weight: 700; font-size: 11px; min-width: 18px; }
+
+/* ───── YOUTUBE ───── */
+.yt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.yt-card {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .25s, border-color .25s, box-shadow .25s;
+}
+.yt-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(201,168,76,0.3);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.yt-thumb {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: var(--dark4);
+  overflow: hidden;
+}
+.yt-thumb iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none;
+}
+.yt-thumb-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.3);
+  transition: background .2s;
+}
+.yt-card:hover .yt-thumb-cover { background: rgba(0,0,0,0.1); }
+.yt-play-btn {
+  width: 52px; height: 52px;
+  background: rgba(201,168,76,0.85);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: var(--dark);
+  transition: transform .2s;
+}
+.yt-card:hover .yt-play-btn { transform: scale(1.1); }
+.yt-info { padding: 1rem; }
+.yt-cat {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: .3rem;
+}
+.yt-title { font-family: var(--font-title); font-size: 1rem; color: var(--parchment); margin-bottom: .4rem; line-height: 1.4; }
+.yt-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.yt-meta { display: flex; gap: 1rem; margin-top: .6rem; font-size: 11px; color: var(--text-dimmer); }
+
+/* YT Modal player */
+.yt-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.yt-modal-overlay.open { display: flex; }
+.yt-modal {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 8px;
+  max-width: 860px;
+  width: 100%;
+  overflow: hidden;
+}
+.yt-modal-player { position: relative; aspect-ratio: 16/9; background: #000; }
+.yt-modal-player iframe { width: 100%; height: 100%; border: none; }
+.yt-modal-info { padding: 1.2rem 1.5rem; }
+.yt-modal-title { font-family: var(--font-title); font-size: 1.3rem; color: var(--parchment); margin-bottom: .4rem; }
+.yt-modal-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+.yt-modal-close {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-ar);
+  font-size: 13px;
+  cursor: pointer;
+  padding: .8rem 1.5rem;
+  border-top: 1px solid rgba(201,168,76,0.1);
+  width: 100%;
+  transition: color .2s;
+}
+.yt-modal-close:hover { color: var(--gold); }
+
+/* ───── ABOUT ───── */
+.about-hero {
+  text-align: center;
+  padding: 4rem 2rem 2rem;
+}
+.about-hero h2 { font-family: var(--font-title); font-size: 2.5rem; color: var(--parchment); margin-bottom: 1rem; }
+.about-hero p { color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.8; font-size: 15px; }
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 3rem;
+}
+.about-card {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 6px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.about-icon { font-size: 2rem; margin-bottom: .8rem; }
+.about-card h4 { font-family: var(--font-title); color: var(--parchment); font-size: 1.1rem; margin-bottom: .4rem; }
+.about-card p { color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+
+.about-quote {
+  background: var(--dark2);
+  border-inline-start: 3px solid var(--gold);
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  border-radius: 0 6px 6px 0;
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  color: var(--parchment);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ───── AUTH MODAL ───── */
+.auth-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.auth-overlay.open { display: flex; }
+.auth-box {
+  background: var(--dark2);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+.auth-box h3 { font-family: var(--font-title); font-size: 1.6rem; color: var(--parchment); margin-bottom: .3rem; }
+.auth-box p { font-size: 13px; color: var(--text-dim); margin-bottom: 1.5rem; }
+.auth-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(201,168,76,0.1); }
+.auth-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: var(--font-ar);
+  font-size: 14px;
+  padding: .5rem 1.2rem;
+  cursor: pointer;
+  transition: all .2s;
+  margin-bottom: -1px;
+}
+.auth-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: .4rem; }
+.form-group input {
+  width: 100%;
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-ar);
+  font-size: 14px;
+  padding: .6rem .8rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.form-group input:focus { border-color: var(--gold-dim); }
+.auth-close {
+  float: inline-end;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  margin-bottom: .5rem;
+}
+
+/* ───── TOAST ───── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  inset-inline-end: 2rem;
+  background: var(--dark3);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 6px;
+  padding: .8rem 1.2rem;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 5000;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all .3s;
+  pointer-events: none;
+  max-width: 280px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ───── FOOTER ───── */
+footer {
+  border-top: 1px solid rgba(201,168,76,0.1);
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dimmer);
+  background: var(--dark2);
+}
+footer a { color: var(--gold-dim); text-decoration: none; }
+footer a:hover { color: var(--gold); }
+
+/* ───── RESPONSIVE ───── */
+@media(max-width:600px) {
+  #nav { padding: 0 1rem; gap: 1rem; }
+  .nav-links { display: none; }
+  .hero-title { font-size: 2.5rem; }
+  .content-wrap { padding: 0 1rem 3rem; }
+  .section-header { padding: 2rem 1rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="nav-logo" href="#" onclick="showRoom('home')">
+    KRONOS
+    <span data-i18n="nav.tagline">التاريخ والجغرافيا</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showRoom('home')" data-nav="home" class="active" data-i18n="nav.home">الرئيسية</a></li>
+    <li><a href="#" onclick="showRoom('archive')" data-nav="archive" data-i18n="nav.archive">المكتب</a></li>
+    <li><a href="#" onclick="showRoom('posts')" data-nav="posts" data-i18n="nav.posts">المنشورات</a></li>
+    <li><a href="#" onclick="showRoom('youtube')" data-nav="youtube" data-i18n="nav.youtube">الفيديوهات</a></li>
+    <li><a href="#" onclick="showRoom('about')" data-nav="about" data-i18n="nav.about">من نحن</a></li>
+  </ul>
+  <div class="nav-right">
+    <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
+      <option value="ar">العربية</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
+    </select>
+    <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login">دخول</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════ HOME ══════════════════════════════ -->
+<section id="room-home" class="room active">
+
+  <!-- News ticker -->
+  <div class="news-ticker-wrap">
+    <span class="news-ticker-label" data-i18n="ticker.label">أخبار</span>
+    <div class="news-ticker-inner" id="tickerInner">
+      <span class="news-item-tick">اكتشاف آثار جديدة في وادي الملوك بمصر تعود إلى عصر الدولة الحديثة</span>
+      <span class="news-item-tick">مؤتمر دولي لدراسة جغرافيا الحضارات المتوسطية في أثينا</span>
+      <span class="news-item-tick">إضافة وثائق جديدة إلى أرشيف العصر الإسلامي الذهبي</span>
+      <span class="news-item-tick">باحثون يعيدون رسم خرائط طريق الحرير باستخدام الذكاء الاصطناعي</span>
+      <span class="news-item-tick">اكتشاف آثار جديدة في وادي الملوك بمصر تعود إلى عصر الدولة الحديثة</span>
+      <span class="news-item-tick">مؤتمر دولي لدراسة جغرافيا الحضارات المتوسطية في أثينا</span>
+      <span class="news-item-tick">إضافة وثائق جديدة إلى أرشيف العصر الإسلامي الذهبي</span>
+      <span class="news-item-tick">باحثون يعيدون رسم خرائط طريق الحرير باستخدام الذكاء الاصطناعي</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-ornament" data-i18n="home.ornament">HISTORIA · GEOGRAPHIA · MEMORIA</div>
+    <h1 class="hero-title" data-i18n="home.title">
+      عبر <span class="gold">الزمن</span><br>والمكان
+    </h1>
+    <p class="hero-sub" data-i18n="home.sub">موقع متخصص في التاريخ والجغرافيا — أرشيف منظّم عبر العصور، منشورات تفاعلية، وفيديوهات توثيقية.</p>
+    <div class="hero-line"></div>
+    <div class="hero-btns">
+      <button class="btn-gold" onclick="showRoom('archive')" data-i18n="home.btn1">استكشف الأرشيف</button>
+      <a class="btn-login" href="#" onclick="showRoom('posts')" data-i18n="home.btn2">المنشورات</a>
+    </div>
+  </div>
+
+  <!-- Featured cards -->
+  <div class="feat-grid">
+    <div class="feat-card" onclick="showRoom('archive')">
+      <div class="feat-card-img">🏺</div>
+      <div class="feat-card-body">
+        <div class="feat-card-tag" data-i18n="home.card1.tag">العصور القديمة</div>
+        <div class="feat-card-title" data-i18n="home.card1.title">حضارات ما قبل الميلاد</div>
+        <div class="feat-card-desc" data-i18n="home.card1.desc">مصر الفرعونية، بلاد الرافدين، اليونان وروما — وثائق وخرائط وتحليلات.</div>
+      </div>
+    </div>
+    <div class="feat-card" onclick="showRoom('archive')">
+      <div class="feat-card-img">☪️</div>
+      <div class="feat-card-body">
+        <div class="feat-card-tag" data-i18n="home.card2.tag">العصر الإسلامي</div>
+        <div class="feat-card-title" data-i18n="home.card2.title">الخلافة والعلوم</div>
+        <div class="feat-card-desc" data-i18n="home.card2.desc">العصر الذهبي للحضارة الإسلامية — علم وفلسفة وجغرافيا وفلك.</div>
+      </div>
+    </div>
+    <div class="feat-card" onclick="showRoom('youtube')">
+      <div class="feat-card-img">▶️</div>
+      <div class="feat-card-body">
+        <div class="feat-card-tag" data-i18n="home.card3.tag">فيديوهات</div>
+        <div class="feat-card-title" data-i18n="home.card3.title">توثيق مرئي</div>
+        <div class="feat-card-desc" data-i18n="home.card3.desc">فيديوهات تعليمية وتوثيقية منتقاة حول التاريخ والجغرافيا.</div>
+      </div>
+    </div>
+    <div class="feat-card" onclick="showRoom('posts')">
+      <div class="feat-card-img">📢</div>
+      <div class="feat-card-body">
+        <div class="feat-card-tag" data-i18n="home.card4.tag">مجتمع</div>
+        <div class="feat-card-title" data-i18n="home.card4.title">المنشورات والنقاشات</div>
+        <div class="feat-card-desc" data-i18n="home.card4.desc">شارك أبحاثك وأفكارك مع مجتمع المهتمين بالتاريخ والجغرافيا.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2024 Kronos — <span data-i18n="footer.rights">جميع الحقوق محفوظة</span> · <a href="#" onclick="showRoom('about')" data-i18n="footer.about">من نحن</a></p>
+  </footer>
+</section>
+
+<!-- ══════════════════════════════ ARCHIVE ══════════════════════════════ -->
+<section id="room-archive" class="room">
+  <div class="section-header">
+    <h2><span class="icon">🏛️</span> <span data-i18n="archive.title">المكتب — الأرشيف التاريخي</span></h2>
+    <p data-i18n="archive.sub">اختر عصراً لاستعراض منشوراته وتصفية محتواه</p>
+  </div>
+  <div class="content-wrap">
+
+    <!-- ERA SELECTOR -->
+    <div id="archiveEraView">
+      <div class="era-selector-grid">
+
+        <div class="era-tile" onclick="openEra('ancient')">
+          <div class="era-tile-icon">🏺</div>
+          <div class="era-tile-name">العصور القديمة</div>
+          <div class="era-tile-range">3500 ق.م — 476 م</div>
+          <div class="era-powers-row">
+            <div class="powers-label">القوى العظمى</div>
+            <div class="powers-list">
+              <span class="power-tag superpower">مصر الفرعونية</span>
+              <span class="power-tag superpower">روما</span>
+              <span class="power-tag superpower">فارس الأخمينية</span>
+            </div>
+          </div>
+          <div class="era-powers-row" style="margin-top:.5rem">
+            <div class="powers-label">في عصرها الذهبي</div>
+            <div class="powers-list">
+              <span class="power-tag golden">اليونان الكلاسيكية</span>
+              <span class="power-tag golden">بابل</span>
+              <span class="power-tag golden">قرطاج</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="era-tile" onclick="openEra('early_medieval')">
+          <div class="era-tile-icon">☪️</div>
+          <div class="era-tile-name">العصور الوسطى المبكرة</div>
+          <div class="era-tile-range">476 م — 900 م</div>
+          <div class="era-powers-row">
+            <div class="powers-label">القوى العظمى</div>
+            <div class="powers-list">
+              <span class="power-tag superpower">الخلافة الأموية</span>
+              <span class="power-tag superpower">الإمبراطورية البيزنطية</span>
+              <span class="power-tag superpower">الفرنجة</span>
+            </div>
+          </div>
+          <div class="era-powers-row" style="margin-top:.5rem">
+            <div class="powers-label">في عصرها الذهبي</div>
+            <div class="powers-list">
+              <span class="power-tag golden">الخلافة العباسية</span>
+              <span class="power-tag golden">الصين تانغ</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="era-tile" onclick="openEra('high_medieval')">
+          <div class="era-tile-icon">⚔️</div>
+          <div class="era-tile-name">العصور الوسطى المتأخرة</div>
+          <div class="era-tile-range">900 م — 1453 م</div>
+          <div class="era-powers-row">
+            <div class="powers-label">القوى العظمى</div>
+            <div class="powers-list">
+              <span class="power-tag superpower">المغول</span>
+              <span class="power-tag superpower">الإمبراطورية العثمانية</span>
+              <span class="power-tag superpower">الصليبيون</span>
+            </div>
+          </div>
+          <div class="era-powers-row" style="margin-top:.5rem">
+            <div class="powers-label">في عصرها الذهبي</div>
+            <div class="powers-list">
+              <span class="power-tag golden">الأندلس</span>
+              <span class="power-tag golden">مالي</span>
+              <span class="power-tag golden">الصين سونغ</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="era-tile" onclick="openEra('early_modern')">
+          <div class="era-tile-icon">⛵</div>
+          <div class="era-tile-name">العصر الحديث المبكر</div>
+          <div class="era-tile-range">1453 م — 1789 م</div>
+          <div class="era-powers-row">
+            <div class="powers-label">القوى العظمى</div>
+            <div class="powers-list">
+              <span class="power-tag superpower">إسبانيا</span>
+              <span class="power-tag superpower">العثمانيون</span>
+              <span class="power-tag superpower">البرتغال</span>
+            </div>
+          </div>
+          <div class="era-powers-row" style="margin-top:.5rem">
+            <div class="powers-label">في عصرها الذهبي</div>
+            <div class="powers-list">
+              <span class="power-tag golden">الصفويون</span>
+              <span class="power-tag golden">المغول الهند</span>
+              <span class="power-tag golden">هولندا</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="era-tile" onclick="openEra('modern')">
+          <div class="era-tile-icon">🏭</div>
+          <div class="era-tile-name">العصر الحديث</div>
+          <div class="era-tile-range">1789 م — 1945 م</div>
+          <div class="era-powers-row">
+            <div class="powers-label">القوى العظمى</div>
+            <div class="powers-list">
+              <span class="power-tag superpower">بريطانيا</span>
+              <span class="power-tag superpower">فرنسا</span>
+              <span class="power-tag superpower">ألمانيا</span>
+              <span class="power-tag superpower">روسيا</span>
+            </div>
+          </div>
+          <div class="era-powers-row" style="margin-top:.5rem">
+            <div class="powers-label">في عصرها الذهبي</div>
+            <div class="powers-list">
+              <span class="power-tag golden">أمريكا الصناعية</span>
+              <span class="power-tag golden">اليابان ميجي</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="era-tile" onclick="openEra('contemporary')">
+          <div class="era-tile-icon">🌐</div>
+          <div class="era-tile-name">العصر المعاصر</div>
+          <div class="era-tile-range">1945 م — الآن</div>
+          <div class="era-powers-row">
+            <div class="powers-label">القوى العظمى</div>
+            <div class="powers-list">
+              <span class="power-tag superpower">الولايات المتحدة</span>
+              <span class="power-tag superpower">الصين</span>
+              <span class="power-tag superpower">روسيا</span>
+            </div>
+          </div>
+          <div class="era-powers-row" style="margin-top:.5rem">
+            <div class="powers-label">في عصرها الذهبي</div>
+            <div class="powers-list">
+              <span class="power-tag golden">كوريا الجنوبية</span>
+              <span class="power-tag golden">الخليج</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ERA INNER VIEW (posts) -->
+    <div class="era-inner-view" id="archiveInnerView">
+      <div class="era-inner-header">
+        <button class="era-back-btn" onclick="closeEra()">← رجوع</button>
+        <div>
+          <div class="era-inner-title" id="eraInnerTitle"></div>
+          <div class="era-inner-range" id="eraInnerRange"></div>
+        </div>
+      </div>
+
+      <!-- Powers panel + tab switcher -->
+      <div class="era-powers-panel" id="eraPowersPanel">
+        <div class="powers-panel-header">
+          <div class="powers-panel-tabs">
+            <button class="powers-ptab active" onclick="switchPowersTab('list',this)">⚡ القوى العشر الكبرى</button>
+            <button class="powers-ptab" onclick="switchPowersTab('golden',this)">✨ في عصرها الذهبي</button>
+          </div>
+          <button class="era-back-btn" style="margin-inline-start:auto" onclick="closeEra()">← رجوع للعصور</button>
+        </div>
+
+        <!-- Top 10 powers list -->
+        <div id="powersListTab">
+          <div class="powers-grid" id="powersGrid"></div>
+        </div>
+
+        <!-- Golden age tab -->
+        <div id="powersGoldenTab" style="display:none">
+          <div class="powers-grid" id="goldenGrid"></div>
+        </div>
+
+        <!-- Toggle to posts -->
+        <div style="text-align:center;margin-top:1.2rem">
+          <button class="archive-filter-btn active" onclick="togglePowersPanel(false)" style="margin:0 auto">
+            📋 عرض المنشورات والأرشيف
+          </button>
+        </div>
+      </div>
+
+      <!-- Archive bar (hidden by default, shown when viewing posts) -->
+      <div id="archivePostsPanel" style="display:none">
+        <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="archive-filter-btn active" onclick="togglePowersPanel(true)">⚡ القوى العظمى</button>
+          <div style="flex:1"></div>
+          <button class="era-back-btn" onclick="closeEra()">← رجوع للعصور</button>
+        </div>
+
+        <!-- Search & Filter bar -->
+        <div class="archive-search-bar">
+          <input class="archive-search-input" id="archiveSearchInput" placeholder="ابحث بكلمة مفتاحية..." oninput="filterArchivePosts()">
+          <button class="archive-filter-btn active" id="sortNew" onclick="setSortOrder('new')">🕐 الأحدث</button>
+          <button class="archive-filter-btn" id="sortPop" onclick="setSortOrder('popular')">🔥 الأشهر</button>
+        </div>
+
+        <!-- Branch chips -->
+        <div class="branch-chips" id="branchChips"></div>
+
+        <!-- Posts feed -->
+        <div id="archivePostsFeed"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════ POSTS ══════════════════════════════ -->
+<section id="room-posts" class="room">
+  <div class="section-header">
+    <h2><span class="icon">📢</span> <span data-i18n="posts.title">المنشورات</span></h2>
+    <p data-i18n="posts.sub">شارك أفكارك وأبحاثك مع مجتمع المهتمين</p>
+  </div>
+  <div class="content-wrap">
+    <div class="posts-layout">
+      <div class="posts-main">
+
+        <!-- Compose -->
+        <div class="post-compose">
+          <textarea id="postInput" placeholder="شارك فكرة أو بحثاً أو سؤالاً..." data-i18n-placeholder="posts.compose.placeholder"></textarea>
+          <div class="post-compose-actions">
+            <div class="post-type-btns">
+              <button class="post-type-btn">🖼 صورة</button>
+              <button class="post-type-btn">🔗 رابط</button>
+              <button class="post-type-btn">📍 موقع</button>
+            </div>
+            <button class="btn-gold" onclick="submitPost()" data-i18n="posts.compose.submit">نشر</button>
+          </div>
+        </div>
+
+        <!-- Posts feed -->
+        <div id="postsFeed">
+
+          <div class="post-card pinned">
+            <div class="pin-badge">📌 <span data-i18n="posts.pinned">مثبّت</span></div>
+            <div class="post-user">
+              <div class="post-avatar">👤</div>
+              <div>
+                <div class="post-username">د. محمود الحسيني</div>
+                <div class="post-date">منذ ساعتين</div>
+              </div>
+            </div>
+            <div class="post-body">اكتشفت اليوم وثيقة نادرة تصف طريق الحرير في القرن العاشر الميلادي من منظور رحّالة أندلسي مجهول. هل يعلم أحد عن هذا المصدر؟ أرجو المشاركة 📜</div>
+            <div class="post-actions">
+              <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>24</span></button>
+              <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>8</span> تعليق</button>
+              <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
+              <button class="post-action-btn" onclick="showToast('تم الحفظ')">🔖 حفظ</button>
+              <button class="post-action-btn" onclick="showToast('تم الإرسال للمراجعة')">🚩 تبليغ</button>
+            </div>
+            <div class="comments-section" id="cs1">
+              <div class="comment-input-row">
+                <input class="comment-input" placeholder="أضف تعليقاً..." />
+                <button class="btn-gold" style="padding:.4rem .8rem;font-size:12px" onclick="addComment(this,'cs1')">إرسال</button>
+              </div>
+              <div class="comment">
+                <div class="post-avatar" style="width:28px;height:28px;font-size:12px">👤</div>
+                <div><div class="comment-author">سارة الجزائري</div><div class="comment-body">ربما هو وثيقة من أرشيف الإسكوريال؟ هناك كثير من الرحلات الأندلسية غير المفهرسة.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="post-card">
+            <div class="post-user">
+              <div class="post-avatar">👤</div>
+              <div>
+                <div class="post-username">ليلى بن عمر</div>
+                <div class="post-date">منذ 5 ساعات</div>
+              </div>
+            </div>
+            <div class="post-body">خريطة رسمها ابن حوقل في القرن العاشر تُظهر أن مفهومهم للجغرافيا كان مختلفاً تماماً عن المتعارف عليه اليوم — الجنوب في الأعلى والشمال في الأسفل. فلسفة أم قصد؟</div>
+            <div class="post-actions">
+              <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>47</span></button>
+              <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>12</span> تعليق</button>
+              <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
+              <button class="post-action-btn" onclick="showToast('تم الحفظ')">🔖 حفظ</button>
+              <button class="post-action-btn" onclick="showToast('تم الإرسال للمراجعة')">🚩 تبليغ</button>
+            </div>
+            <div class="comments-section" id="cs2">
+              <div class="comment-input-row">
+                <input class="comment-input" placeholder="أضف تعليقاً..." />
+                <button class="btn-gold" style="padding:.4rem .8rem;font-size:12px" onclick="addComment(this,'cs2')">إرسال</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="post-card">
+            <div class="post-user">
+              <div class="post-avatar">👤</div>
+              <div>
+                <div class="post-username">أحمد التونسي</div>
+                <div class="post-date">منذ يوم</div>
+              </div>
+            </div>
+            <div class="post-body">سؤال للمتخصصين: ما هو أقدم نص مكتوب يصف الصحراء الكبرى قبل أن تتصحّر؟ بعض الأبحاث تشير إلى 6000 سنة قبل الميلاد كانت خضراء 🌿</div>
+            <div class="post-actions">
+              <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>31</span></button>
+              <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>5</span> تعليق</button>
+              <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
+              <button class="post-action-btn" onclick="showToast('تم الحفظ')">🔖 حفظ</button>
+              <button class="post-action-btn" onclick="showToast('تم الإرسال للمراجعة')">🚩 تبليغ</button>
+            </div>
+            <div class="comments-section" id="cs3">
+              <div class="comment-input-row">
+                <input class="comment-input" placeholder="أضف تعليقاً..." />
+                <button class="btn-gold" style="padding:.4rem .8rem;font-size:12px" onclick="addComment(this,'cs3')">إرسال</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="posts-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-title" data-i18n="posts.trending">الأكثر نقاشاً</div>
+          <div class="trending-item"><span class="trending-num">1</span> طريق الحرير</div>
+          <div class="trending-item"><span class="trending-num">2</span> الحضارة الفرعونية</div>
+          <div class="trending-item"><span class="trending-num">3</span> الجغرافيا الإسلامية</div>
+          <div class="trending-item"><span class="trending-num">4</span> الثورة الصناعية</div>
+          <div class="trending-item"><span class="trending-num">5</span> الحرب الباردة</div>
+        </div>
+        <div class="sidebar-card">
+          <div class="sidebar-title" data-i18n="posts.activeUsers">أكثر المساهمين</div>
+          <div class="trending-item">👤 د. محمود الحسيني</div>
+          <div class="trending-item">👤 ليلى بن عمر</div>
+          <div class="trending-item">👤 أحمد التونسي</div>
+          <div class="trending-item">👤 سارة الجزائري</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ YOUTUBE ══════════════════════════════ -->
+<section id="room-youtube" class="room">
+  <div class="section-header">
+    <h2><span class="icon">▶️</span> <span data-i18n="yt.title">الفيديوهات التوثيقية</span></h2>
+    <p data-i18n="yt.sub">محتوى مرئي منتقى حول التاريخ والجغرافيا</p>
+  </div>
+  <div class="content-wrap">
+    <div class="yt-grid">
+
+      <div class="yt-card" onclick="openYT('dQw4w9WgXcQ','أسرار الأهرامات','رحلة بصرية داخل أعظم المنشآت المعمارية في التاريخ — كيف بُنيت ولماذا؟')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="thumbnail">
+          <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
+        </div>
+        <div class="yt-info">
+          <div class="yt-cat" data-i18n="yt.cat.ancient">العصور القديمة</div>
+          <div class="yt-title" data-i18n="yt.v1.title">أسرار الأهرامات</div>
+          <div class="yt-desc" data-i18n="yt.v1.desc">رحلة بصرية داخل أعظم المنشآت المعمارية في التاريخ — كيف بُنيت ولماذا؟</div>
+          <div class="yt-meta"><span>👁 12,400</span><span>❤️ 890</span></div>
+        </div>
+      </div>
+
+      <div class="yt-card" onclick="openYT('ScMzIvxBSi4','طريق الحرير — جسر الحضارات','رحلة عبر المدن التاريخية التي شكّلت أعظم طريق تجاري في التاريخ.')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/ScMzIvxBSi4/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="thumbnail">
+          <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
+        </div>
+        <div class="yt-info">
+          <div class="yt-cat" data-i18n="yt.cat.medieval">العصر الوسيط</div>
+          <div class="yt-title" data-i18n="yt.v2.title">طريق الحرير — جسر الحضارات</div>
+          <div class="yt-desc" data-i18n="yt.v2.desc">رحلة عبر المدن التاريخية التي شكّلت أعظم طريق تجاري في التاريخ.</div>
+          <div class="yt-meta"><span>👁 8,700</span><span>❤️ 610</span></div>
+        </div>
+      </div>
+
+      <div class="yt-card" onclick="openYT('_OBlgSz8sSM','خرائط غيّرت العالم','كيف غيّر رسم الخرائط مفهوم البشرية للعالم عبر القرون؟')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/_OBlgSz8sSM/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="thumbnail">
+          <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
+        </div>
+        <div class="yt-info">
+          <div class="yt-cat" data-i18n="yt.cat.geo">الجغرافيا</div>
+          <div class="yt-title" data-i18n="yt.v3.title">خرائط غيّرت العالم</div>
+          <div class="yt-desc" data-i18n="yt.v3.desc">كيف غيّر رسم الخرائط مفهوم البشرية للعالم عبر القرون؟</div>
+          <div class="yt-meta"><span>👁 5,200</span><span>❤️ 430</span></div>
+        </div>
+      </div>
+
+      <div class="yt-card" onclick="openYT('nfWlot6h_JM','الأندلس — ثمانية قرون','قصة الحضارة الإسلامية في شبه الجزيرة الإيبيرية من الفتح حتى السقوط.')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/nfWlot6h_JM/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="thumbnail">
+          <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
+        </div>
+        <div class="yt-info">
+          <div class="yt-cat" data-i18n="yt.cat.islamic">التاريخ الإسلامي</div>
+          <div class="yt-title" data-i18n="yt.v4.title">الأندلس — ثمانية قرون</div>
+          <div class="yt-desc" data-i18n="yt.v4.desc">قصة الحضارة الإسلامية في شبه الجزيرة الإيبيرية من الفتح حتى السقوط.</div>
+          <div class="yt-meta"><span>👁 9,100</span><span>❤️ 720</span></div>
+        </div>
+      </div>
+
+      <div class="yt-card" onclick="openYT('kCc8FmEb1nY','العصر الجليدي وتشكّل القارات','كيف شكّلت التحولات الجيولوجية الكبرى خريطة الأرض التي نعرفها اليوم.')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/kCc8FmEb1nY/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="thumbnail">
+          <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
+        </div>
+        <div class="yt-info">
+          <div class="yt-cat" data-i18n="yt.cat.geo">الجغرافيا</div>
+          <div class="yt-title" data-i18n="yt.v5.title">العصر الجليدي وتشكّل القارات</div>
+          <div class="yt-desc" data-i18n="yt.v5.desc">كيف شكّلت التحولات الجيولوجية الكبرى خريطة الأرض التي نعرفها اليوم.</div>
+          <div class="yt-meta"><span>👁 6,800</span><span>❤️ 540</span></div>
+        </div>
+      </div>
+
+      <div class="yt-card" onclick="openYT('aircAruvnKk','الحروب العالمية في خرائط','تصوير مرئي لتحركات الجيوش والتحولات الجغرافية في الحربين العالميتين.')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/aircAruvnKk/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="thumbnail">
+          <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
+        </div>
+        <div class="yt-info">
+          <div class="yt-cat" data-i18n="yt.cat.modern">العصر الحديث</div>
+          <div class="yt-title" data-i18n="yt.v6.title">الحروب العالمية في خرائط</div>
+          <div class="yt-desc" data-i18n="yt.v6.desc">تصوير مرئي لتحركات الجيوش والتحولات الجغرافية في الحربين العالميتين.</div>
+          <div class="yt-meta"><span>👁 14,300</span><span>❤️ 1,100</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- YouTube modal -->
+<div class="yt-modal-overlay" id="ytModal">
+  <div class="yt-modal">
+    <div class="yt-modal-player">
+      <iframe id="ytModalIframe" src="" allowfullscreen allow="autoplay"></iframe>
+    </div>
+    <div class="yt-modal-info">
+      <div class="yt-modal-title" id="ytModalTitle"></div>
+      <div class="yt-modal-desc" id="ytModalDesc"></div>
+    </div>
+    <button class="yt-modal-close" onclick="closeYT()">✕ &nbsp;<span data-i18n="yt.close">إغلاق</span></button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ ABOUT ══════════════════════════════ -->
+<section id="room-about" class="room">
+  <div class="about-hero">
+    <div class="hero-ornament">ABOUT KRONOS</div>
+    <h2 data-i18n="about.title">من نحن</h2>
+    <p data-i18n="about.intro">كرونوس هو منصة رقمية متخصصة في التاريخ والجغرافيا، تسعى إلى جعل المعرفة التاريخية في متناول الجميع من خلال أرشيف منظّم ومحتوى تفاعلي.</p>
+  </div>
+  <div class="content-wrap">
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-icon">🏛️</div>
+        <h4 data-i18n="about.v1.title">أرشيف شامل</h4>
+        <p data-i18n="about.v1.desc">وثائق ومقالات وتحليلات منظّمة حسب العصور التاريخية، من الحضارات القديمة حتى العصر المعاصر.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🌍</div>
+        <h4 data-i18n="about.v2.title">جغرافيا تفاعلية</h4>
+        <p data-i18n="about.v2.desc">خرائط وتحليلات جغرافية تربط الأماكن بأحداثها التاريخية وتطورها عبر الزمن.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">👥</div>
+        <h4 data-i18n="about.v3.title">مجتمع باحثين</h4>
+        <p data-i18n="about.v3.desc">مساحة للمهتمين والباحثين لتبادل الأفكار والأبحاث والنقاشات العلمية البناءة.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🎓</div>
+        <h4 data-i18n="about.v4.title">تعليم ممتع</h4>
+        <p data-i18n="about.v4.desc">محتوى مرئي وتفاعلي يجعل دراسة التاريخ والجغرافيا تجربة شيقة ومثيرة.</p>
+      </div>
+    </div>
+
+    <div class="about-quote" data-i18n="about.quote">
+      "من لا يعرف تاريخه محكومٌ عليه بتكراره — ومن لا يعرف جغرافيته محكومٌ عليه بالضياع."
+    </div>
+
+    <div class="about-grid" style="margin-top:0">
+      <div class="about-card">
+        <div class="about-icon">📊</div>
+        <h4>+2,400</h4>
+        <p data-i18n="about.stat1">وثيقة ومقال في الأرشيف</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">👤</div>
+        <h4>+8,700</h4>
+        <p data-i18n="about.stat2">عضو مسجّل</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">▶️</div>
+        <h4>+180</h4>
+        <p data-i18n="about.stat3">فيديو توثيقي</p>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🌐</div>
+        <h4>4</h4>
+        <p data-i18n="about.stat4">لغات مدعومة</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════ AUTH MODAL ══════════════════════════════ -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <button class="auth-close" onclick="closeAuth()">✕</button>
+    <h3 data-i18n="auth.welcome">مرحباً بك</h3>
+    <p data-i18n="auth.sub">سجّل دخولك أو أنشئ حساباً جديداً</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="auth.login">دخول</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="auth.register">حساب جديد</button>
+    </div>
+    <div class="auth-form active" id="loginForm">
+      <div class="form-group">
+        <label data-i18n="auth.email">البريد الإلكتروني</label>
+        <input type="email" placeholder="example@email.com">
+      </div>
+      <div class="form-group">
+        <label data-i18n="auth.password">كلمة المرور</label>
+        <input type="password" placeholder="••••••••">
+      </div>
+      <button class="btn-gold" style="width:100%;margin-top:.5rem" onclick="closeAuth();showToast('مرحباً بك في كرونوس!')" data-i18n="auth.loginBtn">تسجيل الدخول</button>
+    </div>
+    <div class="auth-form" id="registerForm">
+      <div class="form-group">
+        <label data-i18n="auth.name">الاسم الكامل</label>
+        <input type="text" placeholder="الاسم الكامل">
+      </div>
+      <div class="form-group">
+        <label data-i18n="auth.email">البريد الإلكتروني</label>
+        <input type="email" placeholder="example@email.com">
+      </div>
+      <div class="form-group">
+        <label data-i18n="auth.password">كلمة المرور</label>
+        <input type="password" placeholder="••••••••">
+      </div>
+      <button class="btn-gold" style="width:100%;margin-top:.5rem" onclick="closeAuth();showToast('تم إنشاء حسابك بنجاح!')" data-i18n="auth.registerBtn">إنشاء الحساب</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── TRANSLATIONS ───────────────────────────────────────────────────────────
+const T = {
+  ar: {
+    'nav.tagline':'التاريخ والجغرافيا','nav.home':'الرئيسية','nav.archive':'المكتب',
+    'nav.posts':'المنشورات','nav.youtube':'الفيديوهات','nav.about':'من نحن','nav.login':'دخول',
+    'ticker.label':'أخبار',
+    'home.ornament':'HISTORIA · GEOGRAPHIA · MEMORIA',
+    'home.title':'عبر <span class="gold">الزمن</span><br>والمكان',
+    'home.sub':'موقع متخصص في التاريخ والجغرافيا — أرشيف منظّم عبر العصور، منشورات تفاعلية، وفيديوهات توثيقية.',
+    'home.btn1':'استكشف الأرشيف','home.btn2':'المنشورات',
+    'home.card1.tag':'العصور القديمة','home.card1.title':'حضارات ما قبل الميلاد','home.card1.desc':'مصر الفرعونية، بلاد الرافدين، اليونان وروما — وثائق وخرائط وتحليلات.',
+    'home.card2.tag':'العصر الإسلامي','home.card2.title':'الخلافة والعلوم','home.card2.desc':'العصر الذهبي للحضارة الإسلامية — علم وفلسفة وجغرافيا وفلك.',
+    'home.card3.tag':'فيديوهات','home.card3.title':'توثيق مرئي','home.card3.desc':'فيديوهات تعليمية وتوثيقية منتقاة حول التاريخ والجغرافيا.',
+    'home.card4.tag':'مجتمع','home.card4.title':'المنشورات والنقاشات','home.card4.desc':'شارك أبحاثك وأفكارك مع مجتمع المهتمين بالتاريخ والجغرافيا.',
+    'footer.rights':'جميع الحقوق محفوظة','footer.about':'من نحن',
+    'archive.title':'المكتب — الأرشيف التاريخي','archive.sub':'تصفّح الوثائق والمعلومات مرتّبةً حسب العصور التاريخية',
+    'era.ancient.name':'العصور القديمة','era.ancient.range':'3500 ق.م — 476 م',
+    'era.medieval.name':'العصر الوسيط','era.medieval.range':'476 م — 1453 م',
+    'era.modern.name':'العصر الحديث','era.modern.range':'1453 م — 1945 م',
+    'era.contemporary.name':'العصر المعاصر','era.contemporary.range':'1945 م — الآن',
+    'posts.title':'المنشورات','posts.sub':'شارك أفكارك وأبحاثك مع مجتمع المهتمين',
+    'posts.compose.placeholder':'شارك فكرة أو بحثاً أو سؤالاً...','posts.compose.submit':'نشر',
+    'posts.pinned':'مثبّت','posts.trending':'الأكثر نقاشاً','posts.activeUsers':'أكثر المساهمين',
+    'yt.title':'الفيديوهات التوثيقية','yt.sub':'محتوى مرئي منتقى حول التاريخ والجغرافيا',
+    'yt.cat.ancient':'العصور القديمة','yt.cat.medieval':'العصر الوسيط','yt.cat.geo':'الجغرافيا',
+    'yt.cat.islamic':'التاريخ الإسلامي','yt.cat.modern':'العصر الحديث',
+    'yt.v1.title':'أسرار الأهرامات','yt.v2.title':'طريق الحرير — جسر الحضارات',
+    'yt.v3.title':'خرائط غيّرت العالم','yt.v4.title':'الأندلس — ثمانية قرون',
+    'yt.v5.title':'العصر الجليدي وتشكّل القارات','yt.v6.title':'الحروب العالمية في خرائط',
+    'yt.close':'إغلاق',
+    'about.title':'من نحن','about.intro':'كرونوس هو منصة رقمية متخصصة في التاريخ والجغرافيا، تسعى إلى جعل المعرفة التاريخية في متناول الجميع.',
+    'about.v1.title':'أرشيف شامل','about.v2.title':'جغرافيا تفاعلية','about.v3.title':'مجتمع باحثين','about.v4.title':'تعليم ممتع',
+    'about.quote':'"من لا يعرف تاريخه محكومٌ عليه بتكراره — ومن لا يعرف جغرافيته محكومٌ عليه بالضياع."',
+    'about.stat1':'وثيقة ومقال في الأرشيف','about.stat2':'عضو مسجّل','about.stat3':'فيديو توثيقي','about.stat4':'لغات مدعومة',
+    'auth.welcome':'مرحباً بك','auth.sub':'سجّل دخولك أو أنشئ حساباً جديداً',
+    'auth.login':'دخول','auth.register':'حساب جديد',
+    'auth.email':'البريد الإلكتروني','auth.password':'كلمة المرور','auth.name':'الاسم الكامل',
+    'auth.loginBtn':'تسجيل الدخول','auth.registerBtn':'إنشاء الحساب',
+  },
+  en: {
+    'nav.tagline':'History & Geography','nav.home':'Home','nav.archive':'Archive',
+    'nav.posts':'Posts','nav.youtube':'Videos','nav.about':'About','nav.login':'Login',
+    'ticker.label':'News',
+    'home.ornament':'HISTORIA · GEOGRAPHIA · MEMORIA',
+    'home.title':'Through <span class="gold">Time</span><br>and Space',
+    'home.sub':'A platform dedicated to History & Geography — structured archive across eras, interactive posts, and documentary videos.',
+    'home.btn1':'Explore Archive','home.btn2':'Community Posts',
+    'home.card1.tag':'Ancient Eras','home.card1.title':'Pre-Christian Civilizations','home.card1.desc':'Pharaonic Egypt, Mesopotamia, Greece and Rome — documents, maps and analyses.',
+    'home.card2.tag':'Islamic Era','home.card2.title':'The Caliphate & Sciences','home.card2.desc':'The golden age of Islamic civilization — science, philosophy, geography and astronomy.',
+    'home.card3.tag':'Videos','home.card3.title':'Visual Documentation','home.card3.desc':'Curated educational and documentary videos on history and geography.',
+    'home.card4.tag':'Community','home.card4.title':'Posts & Discussions','home.card4.desc':'Share your research and ideas with a community of history and geography enthusiasts.',
+    'footer.rights':'All rights reserved','footer.about':'About',
+    'archive.title':'Archive — Historical Office','archive.sub':'Browse documents and information organized by historical eras',
+    'era.ancient.name':'Ancient Eras','era.ancient.range':'3500 BC — 476 AD',
+    'era.medieval.name':'Middle Ages','era.medieval.range':'476 AD — 1453 AD',
+    'era.modern.name':'Modern Era','era.modern.range':'1453 AD — 1945 AD',
+    'era.contemporary.name':'Contemporary Era','era.contemporary.range':'1945 AD — Present',
+    'posts.title':'Posts','posts.sub':'Share your ideas and research with the community',
+    'posts.compose.placeholder':'Share an idea, research or question...','posts.compose.submit':'Post',
+    'posts.pinned':'Pinned','posts.trending':'Trending','posts.activeUsers':'Top Contributors',
+    'yt.title':'Documentary Videos','yt.sub':'Curated visual content on history and geography',
+    'yt.cat.ancient':'Ancient Eras','yt.cat.medieval':'Middle Ages','yt.cat.geo':'Geography',
+    'yt.cat.islamic':'Islamic History','yt.cat.modern':'Modern Era',
+    'yt.v1.title':'Secrets of the Pyramids','yt.v2.title':'The Silk Road — Bridge of Civilizations',
+    'yt.v3.title':'Maps that Changed the World','yt.v4.title':'Al-Andalus — Eight Centuries',
+    'yt.v5.title':'Ice Age & Continental Formation','yt.v6.title':'World Wars in Maps',
+    'yt.close':'Close',
+    'about.title':'About Us','about.intro':'Kronos is a digital platform specialized in History & Geography, making historical knowledge accessible to everyone.',
+    'about.v1.title':'Comprehensive Archive','about.v2.title':'Interactive Geography','about.v3.title':'Research Community','about.v4.title':'Fun Learning',
+    'about.quote':'"Those who cannot remember the past are condemned to repeat it. Those who do not know their geography are condemned to wander."',
+    'about.stat1':'documents in archive','about.stat2':'registered members','about.stat3':'documentary videos','about.stat4':'supported languages',
+    'auth.welcome':'Welcome','auth.sub':'Sign in or create a new account',
+    'auth.login':'Login','auth.register':'Register',
+    'auth.email':'Email','auth.password':'Password','auth.name':'Full Name',
+    'auth.loginBtn':'Sign In','auth.registerBtn':'Create Account',
+  },
+  fr: {
+    'nav.tagline':'Histoire & Géographie','nav.home':'Accueil','nav.archive':'Archive',
+    'nav.posts':'Publications','nav.youtube':'Vidéos','nav.about':'À propos','nav.login':'Connexion',
+    'ticker.label':'Actualités',
+    'home.ornament':'HISTORIA · GEOGRAPHIA · MEMORIA',
+    'home.title':'À travers <span class="gold">le Temps</span><br>et l\'Espace',
+    'home.sub':'Une plateforme dédiée à l\'Histoire et la Géographie — archives structurées, publications interactives et vidéos documentaires.',
+    'home.btn1':'Explorer l\'Archive','home.btn2':'Publications',
+    'home.card1.tag':'Ères Anciennes','home.card1.title':'Civilisations antiques','home.card1.desc':'Égypte pharaonique, Mésopotamie, Grèce et Rome — documents, cartes et analyses.',
+    'home.card2.tag':'Ère Islamique','home.card2.title':'Le Califat & les Sciences','home.card2.desc':'L\'âge d\'or de la civilisation islamique — science, philosophie, géographie.',
+    'home.card3.tag':'Vidéos','home.card3.title':'Documentation Visuelle','home.card3.desc':'Vidéos éducatives et documentaires sélectionnées sur l\'histoire et la géographie.',
+    'home.card4.tag':'Communauté','home.card4.title':'Publications & Discussions','home.card4.desc':'Partagez vos recherches et idées avec une communauté passionnée.',
+    'footer.rights':'Tous droits réservés','footer.about':'À propos',
+    'archive.title':'Archive — Bureau Historique','archive.sub':'Parcourez les documents organisés par ères historiques',
+    'era.ancient.name':'Ères Anciennes','era.ancient.range':'3500 av. J.-C. — 476 ap. J.-C.',
+    'era.medieval.name':'Moyen Âge','era.medieval.range':'476 — 1453',
+    'era.modern.name':'Ère Moderne','era.modern.range':'1453 — 1945',
+    'era.contemporary.name':'Ère Contemporaine','era.contemporary.range':'1945 — Présent',
+    'posts.title':'Publications','posts.sub':'Partagez vos idées et recherches',
+    'posts.compose.placeholder':'Partagez une idée, une recherche...','posts.compose.submit':'Publier',
+    'posts.pinned':'Épinglé','posts.trending':'Tendances','posts.activeUsers':'Top Contributeurs',
+    'yt.title':'Vidéos Documentaires','yt.sub':'Contenu visuel sélectionné sur l\'histoire et la géographie',
+    'yt.cat.ancient':'Ères Anciennes','yt.cat.medieval':'Moyen Âge','yt.cat.geo':'Géographie',
+    'yt.cat.islamic':'Histoire Islamique','yt.cat.modern':'Ère Moderne',
+    'yt.v1.title':'Secrets des Pyramides','yt.v2.title':'La Route de la Soie',
+    'yt.v3.title':'Cartes qui ont changé le monde','yt.v4.title':'Al-Andalus — Huit Siècles',
+    'yt.v5.title':'Ère Glaciaire & Formation des Continents','yt.v6.title':'Guerres Mondiales en Cartes',
+    'yt.close':'Fermer',
+    'about.title':'À propos','about.intro':'Kronos est une plateforme numérique spécialisée en Histoire et Géographie, rendant le savoir historique accessible à tous.',
+    'about.v1.title':'Archive Complète','about.v2.title':'Géographie Interactive','about.v3.title':'Communauté de Chercheurs','about.v4.title':'Apprentissage Ludique',
+    'about.quote':'"Ceux qui oublient leur histoire sont condamnés à la revivre. Ceux qui ignorent leur géographie sont condamnés à se perdre."',
+    'about.stat1':'documents dans l\'archive','about.stat2':'membres inscrits','about.stat3':'vidéos documentaires','about.stat4':'langues supportées',
+    'auth.welcome':'Bienvenue','auth.sub':'Connectez-vous ou créez un nouveau compte',
+    'auth.login':'Connexion','auth.register':'S\'inscrire',
+    'auth.email':'Email','auth.password':'Mot de passe','auth.name':'Nom complet',
+    'auth.loginBtn':'Se connecter','auth.registerBtn':'Créer un compte',
+  },
+  es: {
+    'nav.tagline':'Historia y Geografía','nav.home':'Inicio','nav.archive':'Archivo',
+    'nav.posts':'Publicaciones','nav.youtube':'Videos','nav.about':'Acerca de','nav.login':'Entrar',
+    'ticker.label':'Noticias',
+    'home.ornament':'HISTORIA · GEOGRAPHIA · MEMORIA',
+    'home.title':'A través del <span class="gold">Tiempo</span><br>y el Espacio',
+    'home.sub':'Una plataforma dedicada a la Historia y Geografía — archivo estructurado, publicaciones interactivas y videos documentales.',
+    'home.btn1':'Explorar Archivo','home.btn2':'Publicaciones',
+    'home.card1.tag':'Eras Antiguas','home.card1.title':'Civilizaciones Antiguas','home.card1.desc':'Egipto faraónico, Mesopotamia, Grecia y Roma — documentos, mapas y análisis.',
+    'home.card2.tag':'Era Islámica','home.card2.title':'El Califato y las Ciencias','home.card2.desc':'La edad de oro de la civilización islámica — ciencia, filosofía, geografía.',
+    'home.card3.tag':'Videos','home.card3.title':'Documentación Visual','home.card3.desc':'Videos educativos y documentales seleccionados sobre historia y geografía.',
+    'home.card4.tag':'Comunidad','home.card4.title':'Publicaciones y Debates','home.card4.desc':'Comparte tu investigación e ideas con la comunidad.',
+    'footer.rights':'Todos los derechos reservados','footer.about':'Acerca de',
+    'archive.title':'Archivo — Oficina Histórica','archive.sub':'Explora documentos organizados por eras históricas',
+    'era.ancient.name':'Eras Antiguas','era.ancient.range':'3500 a.C. — 476 d.C.',
+    'era.medieval.name':'Edad Media','era.medieval.range':'476 — 1453',
+    'era.modern.name':'Era Moderna','era.modern.range':'1453 — 1945',
+    'era.contemporary.name':'Era Contemporánea','era.contemporary.range':'1945 — Presente',
+    'posts.title':'Publicaciones','posts.sub':'Comparte tus ideas e investigaciones',
+    'posts.compose.placeholder':'Comparte una idea, investigación...','posts.compose.submit':'Publicar',
+    'posts.pinned':'Fijado','posts.trending':'Tendencias','posts.activeUsers':'Top Contribuidores',
+    'yt.title':'Videos Documentales','yt.sub':'Contenido visual seleccionado sobre historia y geografía',
+    'yt.cat.ancient':'Eras Antiguas','yt.cat.medieval':'Edad Media','yt.cat.geo':'Geografía',
+    'yt.cat.islamic':'Historia Islámica','yt.cat.modern':'Era Moderna',
+    'yt.v1.title':'Secretos de las Pirámides','yt.v2.title':'La Ruta de la Seda',
+    'yt.v3.title':'Mapas que cambiaron el mundo','yt.v4.title':'Al-Ándalus — Ocho Siglos',
+    'yt.v5.title':'Era Glacial y Formación de Continentes','yt.v6.title':'Guerras Mundiales en Mapas',
+    'yt.close':'Cerrar',
+    'about.title':'Acerca de','about.intro':'Kronos es una plataforma digital especializada en Historia y Geografía, haciendo el conocimiento histórico accesible para todos.',
+    'about.v1.title':'Archivo Completo','about.v2.title':'Geografía Interactiva','about.v3.title':'Comunidad de Investigadores','about.v4.title':'Aprendizaje Divertido',
+    'about.quote':'"Los que no conocen su historia están condenados a repetirla. Los que no conocen su geografía están condenados a perderse."',
+    'about.stat1':'documentos en el archivo','about.stat2':'miembros registrados','about.stat3':'videos documentales','about.stat4':'idiomas admitidos',
+    'auth.welcome':'Bienvenido','auth.sub':'Inicia sesión o crea una nueva cuenta',
+    'auth.login':'Iniciar sesión','auth.register':'Registrarse',
+    'auth.email':'Correo electrónico','auth.password':'Contraseña','auth.name':'Nombre completo',
+    'auth.loginBtn':'Iniciar sesión','auth.registerBtn':'Crear cuenta',
+  }
+};
+
+let currentLang = 'ar';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const t = T[lang] || T.ar;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (t[key] !== undefined) el.placeholder = t[key];
+  });
+}
+
+// ─── NAVIGATION ────────────────────────────────────────────────────────────
+function showRoom(id) {
+  document.querySelectorAll('.room').forEach(r => r.classList.remove('active'));
+  document.getElementById('room-' + id).classList.add('active');
+  document.querySelectorAll('[data-nav]').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('data-nav') === id);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  return false;
+}
+
+// ─── ARCHIVE ───────────────────────────────────────────────────────────────
+const ERAS = {
+  ancient: {
+    name: 'العصور القديمة', range: '3500 ق.م — 476 م',
+    branches: ['🔱 مصر القديمة','🌊 بلاد الرافدين','🏛 اليونان','🦅 روما','🗺️ جغرافيا قديمة','📜 فلسفة','⚗️ علوم'],
+    powers: [
+      { rank:1, flag:'🦅', name:'الإمبراطورية الرومانية', period:'27 ق.م — 476 م', area:'5,000,000 كم²', gdp:'~21 مليار $', continents:['أوروبا','أفريقيا','آسيا'], desc:'أعظم إمبراطوريات العالم القديم، بسطت سيطرتها على البحر المتوسط كاملاً وغيّرت مسار الحضارة الغربية.' },
+      { rank:2, flag:'🔱', name:'مصر الفرعونية', period:'3100 — 30 ق.م', area:'1,000,000 كم²', gdp:'~18 مليار $', continents:['أفريقيا','آسيا'], desc:'حضارة وادي النيل الخالدة، بنت الأهرامات وطوّرت الكتابة والفلك والطب لأكثر من ثلاثة آلاف سنة.' },
+      { rank:3, flag:'⚔️', name:'الإمبراطورية الفارسية الأخمينية', period:'550 — 330 ق.م', area:'5,500,000 كم²', gdp:'~20 مليار $', continents:['آسيا','أفريقيا','أوروبا'], desc:'أول إمبراطورية عالمية حقيقية، امتدت من مصر حتى الهند وأسّست نظام البريد والحكم المركزي.' },
+      { rank:4, flag:'🏛', name:'الإمبراطورية المقدونية', period:'336 — 323 ق.م', area:'5,200,000 كم²', gdp:'~19 مليار $', continents:['أوروبا','آسيا','أفريقيا'], desc:'إمبراطورية الإسكندر الأكبر التي غيّرت خريطة العالم في اثنتي عشر سنة فقط.' },
+      { rank:5, flag:'🌊', name:'بابل — الدولة النيوبابلية', period:'626 — 539 ق.م', area:'900,000 كم²', gdp:'~10 مليار $', continents:['آسيا'], desc:'مهد القوانين والفلك وحدائق بابل المعلقة، وريثة حضارة سومر وأكاد.' },
+      { rank:6, flag:'🐘', name:'الإمبراطورية الموريانية', period:'322 — 185 ق.م', area:'5,000,000 كم²', gdp:'~35 مليار $', continents:['آسيا'], desc:'أعظم إمبراطوريات شبه القارة الهندية، وحّدت الهند لأول مرة تحت أشوكا الذي نشر البوذية.' },
+      { rank:7, flag:'🐉', name:'إمبراطورية هان الصينية', period:'206 ق.م — 220 م', area:'6,000,000 كم²', gdp:'~26 مليار $', continents:['آسيا'], desc:'أرست دعائم الحضارة الصينية وفتحت طريق الحرير مع الغرب.' },
+      { rank:8, flag:'⛵', name:'قرطاج', period:'814 — 146 ق.م', area:'750,000 كم²', gdp:'~9 مليار $', continents:['أفريقيا','أوروبا'], desc:'قوة بحرية فينيقية هيمنت على غرب البحر المتوسط وتحدّت روما في الحروب البونيقية.' },
+      { rank:9, flag:'🏹', name:'الإمبراطورية الآشورية', period:'911 — 609 ق.م', area:'1,400,000 كم²', gdp:'~8 مليار $', continents:['آسيا','أفريقيا'], desc:'أول قوة عسكرية منظّمة في التاريخ، استخدمت الحديد والاستخبارات ونشرت الرعب لبسط هيمنتها.' },
+      { rank:10, flag:'🌿', name:'الإمبراطورية السلوقية', period:'312 — 63 ق.م', area:'3,000,000 كم²', gdp:'~14 مليار $', continents:['آسيا','أفريقيا'], desc:'وريثة إمبراطورية الإسكندر في آسيا، نشرت الثقافة الهيلينستية من سوريا حتى بكتريا.' },
+    ],
+    golden: [
+      { rank:1, flag:'🏛', name:'اليونان الكلاسيكية', period:'500 — 323 ق.م', area:'300,000 كم²', gdp:'~4 مليار $', continents:['أوروبا'], desc:'مهد الديمقراطية والفلسفة — أفلاطون وأرسطو وسقراط.' },
+      { rank:2, flag:'🌴', name:'مملكة كوش', period:'1070 ق.م — 350 م', area:'1,000,000 كم²', gdp:'~5 مليار $', continents:['أفريقيا'], desc:'حضارة أفريقية راقية أنشأت أهراماً وأبجدية خاصة وحكمت مصر.' },
+      { rank:3, flag:'🔥', name:'الساسانيون', period:'224 — 651 م', area:'3,500,000 كم²', gdp:'~16 مليار $', continents:['آسيا'], desc:'آخر الإمبراطوريات الفارسية العظيمة ومنافس روما وبيزنطة.' },
+    ]
+  },
+  early_medieval: {
+    name: 'العصور الوسطى المبكرة', range: '476 م — 900 م',
+    branches: ['☪️ الخلافة','⚜️ بيزنطة','📚 علوم إسلامية','🕌 عمارة','🗺️ جغرافيا','📖 تاريخ','💰 تجارة'],
+    powers: [
+      { rank:1, flag:'☪️', name:'الخلافة الأموية', period:'661 — 750 م', area:'11,100,000 كم²', gdp:'~14 مليار $', continents:['آسيا','أفريقيا','أوروبا'], desc:'أوسع دولة إسلامية امتداداً، من الصين حتى إسبانيا في أقل من قرن.' },
+      { rank:2, flag:'⚜️', name:'الإمبراطورية البيزنطية', period:'330 — 1453 م', area:'3,500,000 كم²', gdp:'~18 مليار $', continents:['أوروبا','آسيا','أفريقيا'], desc:'وريثة روما في الشرق، حافظت على الحضارة الكلاسيكية ألف سنة.' },
+      { rank:3, flag:'👑', name:'إمبراطورية الفرنجة', period:'768 — 814 م', area:'1,112,000 كم²', gdp:'~8 مليار $', continents:['أوروبا'], desc:'وحّدت أوروبا الغربية لأول مرة منذ روما تحت شارلمان.' },
+      { rank:4, flag:'☪️', name:'الخلافة العباسية', period:'750 — 1258 م', area:'7,500,000 كم²', gdp:'~22 مليار $', continents:['آسيا','أفريقيا'], desc:'العصر الذهبي الإسلامي — بغداد عاصمة العالم وبيت الحكمة.' },
+      { rank:5, flag:'🐉', name:'سلالة تانغ الصينية', period:'618 — 907 م', area:'5,400,000 كم²', gdp:'~32 مليار $', continents:['آسيا'], desc:'أزهى عصور الصين ثقافياً واقتصادياً.' },
+      { rank:6, flag:'⚡', name:'إمبراطورية غانا', period:'700 — 1076 م', area:'400,000 كم²', gdp:'~5 مليار $', continents:['أفريقيا'], desc:'أقدم إمبراطوريات غرب أفريقيا، سيطرت على تجارة الذهب والملح.' },
+      { rank:7, flag:'🌊', name:'إمبراطورية سريفيجايا', period:'650 — 1025 م', area:'3,000,000 كم²', gdp:'~10 مليار $', continents:['آسيا'], desc:'قوة بحرية جنوب شرق آسيا تحكّمت في مضيق ملقا.' },
+      { rank:8, flag:'🏔', name:'الإمبراطورية التبتية', period:'618 — 842 م', area:'4,600,000 كم²', gdp:'~4 مليار $', continents:['آسيا'], desc:'قوة جبلية وسّعت نفوذها حتى الصين والهند ووسط آسيا.' },
+      { rank:9, flag:'🛡', name:'مملكة الخزر', period:'650 — 965 م', area:'800,000 كم²', gdp:'~6 مليار $', continents:['أوروبا','آسيا'], desc:'درع أوروبا الشرقية ضد الزحف العربي، تبنّت اليهودية ديناً رسمياً.' },
+      { rank:10, flag:'⚓', name:'الفايكنغ / النورمان', period:'793 — 1066 م', area:'~2,000,000 كم²', gdp:'~5 مليار $', continents:['أوروبا','أمريكا الشمالية'], desc:'أول الأوروبيين الذين وصلوا أمريكا وسيطروا على شمال أوروبا.' },
+    ],
+    golden: [
+      { rank:1, flag:'☪️', name:'بغداد العباسية', period:'750 — 950 م', area:'7,500,000 كم²', gdp:'~22 مليار $', continents:['آسيا','أفريقيا'], desc:'أوج الحضارة الإسلامية — كيمياء وفلك ورياضيات وطب.' },
+      { rank:2, flag:'🐉', name:'الصين تانغ — الازدهار', period:'618 — 755 م', area:'5,400,000 كم²', gdp:'~32 مليار $', continents:['آسيا'], desc:'أعظم فترات الحضارة الصينية شعراً وفناً وتجارةً.' },
+    ]
+  },
+  high_medieval: {
+    name: 'العصور الوسطى المتأخرة', range: '900 م — 1453 م',
+    branches: ['🐎 المغول','🌹 الأندلس','⚔️ الحروب الصليبية','🌍 أفريقيا','🐉 الصين','🗺️ جغرافيا','💫 فلسفة'],
+    powers: [
+      { rank:1, flag:'🐎', name:'الإمبراطورية المغولية', period:'1206 — 1368 م', area:'24,000,000 كم²', gdp:'~11 مليار $', continents:['آسيا','أوروبا'], desc:'أكبر إمبراطورية برية في التاريخ، وحّدت آسيا وفتحت طرق التجارة.' },
+      { rank:2, flag:'🌙', name:'الإمبراطورية العثمانية (النشأة)', period:'1299 — 1453 م', area:'2,000,000 كم²', gdp:'~12 مليار $', continents:['آسيا','أوروبا'], desc:'نشأت من إمارة صغيرة وبلغت ذروتها بفتح القسطنطينية 1453.' },
+      { rank:3, flag:'🐉', name:'سلالة سونغ الصينية', period:'960 — 1279 م', area:'3,100,000 كم²', gdp:'~50 مليار $', continents:['آسيا'], desc:'الأكثر ابتكاراً — الورق النقدي والبوصلة والطباعة والبارود.' },
+      { rank:4, flag:'🌹', name:'الخلافة الفاطمية', period:'909 — 1171 م', area:'4,100,000 كم²', gdp:'~18 مليار $', continents:['أفريقيا','آسيا'], desc:'القاهرة مركزاً للعلم والتجارة والحضارة الشيعية.' },
+      { rank:5, flag:'🦁', name:'إمبراطورية مالي', period:'1235 — 1600 م', area:'1,200,000 كم²', gdp:'~25 مليار $', continents:['أفريقيا'], desc:'أغنى إمبراطورية في العالم آنذاك بفضل ذهب مانسا موسى.' },
+      { rank:6, flag:'⚜️', name:'مملكة فرنسا الكابيتية', period:'987 — 1328 م', area:'500,000 كم²', gdp:'~8 مليار $', continents:['أوروبا'], desc:'أرست الإقطاع الأوروبي وأنشأت جامعة باريس وقادت الحروب الصليبية.' },
+      { rank:7, flag:'👑', name:'مملكة إنجلترا النورمانية', period:'1066 — 1400 م', area:'400,000 كم²', gdp:'~7 مليار $', continents:['أوروبا'], desc:'أسّست الماغنا كارتا والبرلمان الأول في التاريخ.' },
+      { rank:8, flag:'🌙', name:'سلطنة دلهي', period:'1206 — 1526 م', area:'3,200,000 كم²', gdp:'~20 مليار $', continents:['آسيا'], desc:'أول قوة إسلامية حاكمة في شبه القارة الهندية.' },
+      { rank:9, flag:'🏰', name:'البيزنطيون (الأواخر)', period:'1261 — 1453 م', area:'300,000 كم²', gdp:'~4 مليار $', continents:['أوروبا','آسيا'], desc:'مرحلة الأفول حتى سقوط القسطنطينية الكبير.' },
+      { rank:10, flag:'🌊', name:'جمهورية البندقية', period:'697 — 1797 م', area:'180,000 كم²', gdp:'~15 مليار $', continents:['أوروبا','آسيا','أفريقيا'], desc:'قوة تجارية بحرية هيمنت على تجارة المتوسط والطريق إلى الشرق.' },
+    ],
+    golden: [
+      { rank:1, flag:'🌹', name:'الأندلس — قرطبة', period:'929 — 1031 م', area:'500,000 كم²', gdp:'~8 مليار $', continents:['أوروبا'], desc:'أكثر مدن العالم تحضراً في القرن العاشر — ابن رشد وابن حزم.' },
+      { rank:2, flag:'🐉', name:'سونغ الصين — القمة', period:'960 — 1127 م', area:'3,100,000 كم²', gdp:'~50 مليار $', continents:['آسيا'], desc:'أول اقتصاد ورق نقدي وأكثر المجتمعات تحضراً.' },
+      { rank:3, flag:'🦁', name:'مانسا موسى — إمبراطورية مالي', period:'1312 — 1337 م', area:'1,200,000 كم²', gdp:'~25 مليار $', continents:['أفريقيا'], desc:'أغنى إنسان في التاريخ — حجّه أغرق مصر بالذهب.' },
+    ]
+  },
+  early_modern: {
+    name: 'العصر الحديث المبكر', range: '1453 م — 1789 م',
+    branches: ['⛵ اكتشافات','🕌 العثمانيون','🌺 الصفويون','🏴 الاستعمار','🗺️ خرائط','🔬 نهضة','💰 تجارة'],
+    powers: [
+      { rank:1, flag:'🌙', name:'الإمبراطورية العثمانية', period:'1453 — 1683 م', area:'5,200,000 كم²', gdp:'~26 مليار $', continents:['آسيا','أوروبا','أفريقيا'], desc:'ورثة القسطنطينية وحُماة الحرمين، من الجزائر حتى بلاد فارس.' },
+      { rank:2, flag:'👑', name:'إمبراطورية إسبانيا', period:'1492 — 1700 م', area:'13,000,000 كم²', gdp:'~30 مليار $', continents:['أوروبا','أمريكا الجنوبية','أمريكا الشمالية','آسيا'], desc:'أول إمبراطورية كونية حقيقية سيطرت على نصف العالم الجديد.' },
+      { rank:3, flag:'🌺', name:'الإمبراطورية الصفوية', period:'1501 — 1736 م', area:'2,800,000 كم²', gdp:'~17 مليار $', continents:['آسيا'], desc:'أسّست إيران الشيعية الحديثة وأوجدت الفن الفارسي في ذروته.' },
+      { rank:4, flag:'🌸', name:'إمبراطورية المغول الهند', period:'1526 — 1707 م', area:'4,000,000 كم²', gdp:'~90 مليار $', continents:['آسيا'], desc:'أغنى إمبراطوريات عصرها — تاج محل وربع الناتج العالمي.' },
+      { rank:5, flag:'⚓', name:'البرتغال الاستعمارية', period:'1415 — 1580 م', area:'10,400,000 كم²', gdp:'~22 مليار $', continents:['أوروبا','أفريقيا','آسيا','أمريكا الجنوبية'], desc:'أول قوة استعمارية بحرية كونية — فتحت طريق رأس الرجاء الصالح.' },
+      { rank:6, flag:'🚢', name:'هولندا الجمهورية', period:'1581 — 1795 م', area:'2,000,000 كم²', gdp:'~18 مليار $', continents:['أوروبا','آسيا','أمريكا'], desc:'ابتكرت الرأسمالية والبورصة وشركة الهند الشرقية.' },
+      { rank:7, flag:'👑', name:'فرنسا — لويس الرابع عشر', period:'1643 — 1715 م', area:'2,000,000 كم²', gdp:'~28 مليار $', continents:['أوروبا','أمريكا الشمالية'], desc:'مركز أوروبا الثقافي — فرساي والدبلوماسية الحديثة.' },
+      { rank:8, flag:'🏴', name:'بريطانيا المبكرة', period:'1600 — 1789 م', area:'~5,000,000 كم²', gdp:'~20 مليار $', continents:['أوروبا','أمريكا الشمالية','آسيا'], desc:'بدأت سيطرتها البحرية ومهّدت لأكبر إمبراطورية في التاريخ.' },
+      { rank:9, flag:'🐻', name:'روسيا القيصرية', period:'1547 — 1789 م', area:'14,000,000 كم²', gdp:'~10 مليار $', continents:['أوروبا','آسيا'], desc:'توسّعت شرقاً حتى المحيط الهادئ في أقل من قرن.' },
+      { rank:10, flag:'🐉', name:'سلالة مينغ الصينية', period:'1368 — 1644 م', area:'6,500,000 كم²', gdp:'~61 مليار $', continents:['آسيا'], desc:'بنت سور الصين وأرسلت أساطيل تشينغ خه إلى أفريقيا.' },
+    ],
+    golden: [
+      { rank:1, flag:'🌸', name:'مغول الهند — ذروة العظمة', period:'1556 — 1707 م', area:'4,000,000 كم²', gdp:'~90 مليار $', continents:['آسيا'], desc:'ربع الناتج الاقتصادي العالمي في عهد أكبر وشاه جهان.' },
+      { rank:2, flag:'🚢', name:'هولندا — القرن الذهبي', period:'1588 — 1672 م', area:'2,000,000 كم²', gdp:'~18 مليار $', continents:['أوروبا','آسيا','أمريكا'], desc:'أكثر الدول ثراءً وابتكاراً في القرن السابع عشر نسبةً لحجمها.' },
+    ]
+  },
+  modern: {
+    name: 'العصر الحديث', range: '1789 م — 1945 م',
+    branches: ['🏭 ثورة صناعية','⚔️ حروب عالمية','🕊️ استقلالات','🌍 استعمار','🗺️ جغرافيا','📰 تاريخ سياسي','🔬 علوم'],
+    powers: [
+      { rank:1, flag:'🏴', name:'الإمبراطورية البريطانية', period:'1815 — 1945 م', area:'35,500,000 كم²', gdp:'~125 مليار $', continents:['أوروبا','آسيا','أفريقيا','أمريكا الشمالية','أوقيانوسيا'], desc:'أكبر إمبراطورية في تاريخ البشرية — ربع مساحة الأرض تحت تاجها.' },
+      { rank:2, flag:'🇫🇷', name:'فرنسا الاستعمارية', period:'1789 — 1945 م', area:'13,500,000 كم²', gdp:'~60 مليار $', continents:['أوروبا','أفريقيا','آسيا','أمريكا'], desc:'ثاني أكبر إمبراطورية استعمارية ورسّخت الثقافة الفرنسية عالمياً.' },
+      { rank:3, flag:'🇩🇪', name:'الإمبراطورية الألمانية', period:'1871 — 1918 م', area:'3,700,000 كم²', gdp:'~55 مليار $', continents:['أوروبا','أفريقيا'], desc:'ثورة صناعية وعلمية في قلب أوروبا أشعلت الحروب العالمية.' },
+      { rank:4, flag:'🇷🇺', name:'الإمبراطورية الروسية', period:'1721 — 1917 م', area:'23,700,000 كم²', gdp:'~40 مليار $', continents:['أوروبا','آسيا'], desc:'أكبر دولة في العالم مساحةً من بولندا حتى المحيط الهادئ.' },
+      { rank:5, flag:'🇺🇸', name:'الولايات المتحدة', period:'1865 — 1945 م', area:'9,800,000 كم²', gdp:'~200 مليار $', continents:['أمريكا الشمالية'], desc:'صعدت لتصبح أكبر اقتصاد في العالم بحلول 1890.' },
+      { rank:6, flag:'🌙', name:'الإمبراطورية العثمانية (الأفول)', period:'1789 — 1922 م', area:'3,400,000 كم²', gdp:'~15 مليار $', continents:['آسيا','أوروبا','أفريقيا'], desc:'رجل أوروبا المريض يحاول الإصلاح في مواجهة التفكك.' },
+      { rank:7, flag:'🇯🇵', name:'الإمبراطورية اليابانية', period:'1868 — 1945 م', area:'8,000,000 كم²', gdp:'~30 مليار $', continents:['آسيا','أوقيانوسيا'], desc:'من الإقطاع إلى قوة صناعية وعسكرية في خمسين سنة.' },
+      { rank:8, flag:'🇦🇹', name:'النمسا-المجر', period:'1867 — 1918 م', area:'675,000 كم²', gdp:'~20 مليار $', continents:['أوروبا'], desc:'قلب أوروبا متعدد القوميات الذي انفجر ليوقد الحرب العالمية.' },
+      { rank:9, flag:'🇧🇪', name:'بلجيكا الاستعمارية', period:'1885 — 1945 م', area:'2,900,000 كم²', gdp:'~12 مليار $', continents:['أوروبا','أفريقيا'], desc:'سيطرت على الكونغو بما يساوي 75 ضعف مساحتها.' },
+      { rank:10, flag:'🇮🇹', name:'إيطاليا الفاشية', period:'1922 — 1943 م', area:'3,800,000 كم²', gdp:'~20 مليار $', continents:['أوروبا','أفريقيا'], desc:'سعت لإحياء المجد الروماني عبر التوسع في أفريقيا.' },
+    ],
+    golden: [
+      { rank:1, flag:'🇺🇸', name:'أمريكا — العصر الذهبي', period:'1870 — 1914 م', area:'9,800,000 كم²', gdp:'~200 مليار $', continents:['أمريكا الشمالية'], desc:'أكبر نمو اقتصادي في التاريخ — كارنيغي وروكفلر وأيديسون.' },
+      { rank:2, flag:'🇯🇵', name:'اليابان — ميجي', period:'1868 — 1912 م', area:'8,000,000 كم²', gdp:'~30 مليار $', continents:['آسيا','أوقيانوسيا'], desc:'أسرع تحديث في التاريخ من السامورائي إلى المدمرة الحربية.' },
+    ]
+  },
+  contemporary: {
+    name: 'العصر المعاصر', range: '1945 م — الآن',
+    branches: ['🔻 حرب باردة','🌐 جيوسياسة','📰 تاريخ راهن','👥 جغرافيا بشرية','🌱 بيئة','💻 تكنولوجيا','🕊️ سلام'],
+    powers: [
+      { rank:1, flag:'🇺🇸', name:'الولايات المتحدة', period:'1945 — الآن', area:'9,833,000 كم²', gdp:'~25 تريليون $', continents:['أمريكا الشمالية'], desc:'القوة الأعظم — ناتو والدولار وهوليوود وسيليكون فالي.' },
+      { rank:2, flag:'🇨🇳', name:'الصين الشعبية', period:'1949 — الآن', area:'9,597,000 كم²', gdp:'~18 تريليون $', continents:['آسيا'], desc:'أسرع صعود اقتصادي في التاريخ — المصنع الأول للعالم.' },
+      { rank:3, flag:'🇷🇺', name:'روسيا الاتحادية', period:'1991 — الآن', area:'17,098,000 كم²', gdp:'~2 تريليون $', continents:['أوروبا','آسيا'], desc:'أكبر دولة في العالم وترسانة نووية وريثة الاتحاد السوفيتي.' },
+      { rank:4, flag:'🇩🇪', name:'ألمانيا الاتحادية', period:'1990 — الآن', area:'357,000 كم²', gdp:'~4 تريليون $', continents:['أوروبا'], desc:'قاطرة الاقتصاد الأوروبي ومحرك التكامل الأوروبي.' },
+      { rank:5, flag:'🇯🇵', name:'اليابان', period:'1945 — الآن', area:'378,000 كم²', gdp:'~4.2 تريليون $', continents:['آسيا'], desc:'معجزة ما بعد الحرب — ثالث اقتصادات العالم وقوة تكنولوجية.' },
+      { rank:6, flag:'🇬🇧', name:'المملكة المتحدة', period:'1945 — الآن', area:'243,000 كم²', gdp:'~3 تريليون $', continents:['أوروبا'], desc:'عضو دائم في مجلس الأمن ومحور المال والإعلام العالمي.' },
+      { rank:7, flag:'🇫🇷', name:'فرنسا', period:'1945 — الآن', area:'643,000 كم²', gdp:'~2.9 تريليون $', continents:['أوروبا','أفريقيا','أمريكا'], desc:'عضو دائم في مجلس الأمن وأكبر حضور عسكري في أفريقيا.' },
+      { rank:8, flag:'🇮🇳', name:'الهند', period:'1947 — الآن', area:'3,287,000 كم²', gdp:'~3.7 تريليون $', continents:['آسيا'], desc:'أكثر الدول سكاناً ومن أسرعها نمواً اقتصادياً.' },
+      { rank:9, flag:'🇸🇦', name:'المملكة العربية السعودية', period:'1945 — الآن', area:'2,150,000 كم²', gdp:'~1 تريليون $', continents:['آسيا'], desc:'أكبر مصدر نفطي ومحرك اقتصاد الخليج والعالم الإسلامي.' },
+      { rank:10, flag:'🇧🇷', name:'البرازيل', period:'1945 — الآن', area:'8,516,000 كم²', gdp:'~2.1 تريليون $', continents:['أمريكا الجنوبية'], desc:'أكبر اقتصادات أمريكا اللاتينية وقوة BRICS الصاعدة.' },
+    ],
+    golden: [
+      { rank:1, flag:'🇰🇷', name:'كوريا الجنوبية', period:'1960 — الآن', area:'100,000 كم²', gdp:'~1.7 تريليون $', continents:['آسيا'], desc:'من أفقر دول العالم إلى رابع اقتصادات آسيا في ستين سنة.' },
+      { rank:2, flag:'🇦🇪', name:'الإمارات العربية', period:'1971 — الآن', area:'84,000 كم²', gdp:'~500 مليار $', continents:['آسيا'], desc:'من صحراء إلى مركز عالمي للمال والسياحة والتكنولوجيا.' },
+      { rank:3, flag:'🇸🇬', name:'سنغافورة', period:'1965 — الآن', area:'728 كم²', gdp:'~500 مليار $', continents:['آسيا'], desc:'أغنى دولة نسبةً للفرد — تحوّل من عالم ثالث في جيل واحد.' },
+    ]
+  },
+};
+
+// Sample posts per era
+const ARCHIVE_POSTS = {
+  ancient: [
+    { id:1, author:'د. محمود الحسيني', avatar:'👤', date:'منذ يومين', type:'بحث', branch:'🔱 مصر القديمة', title:'الكتابة الهيروغليفية وتطورها عبر الأسرات', body:'رصد تطور الكتابة الهيروغليفية من الأسرة الأولى حتى اختراع القبطية.', likes:47, comments:12 },
+    { id:2, author:'ليلى بن عمر', avatar:'👤', date:'منذ 3 أيام', type:'مقال', branch:'🏛 اليونان', title:'الديمقراطية الأثينية: هل كانت فعلاً شاملة؟', body:'نقاش أكاديمي حول طبيعة الديمقراطية في أثينا ومن كان يحق له التصويت فعلياً.', likes:63, comments:21 },
+    { id:3, author:'أحمد التونسي', avatar:'👤', date:'منذ أسبوع', type:'سؤال', branch:'🌊 بلاد الرافدين', title:'قانون حمورابي: هل طُبّق فعلاً أم كان رمزياً؟', body:'يطرح بعض المؤرخين أن قانون حمورابي كان ذا طابع ديني إعلاني أكثر من كونه قانوناً مطبّقاً.', likes:38, comments:17 },
+    { id:4, author:'سارة الجزائري', avatar:'👤', date:'منذ أسبوعين', type:'خريطة', branch:'🗺️ جغرافيا قديمة', title:'تطور خرائط البحر المتوسط عند الرومان', body:'تحليل الخرائط الرومانية وكيف تطورت نظرتهم للعالم.', likes:55, comments:9 },
+  ],
+  early_medieval: [
+    { id:5, author:'خالد المراكشي', avatar:'👤', date:'منذ يوم', type:'بحث', branch:'☪️ الخلافة', title:'دور بيت الحكمة في نقل المعرفة اليونانية', body:'مراجعة شاملة لدور المترجمين في بيت الحكمة.', likes:82, comments:28 },
+    { id:6, author:'د. محمود الحسيني', avatar:'👤', date:'منذ 4 أيام', type:'مقال', branch:'⚜️ بيزنطة', title:'البيزنطية: جسر بين روما والإسلام', body:'كيف احتفظت بيزنطة بالهوية الرومانية ثقافياً.', likes:44, comments:15 },
+    { id:7, author:'فاطمة العلوي', avatar:'👤', date:'منذ أسبوع', type:'سؤال', branch:'📚 علوم إسلامية', title:'ابن الهيثم وأصول المنهج العلمي التجريبي', body:'هل يمكن اعتبار ابن الهيثم المؤسس الحقيقي للمنهج العلمي؟', likes:71, comments:33 },
+  ],
+  high_medieval: [
+    { id:8, author:'ليلى بن عمر', avatar:'👤', date:'منذ يومين', type:'بحث', branch:'🌹 الأندلس', title:'التعايش في قرطبة: أسطورة أم حقيقة؟', body:'دراسة نقدية لفترة التعايش الأندلسي بين المسلمين واليهود والمسيحيين.', likes:95, comments:41 },
+    { id:9, author:'أحمد التونسي', avatar:'👤', date:'منذ 5 أيام', type:'خريطة', branch:'🐎 المغول', title:'الإمبراطورية المغولية وتأثيرها على مسارات التجارة', body:'تحليل جغرافي لكيف غيّر المغول طرق التجارة العالمية.', likes:67, comments:22 },
+  ],
+  early_modern: [
+    { id:10, author:'سارة الجزائري', avatar:'👤', date:'منذ 3 أيام', type:'مقال', branch:'⛵ اكتشافات', title:'ما قبل كولومبوس: الفينيقيون والعرب وأمريكا', body:'مراجعة الأدلة التاريخية على وصول رحالة قبل 1492.', likes:113, comments:57 },
+    { id:11, author:'خالد المراكشي', avatar:'👤', date:'منذ أسبوع', type:'بحث', branch:'🕌 العثمانيون', title:'نظام الملة العثماني وإدارة التعددية', body:'كيف نجح العثمانيون في إدارة الشعوب المتعددة لأربعة قرون.', likes:78, comments:29 },
+  ],
+  modern: [
+    { id:12, author:'د. محمود الحسيني', avatar:'👤', date:'منذ يوم', type:'بحث', branch:'⚔️ حروب عالمية', title:'أسباب الحرب العالمية الأولى: ما وراء سراييفو', body:'تحليل الأسباب البنيوية العميقة للحرب.', likes:88, comments:35 },
+    { id:13, author:'فاطمة العلوي', avatar:'👤', date:'منذ 6 أيام', type:'مقال', branch:'🏭 ثورة صناعية', title:'التكاليف الاجتماعية للثورة الصناعية', body:'الثورة الصناعية لم تكن ذهباً خالصاً — دراسة في ظروف العمال.', likes:61, comments:18 },
+    { id:14, author:'ليلى بن عمر', avatar:'👤', date:'منذ أسبوعين', type:'خريطة', branch:'🌍 استعمار', title:'تقسيم أفريقيا: مؤتمر برلين وجروحه', body:'كيف رُسمت الحدود التعسفية التي لا تزال تولّد الصراعات.', likes:104, comments:47 },
+  ],
+  contemporary: [
+    { id:15, author:'أحمد التونسي', avatar:'👤', date:'منذ ساعات', type:'مقال', branch:'🌐 جيوسياسة', title:'صعود الصين وتحدي القطبية الأمريكية', body:'قراءة في الصعود الصيني والتوترات في بحر الصين.', likes:127, comments:63 },
+    { id:16, author:'سارة الجزائري', avatar:'👤', date:'منذ يومين', type:'سؤال', branch:'👥 جغرافيا بشرية', title:'هجرة المناخ: أزمة جيوسياسية كبرى؟', body:'200 مليون مهجّر مناخياً بحلول 2050 — كيف سيؤثر ذلك على خرائط القوى؟', likes:93, comments:44 },
+  ],
+};
+
+let currentEra = null;
+let activeBranch = 'all';
+let sortOrder = 'new';
+
+function openEra(eraId) {
+  currentEra = eraId;
+  activeBranch = 'all';
+  const era = ERAS[eraId];
+  document.getElementById('archiveEraView').style.display = 'none';
+  document.getElementById('archiveInnerView').classList.add('active');
+  document.getElementById('eraInnerTitle').textContent = era.name;
+  document.getElementById('eraInnerRange').textContent = era.range;
+  togglePowersPanel(true);
+  renderPowersGrid('powersGrid', era.powers, false);
+  renderPowersGrid('goldenGrid', era.golden, true);
+  const chips = document.getElementById('branchChips');
+  chips.innerHTML = `<span class="branch-chip active" onclick="filterBranch('all',this)">📋 الكل</span>` +
+    era.branches.map(b => `<span class="branch-chip" onclick="filterBranch('${b}',this)">${b}</span>`).join('');
+  document.getElementById('archiveSearchInput').value = '';
+  renderArchivePosts();
+}
+
+function renderPowersGrid(containerId, list, isGolden) {
+  const el = document.getElementById(containerId);
+  if (!list || !list.length) { el.innerHTML = '<div style="color:var(--text-dimmer);font-size:13px;padding:1rem">لا توجد بيانات</div>'; return; }
+  el.innerHTML = list.map(p => `
+    <div class="power-card ${isGolden ? 'golden-card' : ''}">
+      <div class="power-rank">${p.rank}</div>
+      <div class="power-flag">${p.flag}</div>
+      <div class="power-name">${p.name}</div>
+      <div class="power-period">📅 ${p.period}</div>
+      <div class="power-stats">
+        <div class="pstat"><div class="pstat-label">المساحة</div><div class="pstat-value">${p.area}</div></div>
+        <div class="pstat"><div class="pstat-label">الاقتصاد (تقريبي)</div><div class="pstat-value">${p.gdp}</div></div>
+      </div>
+      <div class="power-continents">${p.continents.map(c=>`<span class="cont-tag">🌍 ${c}</span>`).join('')}</div>
+      <div class="power-desc">${p.desc}</div>
+    </div>`).join('');
+}
+
+function togglePowersPanel(show) {
+  document.getElementById('eraPowersPanel').style.display = show ? 'block' : 'none';
+  document.getElementById('archivePostsPanel').style.display = show ? 'none' : 'block';
+}
+
+function switchPowersTab(tab, el) {
+  document.querySelectorAll('.powers-ptab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('powersListTab').style.display = tab === 'list' ? 'block' : 'none';
+  document.getElementById('powersGoldenTab').style.display = tab === 'golden' ? 'block' : 'none';
+}
+
+function closeEra() {
+  document.getElementById('archiveEraView').style.display = '';
+  document.getElementById('archiveInnerView').classList.remove('active');
+  currentEra = null;
+}
+
+function filterBranch(branch, el) {
+  activeBranch = branch;
+  document.querySelectorAll('.branch-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderArchivePosts();
+}
+
+function setSortOrder(order) {
+  sortOrder = order;
+  document.getElementById('sortNew').classList.toggle('active', order === 'new');
+  document.getElementById('sortPop').classList.toggle('active', order === 'popular');
+  renderArchivePosts();
+}
+
+function filterArchivePosts() { renderArchivePosts(); }
+
+function renderArchivePosts() {
+  const feed = document.getElementById('archivePostsFeed');
+  const query = (document.getElementById('archiveSearchInput').value || '').trim().toLowerCase();
+  let posts = (ARCHIVE_POSTS[currentEra] || []).slice();
+
+  if (activeBranch !== 'all') posts = posts.filter(p => p.branch === activeBranch);
+  if (query) posts = posts.filter(p =>
+    p.title.toLowerCase().includes(query) ||
+    p.body.toLowerCase().includes(query) ||
+    p.type.toLowerCase().includes(query) ||
+    p.branch.toLowerCase().includes(query)
+  );
+  if (sortOrder === 'popular') posts.sort((a,b) => b.likes - a.likes);
+
+  if (!posts.length) {
+    feed.innerHTML = `<div class="archive-post-empty"><div class="empty-icon">🔍</div>لا توجد منشورات تطابق البحث</div>`;
+    return;
+  }
+  feed.innerHTML = posts.map(p => `
+    <div class="archive-post">
+      <div class="archive-post-head">
+        <div class="archive-post-avatar">${p.avatar}</div>
+        <div class="archive-post-meta">
+          <div class="archive-post-author">${p.author}</div>
+          <div class="archive-post-info">
+            <span class="archive-post-date">${p.date}</span>
+            <span class="archive-post-type">${p.type}</span>
+            <span class="archive-post-branch">${p.branch}</span>
+          </div>
+        </div>
+      </div>
+      <div class="archive-post-title">${p.title}</div>
+      <div class="archive-post-body">${p.body}</div>
+      <div class="archive-post-actions">
+        <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>${p.likes}</span></button>
+        <button class="post-action-btn">💬 <span>${p.comments}</span> تعليق</button>
+        <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
+        <button class="post-action-btn" onclick="showToast('تم الحفظ')">🔖 حفظ</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── POSTS ─────────────────────────────────────────────────────────────────
+function toggleLike(btn) {
+  btn.classList.toggle('liked');
+  const span = btn.querySelector('span');
+  const n = parseInt(span.textContent);
+  span.textContent = btn.classList.contains('liked') ? n + 1 : n - 1;
+}
+function toggleComments(btn) {
+  const card = btn.closest('.post-card');
+  const cs = card.querySelector('.comments-section');
+  if (cs) cs.classList.toggle('open');
+}
+function addComment(btn, csId) {
+  const cs = document.getElementById(csId);
+  const input = cs.querySelector('.comment-input');
+  const val = input.value.trim();
+  if (!val) return;
+  const div = document.createElement('div');
+  div.className = 'comment';
+  div.innerHTML = `<div class="post-avatar" style="width:28px;height:28px;font-size:12px">👤</div><div><div class="comment-author">أنت</div><div class="comment-body">${val}</div></div>`;
+  cs.insertBefore(div, btn.closest('.comment-input-row').nextSibling);
+  input.value = '';
+}
+function submitPost() {
+  const input = document.getElementById('postInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const feed = document.getElementById('postsFeed');
+  const div = document.createElement('div');
+  div.className = 'post-card';
+  const csId = 'cs_' + Date.now();
+  div.innerHTML = `
+    <div class="post-user">
+      <div class="post-avatar">👤</div>
+      <div><div class="post-username">أنت</div><div class="post-date">الآن</div></div>
+    </div>
+    <div class="post-body">${val}</div>
+    <div class="post-actions">
+      <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>0</span></button>
+      <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>0</span> تعليق</button>
+      <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
+      <button class="post-action-btn" onclick="showToast('تم الحفظ')">🔖 حفظ</button>
+    </div>
+    <div class="comments-section" id="${csId}">
+      <div class="comment-input-row">
+        <input class="comment-input" placeholder="أضف تعليقاً...">
+        <button class="btn-gold" style="padding:.4rem .8rem;font-size:12px" onclick="addComment(this,'${csId}')">إرسال</button>
+      </div>
+    </div>`;
+  feed.insertBefore(div, feed.firstChild);
+  input.value = '';
+  showToast('تم نشر منشورك بنجاح!');
+}
+
+// ─── YOUTUBE ────────────────────────────────────────────────────────────────
+function openYT(id, title, desc) {
+  document.getElementById('ytModalIframe').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+  document.getElementById('ytModalTitle').textContent = title;
+  document.getElementById('ytModalDesc').textContent = desc;
+  document.getElementById('ytModal').classList.add('open');
+}
+function closeYT() {
+  document.getElementById('ytModal').classList.remove('open');
+  document.getElementById('ytModalIframe').src = '';
+}
+
+// ─── AUTH ───────────────────────────────────────────────────────────────────
+function openAuth() { document.getElementById('authOverlay').classList.add('open'); return false; }
+function closeAuth() { document.getElementById('authOverlay').classList.remove('open'); }
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginForm').classList.toggle('active', tab==='login');
+  document.getElementById('registerForm').classList.toggle('active', tab==='register');
+}
+
+// ─── TOAST ──────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── CLOSE MODALS ON OUTSIDE CLICK ─────────────────────────────────────────
+
+document.getElementById('ytModal').addEventListener('click', e => { if(e.target===document.getElementById('ytModal')) closeYT(); });
+document.getElementById('authOverlay').addEventListener('click', e => { if(e.target===document.getElementById('authOverlay')) closeAuth(); });
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+setLang('ar');
+</script>
+</body>
+</html>
