@@ -1,0 +1,26 @@
+name: YouTube Bot Auto-Fetch
+
+on:
+  schedule:
+    # يعمل البوت كل 6 ساعات لجلب أحدث الفيديوهات
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # يسمح لك بتشغيله يدوياً متى ما أردت
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests supabase
+
+      - name: Run YouTube Bot
+        run: python youtube_bot_api.py
