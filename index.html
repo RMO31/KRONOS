@@ -2207,7 +2207,7 @@ window.globalYtData = [];
 // ─── SUPABASE INITIALIZATION ──────────────────────────────────────────────
 const supabaseUrl = 'https://hlknmtrnlixmctvewobw.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 async function fetchYouTubeData() {
   const container = document.getElementById('ytDynamicContainer');
@@ -2217,7 +2217,7 @@ async function fetchYouTubeData() {
 
   try {
     // 1. Fetch channels from Supabase
-    const { data: channelsData, error: chError } = await supabase
+    const { data: channelsData, error: chError } = await supabaseClient
       .from('youtube_channels')
       .select('*');
       
@@ -2228,7 +2228,7 @@ async function fetchYouTubeData() {
     }
 
     // 2. Fetch published videos
-    const { data: videosData, error: vidError } = await supabase
+    const { data: videosData, error: vidError } = await supabaseClient
       .from('videos')
       .select('*')
       .eq('status', 'published')
