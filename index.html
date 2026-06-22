@@ -2202,67 +2202,70 @@ function playDynamicVideo(iframeContainerId, videoId) {
 // Store globally to switch tabs
 window.globalYtData = [];
 
+
+// ─── SUPABASE INITIALIZATION ──────────────────────────────────────────────
+const supabaseUrl = 'https://hlknmtrnlixmctvewobw.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
 async function fetchYouTubeData() {
   const container = document.getElementById('ytDynamicContainer');
   if (!container) return;
 
-  container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gold);"><div style="font-size:2rem;margin-bottom:1rem;animation:spin 2s linear infinite">⏳</div><div style="font-size:14px">جاري تحميل الفيديوهات...</div><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style></div>';
-
-  const localVideos = JSON.parse(localStorage.getItem('Knoros_Videos')) || [];
-  const resultsToRender = [];
+  container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gold);"><div style="font-size:2rem;margin-bottom:1rem;animation:spin 2s linear infinite">⏳</div><div style="font-size:14px">جاري تحميل الفيديوهات من قاعدة البيانات...</div><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style></div>';
 
   try {
-    const fetchPromises = localChannels.map(async (ch) => {
-      // Find latest videos for this channel locally (fallback to chName for old items)
-      const vids = localVideos.filter(v => v.chId === ch.id || v.chName === ch.name).slice(0, Math.max(5, ch.limit || 5));
-      let mappedVideos = vids.map(v => ({
-        id: v.id,
+    // 1. Fetch channels from Supabase
+    const { data: channelsData, error: chError } = await supabase
+      .from('youtube_channels')
+      .select('*');
+      
+    if (chError) throw chError;
+    if (!channelsData || channelsData.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-dimmer);">لا توجد قنوات مضافة حالياً.</div>';
+      return;
+    }
+
+    // 2. Fetch published videos
+    const { data: videosData, error: vidError } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+      
+    if (vidError) throw vidError;
+
+    // 3. Map to UI structure
+    const resultsToRender = channelsData.map(ch => {
+      // Find videos for this channel
+      const chVideos = (videosData || [])
+        .filter(v => v.channel_youtube_id === ch.channel_id || v.channel_id === ch.id)
+        .slice(0, 10); // Show up to 10 latest videos per channel
+      
+      const mappedVideos = chVideos.map(v => ({
+        id: v.youtube_id,
         title: v.title,
-        date: v.date
+        date: v.published_at ? new Date(v.published_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : ''
       }));
 
-      // FALLBACK: If the bot hasn't fetched videos yet, do a live API call
-      if (mappedVideos.length === 0) {
-        try {
-          const playlistId = 'UU' + ch.id.substring(2);
-          const vidRes = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=5&key=${YT_API_KEY}`);
-          const vidData = await vidRes.json();
-          if (vidData.items) {
-            mappedVideos = vidData.items.map(item => ({
-              id: item.snippet.resourceId.videoId,
-              title: item.snippet.title,
-              date: new Date(item.snippet.publishedAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })
-            }));
-          }
-        } catch(e) {
-          console.error('Fallback fetch failed for', ch.id, e);
-        }
-      }
-
       return {
-        id: ch.id,
-        title: ch.name,
-        avatar: ch.avatar || 'https://via.placeholder.com/150',
-        subs: (parseInt(ch.subs) || 0).toLocaleString('ar-EG'),
+        id: ch.channel_id,
+        title: ch.channel_name || 'قناة بدون اسم',
+        avatar: ch.channel_logo || 'https://via.placeholder.com/150',
+        subs: (parseInt(ch.subscriber_count) || 0).toLocaleString('ar-EG'),
         videos: mappedVideos
       };
     });
 
-    const channelsData = await Promise.all(fetchPromises);
-    
-    // Maintain original localChannels order
-    for (const ch of localChannels) {
-      const data = channelsData.find(d => d.id === ch.id);
-      if(data) resultsToRender.push(data);
-    }
-
     window.globalYtData = resultsToRender;
     renderYouTubeUI(resultsToRender);
+
   } catch (error) {
-    console.error('Error loading local YT data:', error);
-    container.innerHTML = '<div style="text-align:center;padding:2rem;color:#e05555;">عذراً، الفيديوهات غير متوفرة في الوقت الحالي. يرجى المحاولة لاحقاً.</div>';
+    console.error('Error fetching from Supabase:', error);
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:#e05555;">عذراً، الفيديوهات غير متوفرة في الوقت الحالي بسبب مشكلة في الاتصال بقاعدة البيانات.</div>';
   }
 }
+
 
 function renderYouTubeUI(channelsData) {
   const container = document.getElementById('ytDynamicContainer');

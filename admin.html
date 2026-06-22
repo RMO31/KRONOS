@@ -667,6 +667,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .prog-bar-track { height: 6px; background: var(--dark5); border-radius: 3px; overflow: hidden; }
 .prog-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(to right, var(--gold-dim), var(--gold)); transition: width .6s ease; }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -2073,6 +2074,21 @@ function addVideoRowFromBot(videoId, snippet, ch, chId, shouldSave = true) {
         type: 'bot'
       });
       saveDB('Videos');
+
+      // --- PUSH VIDEO TO SUPABASE ---
+      try {
+        supabase.from('videos').upsert({
+          youtube_id: videoId,
+          title: title,
+          category: ch.cat || 'عام',
+          description: '',
+          published_at: snippet.publishedAt || new Date().toISOString(),
+          status: 'published',
+          channel_youtube_id: chId,
+          channel_id: undefined // Backend might need UUID or it can just match on channel_youtube_id
+        }, { onConflict: 'youtube_id' }).then(() => console.log('Video pushed to Supabase!'));
+      } catch(e) { console.error('Supabase video insert error', e); }
+
     }
   }
 }
@@ -2133,6 +2149,22 @@ async function addBotChannel() {
   if (botChannels[chId]) return showToast('⚠️ هذه القناة مضافة مسبقاً');
 
   botChannels[chId] = { name, cat, limit, videoIds: [] };
+
+  // --- PUSH TO SUPABASE ---
+  try {
+    await supabase.from('youtube_channels').insert({
+      channel_id: chId,
+      channel_url: 'https://youtube.com/channel/' + chId,
+      channel_name: name,
+      category: cat,
+      channel_logo: typeof avatar !== 'undefined' ? avatar : '',
+      subscriber_count: typeof subs !== 'undefined' ? parseInt(subs) : 0
+    });
+    console.log("Channel pushed to Supabase!");
+  } catch(e) {
+    console.error("Supabase insert error", e);
+  }
+
   if (!DB.channels.some(c => c.id === chId)) {
     DB.channels.push({ id: chId, name, cat, limit, avatar: typeof avatar !== 'undefined' ? avatar : '', subs: typeof subs !== 'undefined' ? subs : '0', date: new Date().toLocaleDateString("ar") });
     saveDB("Channels");
