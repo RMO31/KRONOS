@@ -667,7 +667,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .prog-bar-track { height: 6px; background: var(--dark5); border-radius: 3px; overflow: hidden; }
 .prog-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(to right, var(--gold-dim), var(--gold)); transition: width .6s ease; }
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -723,8 +722,18 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div class="topbar-title" id="topbarTitle">لوحة الإحصائيات</div>
     <div class="topbar-actions">
       <span class="topbar-date" id="topbarDate"></span>
-      <button class="topbar-icon-btn" title="إشعارات" onclick="showToast('لديك 3 تبليغات جديدة')">🔔<span class="notif-dot"></span></button>
-      <button class="topbar-icon-btn" title="الموقع العام" onclick="showToast('جاري فتح الموقع...')">🌐</button>
+      <div style="position:relative" id="notifWrap">
+        <button class="topbar-icon-btn" title="إشعارات" onclick="toggleNotifPanel()">🔔<span class="notif-dot" id="notifDot"></span></button>
+        <div id="notifPanel" style="display:none;position:absolute;top:40px;inset-inline-end:0;width:300px;background:var(--dark2);border:1px solid rgba(201,168,76,0.2);border-radius:8px;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden">
+          <div style="padding:.8rem 1rem;border-bottom:1px solid rgba(201,168,76,0.1);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;font-weight:500;color:var(--parchment)">🔔 الإشعارات</span>
+            <button onclick="clearNotifs()" style="font-size:11px;color:var(--gold-dim);background:none;border:none;cursor:pointer">مسح الكل</button>
+          </div>
+          <div id="notifList" style="max-height:280px;overflow-y:auto"></div>
+          <div id="notifEmpty" style="padding:1.5rem;text-align:center;font-size:12px;color:var(--text-dimmer)">لا توجد إشعارات</div>
+        </div>
+      </div>
+      <button class="topbar-icon-btn" title="الموقع العام" onclick="window.open('index.html','_blank')">🌐</button>
     </div>
   </div>
 
@@ -741,37 +750,37 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <div class="stat-icon">👥</div>
         <div class="stat-label">إجمالي الأعضاء</div>
         <div class="stat-value">0</div>
-        <div class="stat-change">-</div>
+        <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-green">
         <div class="stat-icon">📢</div>
         <div class="stat-label">المنشورات</div>
         <div class="stat-value">0</div>
-        <div class="stat-change">-</div>
+        <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-blue">
         <div class="stat-icon">▶️</div>
         <div class="stat-label">الفيديوهات</div>
         <div class="stat-value">0</div>
-        <div class="stat-change">-</div>
+        <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-teal">
         <div class="stat-icon">👁️</div>
         <div class="stat-label">المشاهدات اليوم</div>
         <div class="stat-value">0</div>
-        <div class="stat-change">-</div>
+        <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-amber">
         <div class="stat-icon">🏛️</div>
         <div class="stat-label">مقالات الأرشيف</div>
         <div class="stat-value">0</div>
-        <div class="stat-change">-</div>
+        <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-red">
         <div class="stat-icon">🚩</div>
         <div class="stat-label">تبليغات معلّقة</div>
-        <div class="stat-value">0</div>
-        <div class="stat-change">-</div>
+        <div class="stat-value">3</div>
+        <div class="stat-change down">تحتاج مراجعة</div>
       </div>
     </div>
 
@@ -779,7 +788,15 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div class="dash-grid">
       <div class="card-box" style="grid-column: span 2;">
         <div class="card-box-title">📈 زيارات الأسبوع الماضي</div>
-        <div class="mini-chart" style="height:80px"></div>
+        <div class="mini-chart" style="height:80px">
+          <div class="mini-bar" style="height:45%" title=""><span class="mini-bar-label">أحد</span></div>
+          <div class="mini-bar" style="height:60%" title=""><span class="mini-bar-label">اثن</span></div>
+          <div class="mini-bar" style="height:50%" title=""><span class="mini-bar-label">ثلث</span></div>
+          <div class="mini-bar" style="height:75%" title=""><span class="mini-bar-label">أرب</span></div>
+          <div class="mini-bar" style="height:65%" title=""><span class="mini-bar-label">خمس</span></div>
+          <div class="mini-bar" style="height:90%; background:rgba(201,168,76,0.55)" title=""><span class="mini-bar-label">جمع</span></div>
+          <div class="mini-bar" style="height:80%" title=""><span class="mini-bar-label">سبت</span></div>
+        </div>
         <div style="margin-top:1.5rem">
           <div class="prog-bar-wrap">
             <div class="prog-bar-label"><span>الرئيسية</span><span>34%</span></div>
@@ -822,16 +839,16 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div class="dash-grid dash-grid-2">
       <div class="card-box">
         <div class="card-box-title">🕐 آخر النشاطات</div>
-        <div class="activity-list" id="activityList"></div>
+        <div class="activity-list" id="activityList">
+          <div style="color:var(--text-dimmer);font-size:13px;padding:1rem;text-align:center">لا توجد نشاطات بعد</div>
         </div>
+      </div>
       <div class="card-box">
         <div class="card-box-title">🔥 أكثر المحتوى تفاعلاً</div>
-        <div id="trendingContent" style="display:flex;flex-direction:column;gap:.7rem"></div>
+        <div id="topContentList" style="color:var(--text-dimmer);font-size:13px;padding:.5rem;text-align:center">لا توجد بيانات بعد</div>
         <div style="margin-top:1.2rem">
           <div class="card-box-title" style="margin-top:0">👤 أعضاء جدد اليوم</div>
-          <div style="font-size:13px;color:var(--text-dim);line-height:2">
-            أحمد البوسعيدي · فاطمة رشيد · محمد الزعيم · نادية حسين
-          </div>
+          <div id="newMembersList" style="font-size:13px;color:var(--text-dimmer);padding:.5rem;text-align:center">لا يوجد أعضاء جدد</div>
         </div>
       </div>
     </div>
@@ -862,6 +879,14 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <!-- Australia -->
             <ellipse cx="420" cy="185" rx="28" ry="20" fill="rgba(201,168,76,0.07)" stroke="rgba(201,168,76,0.15)" stroke-width="1"/>
             <!-- Dots for top countries -->
+            <circle cx="262" cy="148" r="5" fill="#c9a84c" opacity=".9"><title>الجزائر</title></circle>
+            <circle cx="308" cy="118" r="4" fill="#c9a84c" opacity=".7"><title>السعودية</title></circle>
+            <circle cx="258" cy="108" r="3.5" fill="#c9a84c" opacity=".65"><title>فرنسا</title></circle>
+            <circle cx="252" cy="128" r="3" fill="#c9a84c" opacity=".6"><title>مصر</title></circle>
+            <circle cx="290" cy="122" r="3" fill="#c9a84c" opacity=".55"><title>العراق</title></circle>
+            <circle cx="270" cy="140" r="2.5" fill="#e8c97a" opacity=".5"><title>ليبيا</title></circle>
+            <circle cx="238" cy="136" r="2.5" fill="#e8c97a" opacity=".5"><title>المغرب</title></circle>
+            <circle cx="113" cy="95" r="2.5" fill="#e8c97a" opacity=".4"><title>أمريكا</title></circle>
           </svg>
         </div>
       </div>
@@ -913,7 +938,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <thead><tr>
             <th>#</th><th>نص الخبر</th><th>الأهمية</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th>
           </tr></thead>
-          <tbody id="newsTbody"></tbody>
+          <tbody id="newsTbody">
+            <!-- أخبار ستظهر هنا بعد إضافتها -->
+          </tbody>
         </table>
       </div>
     </div>
@@ -923,107 +950,128 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   <div class="page" id="page-videos">
     <div class="page-header">
       <h2>إدارة الفيديوهات</h2>
-      <p>رفع وإدارة فيديوهات يوتيوب المعروضة في الموقع</p>
+      <p>إضافة قنوات يوتيوب للبوت + رفع فيديوهات يدوياً</p>
     </div>
 
-    <div class="card-box">
-      <div class="card-box-title">▶️ إضافة فيديو يوتيوب جديد</div>
-      <div class="form-grid" style="gap:.8rem">
-        <div class="form-group" style="grid-column:span 2">
-          <label>رابط يوتيوب <span>*</span></label>
-          <input id="ytUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." oninput="previewYT()">
-          <div class="form-hint">الصيغ المقبولة: youtube.com/watch?v=... أو youtu.be/...</div>
-        </div>
-        <div class="form-group">
-          <label>عنوان الفيديو <span>*</span></label>
-          <input id="ytTitle" class="form-control" placeholder="عنوان الفيديو بالعربية">
-        </div>
-        <div class="form-group">
-          <label>التصنيف <span>*</span></label>
-          <select id="ytCat" class="form-control">
-            <option value="">بدون تصنيف</option>
-            <option>العصور القديمة</option>
-            <option>العصور الوسطى</option>
-            <option>التاريخ الإسلامي</option>
-            <option>العصر الحديث</option>
-            <option>الجغرافيا</option>
-            <option>العصر المعاصر</option>
-          </select>
-        </div>
-        <div class="form-group" style="grid-column:span 2">
-          <label>وصف مختصر</label>
-          <textarea id="ytDesc" class="form-control" placeholder="وصف قصير يظهر مع الفيديو..." style="min-height:60px"></textarea>
-        </div>
-      </div>
+    <!-- ── TABS ── -->
+    <div class="pill-tabs" id="videoTabs" style="margin-bottom:1.4rem">
+      <span class="pill-tab active" onclick="switchVideoTab('channels',this)">📺 القنوات</span>
+      <span class="pill-tab" onclick="switchVideoTab('manual',this)">➕ فيديو يدوي</span>
+      <span class="pill-tab" onclick="switchVideoTab('list',this)">📋 كل الفيديوهات</span>
+    </div>
 
-      <!-- Preview -->
-      <div id="ytPreviewWrap" style="margin-top:.9rem;display:none">
-        <div class="form-group"><label>معاينة</label></div>
-        <div class="yt-preview" id="ytPreviewCard">
-          <div class="yt-preview-thumb" id="ytPreviewThumb">▶</div>
-          <div class="yt-preview-info">
-            <div class="yt-preview-title" id="ytPreviewTitle">...</div>
-            <div class="yt-preview-meta" id="ytPreviewMeta">—</div>
+    <!-- ══ TAB: CHANNELS ══════════════════════════════════════════════════ -->
+    <div id="vtab-channels">
+
+      <!-- Add channel card -->
+      <div class="card-box">
+        <div class="card-box-title">
+          📺 إضافة قناة يوتيوب للبوت
+          <span style="font-size:11px;font-weight:400;color:var(--text-dimmer)">البوت يجلب آخر 5 فيديوهات كل 24 ساعة تلقائياً</span>
+        </div>
+
+        <!-- URL input -->
+        <div style="display:flex;gap:.6rem;margin-bottom:.8rem;flex-wrap:wrap">
+          <input id="botChannelUrl" class="form-control" style="flex:1;min-width:240px"
+            placeholder="https://www.youtube.com/@ChannelName  أو  /channel/UCxxxx  أو  /c/name">
+          <button class="btn btn-primary" onclick="resolveChannelFromUrl()" id="resolveBtn">
+            🔍 جلب بيانات القناة
+          </button>
+        </div>
+        <div id="resolveError" style="display:none;font-size:12px;color:#e07070;margin-bottom:.6rem"></div>
+
+        <!-- Channel preview (shown after resolve) -->
+        <div id="channelPreview" style="display:none;background:var(--dark3);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:1.2rem">
+
+          <!-- Channel header -->
+          <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+            <img id="prevLogo" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid rgba(201,168,76,0.35);flex-shrink:0">
+            <div>
+              <div id="prevName" style="font-family:var(--font-title);font-size:1.2rem;color:var(--parchment)"></div>
+              <div id="prevSubs" style="font-size:13px;color:var(--gold-dim);margin-top:2px"></div>
+              <div id="prevId"   style="font-size:10px;color:var(--text-dimmer);margin-top:2px"></div>
+            </div>
           </div>
+
+          <!-- Settings row -->
+          <div style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem">
+            <div class="form-group" style="flex:1;min-width:140px">
+              <label>التصنيف التلقائي للفيديوهات</label>
+              <select id="botChannelCat" class="form-control">
+                <option>العصور القديمة</option>
+                <option>العصور الوسطى</option>
+                <option>التاريخ الإسلامي</option>
+                <option>العصر الحديث</option>
+                <option>الجغرافيا</option>
+                <option>العصر المعاصر</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1;min-width:120px">
+              <label>عدد الفيديوهات / يوم</label>
+              <select id="botChannelLimit" class="form-control">
+                <option value="3">3 فيديوهات</option>
+                <option value="5" selected>5 فيديوهات</option>
+                <option value="10">10 فيديوهات</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Last 5 videos preview -->
+          <div id="prevVideos" style="margin-bottom:1rem"></div>
+
+          <!-- Confirm button -->
+          <button class="btn btn-primary" style="width:100%;padding:.65rem;font-size:14px" onclick="confirmAddChannel()">
+            ✅ إضافة هذه القناة للبوت
+          </button>
         </div>
       </div>
 
-      <div style="margin-top:.9rem;display:flex;gap:.6rem">
-        <button class="btn btn-primary" onclick="addVideo()">➕ نشر الفيديو</button>
-        <button class="btn btn-outline" onclick="clearVideoForm()">مسح</button>
+      <!-- Channels table -->
+      <div class="data-table-wrap">
+        <div class="data-table-header">
+          <div class="data-table-title">📺 القنوات المضافة (<span id="chCount">0</span>)</div>
+          <div style="font-size:12px;color:var(--text-dimmer)">حذف القناة يحذف فيديوهاتها تلقائياً</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>القناة</th>
+              <th>المشتركون</th>
+              <th>التصنيف</th>
+              <th>فيديوهات/يوم</th>
+              <th>مجلوب</th>
+              <th>آخر جلب</th>
+              <th>إجراءات</th>
+            </tr></thead>
+            <tbody id="channelsTbody">
+              <tr id="chEmptyRow">
+                <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-dimmer);font-size:13px">
+                  لا توجد قنوات مضافة بعد — أضف قناة بالرابط أعلاه
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="data-table-wrap">
-      <div class="data-table-header">
-        <div class="data-table-title">📋 الفيديوهات المنشورة</div>
-        <div class="data-table-actions">
-          <select class="search-input" style="min-width:130px" onchange="filterBySelect(this,'vtCat','videoTable')">
-            <option value="">كل التصنيفات</option>
-            <option>العصور القديمة</option><option>العصور الوسطى</option>
-            <option>التاريخ الإسلامي</option><option>العصر الحديث</option>
-            <option>الجغرافيا</option><option>العصر المعاصر</option>
-          </select>
-          <input class="search-input" placeholder="بحث..." oninput="filterTable(this,'videoTable')">
-        </div>
-      </div>
-      <div style="overflow-x:auto">
-        <table id="videoTable">
-          <thead><tr>
-            <th>الفيديو</th><th>التصنيف</th><th class="vtCat" style="display:none"></th><th>المشاهدات</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th>
-          </tr></thead>
-          <tbody id="videoTbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ══ YOUTUBE BOT ══ -->
-    <div class="card-box" style="margin-top:1.4rem">
-      <div class="card-box-title">
-        🤖 بوت جلب الفيديوهات التلقائي
-        <div style="display:flex;align-items:center;gap:.6rem">
-          <span id="botStatusBadge" class="badge badge-amber">● متوقف</span>
-          <button class="btn btn-sm btn-success" id="botToggleBtn" onclick="toggleBot()">▶ تشغيل البوت</button>
-        </div>
-      </div>
-
-      <!-- Add channel -->
-      <div style="background:var(--dark3);border:1px solid rgba(201,168,76,0.1);border-radius:6px;padding:1rem;margin-bottom:1rem">
-        <div style="font-size:12px;font-weight:500;color:var(--gold);margin-bottom:.7rem">➕ إضافة قناة جديدة</div>
-        <div class="form-grid" style="gap:.7rem">
-          <div class="form-group">
-            <label>معرّف القناة أو رابطها <span>*</span></label>
-            <input id="botChannelId" class="form-control" placeholder="UCxxxxxxxx أو youtube.com/channel/...">
-            <div class="form-hint">مثال: UCkszU2WH9gy1mb0dV-11UJg</div>
+    <!-- ══ TAB: MANUAL VIDEO ══════════════════════════════════════════════ -->
+    <div id="vtab-manual" style="display:none">
+      <div class="card-box">
+        <div class="card-box-title">▶️ إضافة فيديو يوتيوب يدوياً</div>
+        <div class="form-grid" style="gap:.8rem">
+          <div class="form-group" style="grid-column:span 2">
+            <label>رابط يوتيوب <span>*</span></label>
+            <input id="ytUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." oninput="previewYT()">
+            <div class="form-hint">الصيغ المقبولة: youtube.com/watch?v=... أو youtu.be/...</div>
           </div>
           <div class="form-group">
-            <label>اسم القناة للعرض <span>*</span></label>
-            <input id="botChannelName" class="form-control" placeholder="اسم القناة بالعربية">
+            <label>عنوان الفيديو <span>*</span></label>
+            <input id="ytTitle" class="form-control" placeholder="عنوان الفيديو بالعربية">
           </div>
           <div class="form-group">
-            <label>التصنيف التلقائي للفيديوهات</label>
-            <select id="botChannelCat" class="form-control">
-              <option value="">بدون تصنيف</option>
+            <label>التصنيف <span>*</span></label>
+            <select id="ytCat" class="form-control">
               <option>العصور القديمة</option>
               <option>العصور الوسطى</option>
               <option>التاريخ الإسلامي</option>
@@ -1032,53 +1080,64 @@ textarea.form-control { resize: vertical; min-height: 90px; }
               <option>العصر المعاصر</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>عدد الفيديوهات يومياً</label>
-            <select id="botChannelLimit" class="form-control">
-              <option value="5" selected>5 فيديوهات</option>
-              <option value="3">3 فيديوهات</option>
-              <option value="10">10 فيديوهات</option>
-            </select>
+          <div class="form-group" style="grid-column:span 2">
+            <label>وصف مختصر</label>
+            <textarea id="ytDesc" class="form-control" placeholder="وصف قصير..." style="min-height:60px"></textarea>
           </div>
         </div>
-        <button class="btn btn-primary" style="margin-top:.7rem" onclick="addBotChannel()">➕ إضافة القناة للبوت</button>
+        <div id="ytPreviewWrap" style="margin-top:.9rem;display:none">
+          <div class="form-group"><label>معاينة</label></div>
+          <div class="yt-preview" id="ytPreviewCard">
+            <div class="yt-preview-thumb" id="ytPreviewThumb">▶</div>
+            <div class="yt-preview-info">
+              <div class="yt-preview-title" id="ytPreviewTitle">...</div>
+              <div class="yt-preview-meta" id="ytPreviewMeta">—</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:.9rem;display:flex;gap:.6rem">
+          <button class="btn btn-primary" onclick="addVideo()">➕ نشر الفيديو</button>
+          <button class="btn btn-outline" onclick="clearVideoForm()">مسح</button>
+        </div>
       </div>
+    </div>
 
-      <!-- Bot settings -->
-      <div style="display:flex;gap:.7rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
-        <div style="font-size:12px;color:var(--text-dim)">⏰ وقت الجلب اليومي:</div>
-        <input id="botScheduleTime" type="time" value="06:00" class="form-control" style="width:110px">
-        <div style="font-size:12px;color:var(--text-dim);margin-inline-start:.5rem">📅 آخر تشغيل:</div>
-        <span id="botLastRun" style="font-size:12px;color:var(--gold)">لم يُشغَّل بعد</span>
-        <button class="btn btn-outline btn-sm" onclick="runBotNow()" style="margin-inline-start:auto">▶ تشغيل الآن</button>
-      </div>
-
-      <!-- Channels table -->
+    <!-- ══ TAB: ALL VIDEOS ════════════════════════════════════════════════ -->
+    <div id="vtab-list" style="display:none">
       <div class="data-table-wrap">
         <div class="data-table-header">
-          <div class="data-table-title">📺 القنوات المضافة للبوت</div>
-          <div style="font-size:12px;color:var(--text-dimmer)">حذف القناة يحذف فيديوهاتها تلقائياً</div>
+          <div class="data-table-title">📋 كل الفيديوهات</div>
+          <div class="data-table-actions">
+            <select class="search-input" style="min-width:130px" onchange="filterBySelect(this,'vtCat','videoTable')">
+              <option value="">كل التصنيفات</option>
+              <option>العصور القديمة</option><option>العصور الوسطى</option>
+              <option>التاريخ الإسلامي</option><option>العصر الحديث</option>
+              <option>الجغرافيا</option><option>العصر المعاصر</option>
+            </select>
+            <input class="search-input" placeholder="بحث..." oninput="filterTable(this,'videoTable')">
+          </div>
         </div>
         <div style="overflow-x:auto">
-          <table id="channelsTable">
+          <table id="videoTable">
             <thead><tr>
-              <th>القناة</th><th>المعرّف</th><th>التصنيف</th><th>فيديوهات/يوم</th><th>الفيديوهات المجلوبة</th><th>آخر جلب</th><th>الحالة</th><th>إجراءات</th>
+              <th>الفيديو</th><th>التصنيف</th><th class="vtCat" style="display:none"></th>
+              <th>المشاهدات</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th>
             </tr></thead>
-            <tbody id="channelsTbody"></tbody>
+            <tbody id="videoTbody">
+              <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-dimmer);font-size:13px">
+                  لا توجد فيديوهات بعد
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- Bot log -->
-      <div style="margin-top:1rem">
-        <div style="font-size:12px;font-weight:500;color:var(--text-dim);margin-bottom:.5rem">📋 سجل البوت</div>
-        <div id="botLog" style="background:var(--dark);border:1px solid rgba(201,168,76,0.08);border-radius:4px;padding:.7rem;font-size:11px;color:var(--text-dimmer);font-family:monospace;max-height:140px;overflow-y:auto;line-height:1.8"></div>
-      </div>
-    </div>
-    </div>
   </div>
 
-  <!-- ══════════ ARCHIVE ══════════ -->
+    <!-- ══════════ ARCHIVE ══════════ -->
   <div class="page" id="page-archive">
     <div class="page-header">
       <h2>إدارة الأرشيف</h2>
@@ -1162,7 +1221,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <thead><tr>
             <th>العنوان</th><th>العصر</th><th>الفرع</th><th>النوع</th><th>الكاتب</th><th>التاريخ</th><th>تفاعل</th><th>إجراءات</th>
           </tr></thead>
-          <tbody id="archiveTbody"></tbody>
+          <tbody id="archiveTbody">
+            <!-- منشورات الأرشيف ستظهر هنا -->
+            </tbody>
         </table>
       </div>
     </div>
@@ -1194,7 +1255,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <thead><tr>
             <th>المنشور</th><th>الكاتب</th><th>التاريخ</th><th>التفاعل</th><th>الحالة</th><th>إجراءات</th>
           </tr></thead>
-          <tbody id="postsTbody"></tbody>
+          <tbody id="postsTbody">
+            <!-- منشورات ستظهر هنا -->
+            </tbody>
         </table>
       </div>
     </div>
@@ -1210,19 +1273,19 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div style="display:flex;gap:.7rem;margin-bottom:1.2rem;flex-wrap:wrap">
       <div class="stat-card s-gold" style="flex:1;min-width:120px;padding:.9rem">
         <div class="stat-label">إجمالي</div>
-        <div class="stat-value" style="font-size:1.5rem">8,741</div>
+        <div class="stat-value" style="font-size:1.5rem">0</div>
       </div>
       <div class="stat-card s-green" style="flex:1;min-width:120px;padding:.9rem">
         <div class="stat-label">نشطون</div>
-        <div class="stat-value" style="font-size:1.5rem">7,204</div>
+        <div class="stat-value" style="font-size:1.5rem">0</div>
       </div>
       <div class="stat-card s-red" style="flex:1;min-width:120px;padding:.9rem">
         <div class="stat-label">موقوفون</div>
-        <div class="stat-value" style="font-size:1.5rem">37</div>
+        <div class="stat-value" style="font-size:1.5rem">0</div>
       </div>
       <div class="stat-card s-amber" style="flex:1;min-width:120px;padding:.9rem">
         <div class="stat-label">جدد اليوم</div>
-        <div class="stat-value" style="font-size:1.5rem">4</div>
+        <div class="stat-value" style="font-size:1.5rem">0</div>
       </div>
     </div>
 
@@ -1243,7 +1306,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <thead><tr>
             <th>العضو</th><th>البريد</th><th>الصلاحية</th><th>تاريخ الانضمام</th><th>المنشورات</th><th>الحالة</th><th>إجراءات</th>
           </tr></thead>
-          <tbody id="usersTbody"></tbody>
+          <tbody id="usersTbody">
+            <!-- أعضاء ستظهر هنا -->
+            </tbody>
         </table>
       </div>
     </div>
@@ -1264,7 +1329,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <thead><tr>
             <th>المحتوى المُبلَّغ</th><th>المُبلِّغ</th><th>سبب البلاغ</th><th>التاريخ</th><th>إجراءات</th>
           </tr></thead>
-          <tbody id="reportsTbody"></tbody>
+          <tbody>
+            <!-- تبليغات ستظهر هنا -->
+            </tbody>
         </table>
       </div>
     </div>
@@ -1348,7 +1415,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     </div>
   </div>
 
-<div id="toast" class="toast"></div>
 </main>
 
 <!-- ══ USER EDIT MODAL ══ -->
@@ -1639,21 +1705,16 @@ function renderCountries() {
     </div>`).join('');
 }
 
-// ─── LOCAL STORAGE DB ──────────────────────────────────────────
-const DB = {
-  channels: JSON.parse(localStorage.getItem('Knoros_Channels')) || [],
-  news: JSON.parse(localStorage.getItem('Knoros_News')) || [],
-  archive: JSON.parse(localStorage.getItem('Knoros_Archive')) || [],
-  posts: JSON.parse(localStorage.getItem('Knoros_Posts')) || [],
-  videos: JSON.parse(localStorage.getItem('Knoros_Videos')) || []
-};
-
-function saveDB(key) {
-  localStorage.setItem('Knoros_' + key, JSON.stringify(DB[key.toLowerCase()]));
+// Initialize countries on page load (called after login)
+const _origShowPage = showPage;
+function showPage(id) {
+  _origShowPage(id);
+  if (id === 'dashboard') setTimeout(renderCountries, 100);
 }
+</script>
 
-function generateId() { return Math.random().toString(36).substr(2, 9); }
 
+<script>
 // ─── BRANCHES per ERA ──────────────────────────────────────────────────────
 const ERA_BRANCHES = {
   ancient: ['🔱 مصر القديمة','🌊 بلاد الرافدين','🏛 اليونان','🦅 روما','🗺️ جغرافيا قديمة','📜 فلسفة','⚗️ علوم'],
@@ -1675,7 +1736,6 @@ function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   document.querySelectorAll('[data-page]').forEach(a => a.classList.toggle('active', a.dataset.page === id));
   document.getElementById('topbarTitle').textContent = PAGE_TITLES[id] || id;
-  if (id === 'dashboard') setTimeout(renderCountries, 100);
 }
 
 // ─── DATE ──────────────────────────────────────────────────────────────────
@@ -1733,8 +1793,6 @@ function addNews() {
     </div></td>`;
   tbody.prepend(tr);
   document.getElementById('newsText').value = '';
-  DB.news.unshift({ id: generateId(), text: txt, priority: pri, date: new Date().toLocaleDateString('ar'), status: 'published' });
-  saveDB('News');
   showToast('✅ تم نشر الخبر بنجاح', 't-success');
 }
 function toggleNewsStatus(btn) {
@@ -1781,7 +1839,7 @@ function addVideo() {
       <img src="https://img.youtube.com/vi/${id}/default.jpg" style="width:50px;height:34px;object-fit:cover;border-radius:3px;flex-shrink:0">
       <div class="td-main" style="font-size:13px">${title}</div>
     </div></td>
-    <td>${cat ? `<span class=\"badge ${catBadge[cat]||'badge-gold'}\">${cat}</span>` : `<span style=\"color:var(--text-dimmer)\">-</span>`}</td>
+    <td><span class="badge ${catBadge[cat]||'badge-gold'}">${cat}</span></td>
     <td class="vtCat" style="display:none">${cat}</td>
     <td>0</td><td>${new Date().toLocaleDateString('ar')}</td>
     <td><span class="badge badge-green">● منشور</span></td>
@@ -1838,8 +1896,6 @@ function addArchivePost() {
     </div></td>`;
   tbody.prepend(tr);
   clearArchiveForm();
-  DB.archive.unshift({ id: generateId(), era, branch, type, author, title, body, date: new Date().toLocaleDateString('ar') });
-  saveDB('Archive');
   showToast('✅ تم نشر المنشور في الأرشيف', 't-success');
 }
 function clearArchiveForm() {
@@ -1927,6 +1983,16 @@ function executeDelete() {
   showToast('🗑 تم الحذف بنجاح');
 }
 
+// ─── VIDEO PAGE TABS ───────────────────────────────────────────────────────
+function switchVideoTab(tab, el) {
+  document.querySelectorAll('#videoTabs .pill-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['channels','manual','list'].forEach(t => {
+    const el2 = document.getElementById('vtab-' + t);
+    if (el2) el2.style.display = t === tab ? 'block' : 'none';
+  });
+}
+
 // ─── CLOSE MODALS ON OUTSIDE CLICK ────────────────────────────────────────
 document.getElementById('userModal').addEventListener('click', e => {
   if (e.target === document.getElementById('userModal')) closeModal('userModal');
@@ -1934,386 +2000,239 @@ document.getElementById('userModal').addEventListener('click', e => {
 document.getElementById('confirmOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('confirmOverlay')) cancelDelete();
 });
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('notifWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const p = document.getElementById('notifPanel');
+    if (p) p.style.display = 'none';
+  }
+});
 
-// ─── YOUTUBE BOT ────────────────────────────────────────────────────────────
+// ─── NOTIFICATION SYSTEM ────────────────────────────────────────────────────
+const notifications = [];
+function pushNotif(icon, text) {
+  notifications.unshift({ id:Date.now(), icon, text, time:new Date().toLocaleTimeString('ar-DZ'), read:false });
+  renderNotifList(); updateNotifDot();
+}
+function renderNotifList() {
+  const list = document.getElementById('notifList');
+  const empty = document.getElementById('notifEmpty');
+  if (!list) return;
+  if (!notifications.length) { list.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  list.innerHTML = notifications.map(n=>`
+    <div onclick="markRead(${n.id})" style="display:flex;gap:.6rem;padding:.7rem 1rem;border-bottom:1px solid rgba(201,168,76,0.06);${n.read?'opacity:.55':''}cursor:pointer" onmouseover="this.style.background='rgba(201,168,76,0.04)'" onmouseout="this.style.background=''">
+      <span style="font-size:17px;flex-shrink:0">${n.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:var(--text);line-height:1.4">${n.text}</div>
+        <div style="font-size:10px;color:var(--text-dimmer);margin-top:2px">${n.time}</div>
+      </div>
+      ${!n.read?'<span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px"></span>':''}
+    </div>`).join('');
+}
+function markRead(id) {
+  const n = notifications.find(x=>x.id===id); if(n) n.read=true;
+  renderNotifList(); updateNotifDot();
+}
+function clearNotifs() {
+  notifications.length=0; renderNotifList(); updateNotifDot();
+  document.getElementById('notifPanel').style.display='none';
+}
+function updateNotifDot() {
+  const dot = document.getElementById('notifDot');
+  if (!dot) return;
+  const unread = notifications.filter(n=>!n.read).length;
+  dot.style.display = unread ? 'block' : 'none';
+}
+function toggleNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (!open) { notifications.forEach(n=>n.read=true); updateNotifDot(); renderNotifList(); }
+}
+
+// ─── BACKGROUND YOUTUBE BOT ─────────────────────────────────────────────────
 const YT_API_KEY = 'AIzaSyDHq4kjSuizAM6b4ttJnru0TU0QT1ZoWKM';
-let botRunning = false;
-let botTimer = null;
-
-// Storage: channelId -> { name, cat, limit, videoIds[] }
+const YT_BASE    = 'https://www.googleapis.com/youtube/v3';
 const botChannels = {};
 
-// All bot-fetched videos in videoTbody: we tag rows with data-chid
-function toggleBot() {
-  botRunning = !botRunning;
-  const badge = document.getElementById('botStatusBadge');
-  const btn = document.getElementById('botToggleBtn');
-  if (botRunning) {
-    badge.className = 'badge badge-green';
-    badge.textContent = '● يعمل';
-    btn.textContent = '⏸ إيقاف البوت';
-    btn.className = 'btn btn-sm btn-danger';
-    scheduleBotDaily();
-    showToast('✅ تم تشغيل البوت — سيجلب الفيديوهات يومياً', 't-success');
-    addBotLog('🟢 تم تشغيل البوت');
-  } else {
-    badge.className = 'badge badge-amber';
-    badge.textContent = '● متوقف';
-    btn.textContent = '▶ تشغيل البوت';
-    btn.className = 'btn btn-sm btn-success';
-    clearTimeout(botTimer);
-    showToast('⏸ تم إيقاف البوت');
-    addBotLog('🔴 تم إيقاف البوت');
-  }
+function extractChannelIdFromUrl(url) {
+  const uc  = url.match(/(?:channel\/)([UC][A-Za-z0-9_-]{10,})/);
+  if (uc)  return { type:'id',     value:uc[1] };
+  const hdl = url.match(/(?:youtube\.com\/)@([A-Za-z0-9._-]+)/);
+  if (hdl) return { type:'handle', value:hdl[1] };
+  const cus = url.match(/(?:youtube\.com\/)(?:c|user)\/([A-Za-z0-9._-]+)/);
+  if (cus) return { type:'custom', value:cus[1] };
+  const bare = url.match(/^(UC[A-Za-z0-9_-]{10,})$/);
+  if (bare) return { type:'id',    value:bare[1] };
+  return null;
+}
+function formatSubs(n) {
+  if (!n) return '—';
+  n = parseInt(n);
+  if (n >= 1000000) return (n/1000000).toFixed(1) + ' م';
+  if (n >= 1000)    return (n/1000).toFixed(1) + ' ألف';
+  return n.toLocaleString('ar');
 }
 
-function scheduleBotDaily() {
-  if (!botRunning) return;
-  const now = new Date();
-  const timeVal = document.getElementById('botScheduleTime').value || '06:00';
-  const [h, m] = timeVal.split(':').map(Number);
-  const next = new Date();
-  next.setHours(h, m, 0, 0);
-  if (next <= now) next.setDate(next.getDate() + 1);
-  const msUntil = next - now;
-  botTimer = setTimeout(() => {
-    runBotNow();
-    scheduleBotDaily();
-  }, msUntil);
-  addBotLog(`⏰ التشغيل القادم: ${next.toLocaleString('ar')}`);
-}
-
-async function runBotNow() {
-  const chIds = Object.keys(botChannels);
-  if (!chIds.length) { showToast('⚠️ أضف قنوات أولاً للبوت'); return; }
-  addBotLog('▶ بدء جلب الفيديوهات...');
-  showToast('🔄 جاري جلب الفيديوهات...', '');
-  for (const chId of chIds) {
-    await fetchChannelVideos(chId);
-  }
-  const now = new Date().toLocaleString('ar');
-  document.getElementById('botLastRun').textContent = now;
-  showToast('✅ اكتمل جلب الفيديوهات', 't-success');
-}
-
-async function fetchChannelNow(chId, chName) {
-  showToast(`🔄 جاري جلب فيديوهات "${chName}"...`);
-  addBotLog(`▶ جلب يدوي: ${chName}`);
-  await fetchChannelVideos(chId);
-}
-
-async function fetchChannelVideos(chId) {
-  const ch = botChannels[chId];
-  if (!ch) return;
-  const limit = ch.limit || 5;
+async function resolveChannelFromUrl() {
+  const url   = document.getElementById('botChannelUrl')?.value.trim() || '';
+  const errEl = document.getElementById('resolveError');
+  const btn   = document.getElementById('resolveBtn');
+  if (errEl) errEl.style.display='none';
+  const preview = document.getElementById('channelPreview');
+  if (preview) preview.style.display='none';
+  if (!url) { if(errEl){errEl.textContent='⚠️ أدخل رابط القناة'; errEl.style.display='block';} return; }
+  const parsed = extractChannelIdFromUrl(url);
+  if (!parsed) { if(errEl){errEl.textContent='❌ رابط غير صحيح'; errEl.style.display='block';} return; }
+  if (btn) { btn.textContent='⏳ جاري...'; btn.disabled=true; }
   try {
-    const playlistId = 'UU' + chId.substring(2);
-    const url = `https://www.googleapis.com/youtube/v3/playlistItems?key=${YT_API_KEY}&playlistId=${playlistId}&part=snippet&maxResults=${limit}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let apiUrl;
+    if      (parsed.type==='id')     apiUrl=`${YT_BASE}/channels?key=${YT_API_KEY}&id=${parsed.value}&part=snippet,statistics,contentDetails`;
+    else if (parsed.type==='handle') apiUrl=`${YT_BASE}/channels?key=${YT_API_KEY}&forHandle=${parsed.value}&part=snippet,statistics,contentDetails`;
+    else                             apiUrl=`${YT_BASE}/channels?key=${YT_API_KEY}&forUsername=${parsed.value}&part=snippet,statistics,contentDetails`;
+    const res  = await fetch(apiUrl);
     const data = await res.json();
-    if (!data.items || !data.items.length) {
-      addBotLog(`⚠️ ${ch.name}: لا توجد فيديوهات جديدة`);
-      return;
+    if (!data.items?.length) throw new Error('القناة غير موجودة');
+    const ch      = data.items[0];
+    const chId    = ch.id;
+    const name    = ch.snippet.title;
+    const logo    = ch.snippet.thumbnails?.medium?.url || ch.snippet.thumbnails?.default?.url || '';
+    const subs    = formatSubs(ch.statistics?.subscriberCount);
+    const subsRaw = parseInt(ch.statistics?.subscriberCount||0);
+    const uploads = ch.contentDetails?.relatedPlaylists?.uploads||'';
+    if (botChannels[chId]) throw new Error('القناة مضافة مسبقاً');
+    // fetch last 5 videos preview
+    let videosHtml='';
+    if (uploads) {
+      const vRes  = await fetch(`${YT_BASE}/playlistItems?key=${YT_API_KEY}&playlistId=${uploads}&part=snippet&maxResults=5`);
+      const vData = await vRes.json();
+      if (vData.items?.length) {
+        videosHtml = `<div style="font-size:11px;color:var(--text-dimmer);margin-bottom:.4rem">📹 آخر الفيديوهات:</div><div style="display:flex;flex-direction:column;gap:.4rem">` +
+        vData.items.map(v => {
+          const vid=v.snippet?.resourceId?.videoId||'';
+          const ttl=v.snippet?.title||'';
+          const th=v.snippet?.thumbnails?.default?.url||`https://img.youtube.com/vi/${vid}/default.jpg`;
+          return `<div style="display:flex;gap:.5rem;align-items:center"><img src="${th}" style="width:44px;height:30px;object-fit:cover;border-radius:3px;flex-shrink:0"><span style="font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${ttl}</span><a href="https://youtube.com/watch?v=${vid}" target="_blank" style="font-size:10px;color:var(--gold-dim)">▶</a></div>`;
+        }).join('') + '</div>';
+      }
     }
-    let added = 0;
-    for (const item of data.items) {
-      const vid = item.snippet.resourceId.videoId;
-      if (!vid) continue;
-      if (ch.videoIds.includes(vid)) continue; // already added
-      ch.videoIds.push(vid);
-      addVideoRowFromBot(vid, item.snippet, ch, chId);
-      added++;
-    }
-    const countEl = document.getElementById(`count-${chId}`);
-    if (countEl) countEl.textContent = ch.videoIds.length;
-    addBotLog(`✅ ${ch.name}: جُلب ${added} فيديو جديد`);
+    window._rc = { chId, name, logo, subs, subsRaw, uploads, videoIds:[] };
+    if(document.getElementById('prevLogo')) document.getElementById('prevLogo').src=logo;
+    if(document.getElementById('prevName')) document.getElementById('prevName').textContent=name;
+    if(document.getElementById('prevSubs')) document.getElementById('prevSubs').textContent=`👥 ${subs} مشترك`;
+    if(document.getElementById('prevId'))   document.getElementById('prevId').textContent=chId;
+    if(document.getElementById('prevVideos')) document.getElementById('prevVideos').innerHTML=videosHtml;
+    if(preview) preview.style.display='block';
   } catch(e) {
-    addBotLog(`❌ ${ch.name}: خطأ — ${e.message}`);
-    showToast(`❌ خطأ في جلب قناة ${ch.name}: ${e.message}`, 't-error');
+    if(errEl){errEl.textContent='❌ '+e.message; errEl.style.display='block';}
   }
+  if(btn){btn.textContent='🔍 جلب بيانات القناة'; btn.disabled=false;}
 }
 
-function addVideoRowFromBot(videoId, snippet, ch, chId, shouldSave = true) {
-  const tbody = document.getElementById('videoTbody');
-  const title = snippet.title || 'بدون عنوان';
-  const date = (snippet.publishedAt || '').substring(0, 10);
-  const catBadges = {
-    'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue',
-    'التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal',
-    'العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'
-  };
-  const tr = document.createElement('tr');
-  tr.setAttribute('data-chid', chId);
-  tr.setAttribute('data-vid', videoId);
-  tr.innerHTML = `
-    <td><div style="display:flex;align-items:center;gap:.6rem">
-      <img src="https://img.youtube.com/vi/${videoId}/default.jpg"
-           style="width:50px;height:34px;object-fit:cover;border-radius:3px;flex-shrink:0"
-           onerror="this.style.display='none'">
-      <div>
-        <div class="td-main" style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${title}</div>
-        <div style="font-size:10px;color:var(--text-dimmer)">🤖 بوت — ${ch.name}</div>
-      </div>
-    </div></td>
-    <td>${ch.cat ? `<span class="badge ${catBadges[ch.cat]||'badge-gold'}">${ch.cat}</span>` : `<span style="color:var(--text-dimmer)">-</span>`}</td>
-    <td class="vtCat" style="display:none">${ch.cat}</td>
-    <td>—</td>
-    <td>${date}</td>
-    <td><span class="badge badge-green">● منشور</span></td>
-    <td><div style="display:flex;gap:.3rem">
-      <a class="btn btn-outline btn-sm btn-icon" href="https://youtube.com/watch?v=${videoId}" target="_blank" title="مشاهدة">👁</a>
-      <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelete(this,'tr')">🗑</button>
-    </div></td>`;
+function confirmAddChannel() {
+  const rc = window._rc; if (!rc) return;
+  const cat   = document.getElementById('botChannelCat')?.value || 'الجغرافيا';
+  const limit = parseInt(document.getElementById('botChannelLimit')?.value||5);
+  botChannels[rc.chId] = { ...rc, cat, limit, videoIds:[], lastFetch:null };
+  addChannelRow(rc.chId, botChannels[rc.chId]);
+  syncChannelsToIndex();
+  document.getElementById('botChannelUrl').value='';
+  const p = document.getElementById('channelPreview'); if(p) p.style.display='none';
+  window._rc = null;
+  showToast(`✅ أُضيفت قناة "${rc.name}"`, 't-success');
+  pushNotif('📺', `أُضيفت قناة: ${rc.name}`);
+  setTimeout(() => bgFetchChannel(rc.chId), 600);
+  setTimeout(function schedNext() {
+    if (!botChannels[rc.chId]) return;
+    bgFetchChannel(rc.chId);
+    setTimeout(schedNext, 24*3600*1000);
+  }, 24*3600*1000);
+}
+
+function addChannelRow(chId, ch) {
+  const catBadges={'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue','التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal','العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'};
+  const tbody=document.getElementById('channelsTbody'); if(!tbody) return;
+  // hide empty row
+  const emptyRow = document.getElementById('chEmptyRow');
+  if (emptyRow) emptyRow.style.display='none';
+  const tr=document.createElement('tr'); tr.setAttribute('data-chid',chId);
+  tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:.7rem">
+    <img src="${ch.logo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(201,168,76,0.3)" onerror="this.style.display='none'">
+    <div>
+      <div class="td-main" style="font-size:13px;font-weight:500">${ch.name}</div>
+      <div style="font-size:10px;color:var(--text-dimmer);margin-top:1px">${chId}</div>
+    </div>
+  </div></td>
+  <td style="font-size:13px;color:var(--gold-dim);font-weight:500">${ch.subs}</td>
+  <td><span class="badge ${catBadges[ch.cat]||'badge-gold'}">${ch.cat}</span></td>
+  <td style="color:var(--text-dim)">${ch.limit}</td>
+  <td><span id="count-${chId}" style="color:var(--gold);font-weight:600">0</span></td>
+  <td id="lastfetch-${chId}" style="font-size:11px;color:var(--text-dimmer)">⏳ جاري الجلب...</td>
+  <td><div style="display:flex;gap:.4rem">
+    <button class="btn btn-danger btn-sm" onclick="deleteChannel('${chId}')">🗑 حذف</button>
+  </div></td>`;
   tbody.prepend(tr);
-
-  if (shouldSave) {
-    if (!DB.videos.some(v => v.id === videoId)) {
-      DB.videos.unshift({
-        id: videoId, chId, title, cat: ch.cat, chName: ch.name, date,
-        type: 'bot'
-      });
-      saveDB('Videos');
-
-      // --- PUSH VIDEO TO SUPABASE ---
-      try {
-        supabase.from('videos').upsert({
-          youtube_id: videoId,
-          title: title,
-          category: ch.cat || 'عام',
-          description: '',
-          published_at: snippet.publishedAt || new Date().toISOString(),
-          status: 'published',
-          channel_youtube_id: chId,
-          channel_id: undefined // Backend might need UUID or it can just match on channel_youtube_id
-        }, { onConflict: 'youtube_id' }).then(() => console.log('Video pushed to Supabase!'));
-      } catch(e) { console.error('Supabase video insert error', e); }
-
-    }
-  }
+  // update counter
+  const cnt = document.querySelectorAll('#channelsTbody tr[data-chid]').length;
+  const cntEl = document.getElementById('chCount'); if(cntEl) cntEl.textContent = cnt;
 }
 
-async function addBotChannel() {
-  const rawId = document.getElementById('botChannelId').value.trim();
-  let name  = document.getElementById('botChannelName').value.trim();
-  const cat   = document.getElementById('botChannelCat').value;
-  const limit = parseInt(document.getElementById('botChannelLimit').value) || 5;
-  if (!rawId) return showToast('⚠️ أدخل معرّف أو رابط القناة');
+function deleteChannel(chId) {
+  const ch=botChannels[chId]; const name=ch?.name||chId; const count=ch?.videoIds?.length||0;
+  document.querySelector(`#channelsTbody tr[data-chid="${chId}"]`)?.remove();
+  document.querySelectorAll(`#videoTbody tr[data-chid="${chId}"]`).forEach(r=>r.remove());
+  delete botChannels[chId]; syncChannelsToIndex();
+  pushNotif('🗑',`حُذفت قناة "${name}" و${count} فيديو`);
+  showToast(`🗑 حُذفت "${name}"`, 't-error');
+}
 
-  let chId = rawId;
-  
-  // Extract handle or channel ID
-  const handleMatch = rawId.match(/@([A-Za-z0-9_.-]+)/);
-  const idMatch = rawId.match(/channel\/([A-Za-z0-9_-]+)/);
-  
-  showToast('⏳ جاري معالجة بيانات القناة...');
-  
-  if (handleMatch) {
-    try {
-      const hres = await fetch(`https://www.googleapis.com/youtube/v3/channels?key=${YT_API_KEY}&forHandle=${handleMatch[0]}&part=snippet,statistics,id`);
-      const hdata = await hres.json();
-      if (hdata.items && hdata.items.length > 0) {
-        chId = hdata.items[0].id;
-        if (!name) name = hdata.items[0].snippet.title;
-        var avatar = hdata.items[0].snippet.thumbnails?.default?.url || '';
-        var subs = hdata.items[0].statistics?.subscriberCount || '0';
-      } else {
-        return showToast('❌ لم يتم العثور على القناة من هذا الرابط', 't-error');
-      }
-    } catch(e) {
-      return showToast('❌ خطأ في الاتصال بيوتيوب', 't-error');
-    }
-  } else if (idMatch) {
-    chId = idMatch[1];
-  } else if (rawId.length === 24 && rawId.startsWith('UC')) {
-    chId = rawId;
-  }
-  
-  // If we still don't have a name, fetch it using channel ID
-  if (!name) {
-    try {
-      const cres = await fetch(`https://www.googleapis.com/youtube/v3/channels?key=${YT_API_KEY}&id=${chId}&part=snippet,statistics`);
-      const cdata = await cres.json();
-      if (cdata.items && cdata.items.length > 0) {
-        name = cdata.items[0].snippet.title;
-        var avatar = cdata.items[0].snippet.thumbnails?.default?.url || '';
-        var subs = cdata.items[0].statistics?.subscriberCount || '0';
-      } else {
-        name = chId;
-      }
-    } catch(e) {
-      name = chId;
-    }
-  }
-
-  if (botChannels[chId]) return showToast('⚠️ هذه القناة مضافة مسبقاً');
-
-  botChannels[chId] = { name, cat, limit, videoIds: [] };
-
-  // --- PUSH TO SUPABASE ---
+async function bgFetchChannel(chId) {
+  const ch=botChannels[chId]; if(!ch||!ch.uploads) return;
   try {
-    await supabase.from('youtube_channels').insert({
-      channel_id: chId,
-      channel_url: 'https://youtube.com/channel/' + chId,
-      channel_name: name,
-      category: cat,
-      channel_logo: typeof avatar !== 'undefined' ? avatar : '',
-      subscriber_count: typeof subs !== 'undefined' ? parseInt(subs) : 0
-    });
-    console.log("Channel pushed to Supabase!");
-  } catch(e) {
-    console.error("Supabase insert error", e);
-  }
+    const res=await fetch(`${YT_BASE}/playlistItems?key=${YT_API_KEY}&playlistId=${ch.uploads}&part=snippet&maxResults=${ch.limit}`);
+    const data=await res.json(); if(!data.items?.length) return;
+    let added=0;
+    for (const item of data.items) {
+      const vid=item.snippet?.resourceId?.videoId;
+      const title=item.snippet?.title||'';
+      const date=(item.snippet?.publishedAt||'').substring(0,10);
+      const thumb=item.snippet?.thumbnails?.medium?.url||item.snippet?.thumbnails?.default?.url||'';
+      if(!vid||ch.videoIds.includes(vid)) continue;
+      ch.videoIds.push(vid); addVideoRowBot(vid,title,date,thumb,ch,chId); added++;
+    }
+    ch.lastFetch=Date.now();
+    const ce=document.getElementById(`count-${chId}`); if(ce) ce.textContent=ch.videoIds.length;
+    const le=document.getElementById(`lastfetch-${chId}`); if(le) le.textContent=new Date().toLocaleString('ar-DZ');
+    if(added>0) pushNotif('📥',`جُلب ${added} فيديو من "${ch.name}"`);
+    syncChannelsToIndex();
+  } catch(e) { pushNotif('❌',`خطأ: ${ch.name}`); }
+}
 
-  if (!DB.channels.some(c => c.id === chId)) {
-    DB.channels.push({ id: chId, name, cat, limit, avatar: typeof avatar !== 'undefined' ? avatar : '', subs: typeof subs !== 'undefined' ? subs : '0', date: new Date().toLocaleDateString("ar") });
-    saveDB("Channels");
-  }
-
-  const tbody = document.getElementById('channelsTbody');
-  const tr = document.createElement('tr');
-  tr.setAttribute('data-chid', chId);
-  const catBadges = {
-    'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue',
-    'التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal',
-    'العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'
-  };
-  tr.innerHTML = `
-    <td class="td-main">
-      <div style="display:flex;align-items:center;gap:.6rem">
-        ${avatar ? `<img src="${avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : ''}
-        <div>
-          <div>${name}</div>
-          <div style="font-size:10px;color:var(--text-dimmer)">${parseInt(subs||0).toLocaleString('ar-EG')} مشترك</div>
-        </div>
-      </div>
-    </td>
-    <td style="font-size:11px;color:var(--text-dimmer)">${chId}</td>
-    <td>${cat ? `<span class="badge ${catBadges[cat]||'badge-gold'}">${cat}</span>` : `<span style="color:var(--text-dimmer)">-</span>`}</td>
-    <td>${limit}</td>
-    <td><span id="count-${chId}" style="color:var(--gold);font-weight:500">0</span></td>
-    <td style="font-size:11px">لم يُجلب بعد</td>
-    <td><span class="badge badge-green">● نشط</span></td>
-    <td><div style="display:flex;gap:.3rem">
-      <button class="btn btn-outline btn-sm btn-icon" title="جلب الآن" onclick="fetchChannelNow('${chId}','${name}')">▶</button>
-      <button class="btn btn-danger btn-sm btn-icon" title="حذف القناة وفيديوهاتها" onclick="deleteChannel(this,'${chId}')">🗑</button>
-    </div></td>`;
+function addVideoRowBot(videoId,title,date,thumb,ch,chId) {
+  const catBadges={'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue','التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal','العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'};
+  const tbody=document.getElementById('videoTbody'); if(!tbody) return;
+  const tr=document.createElement('tr'); tr.setAttribute('data-chid',chId); tr.setAttribute('data-vid',videoId);
+  tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:.6rem">
+    <img src="${thumb||`https://img.youtube.com/vi/${videoId}/default.jpg`}" style="width:50px;height:34px;object-fit:cover;border-radius:3px;flex-shrink:0" onerror="this.src='https://img.youtube.com/vi/${videoId}/default.jpg'">
+    <div><div class="td-main" style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${title}</div>
+    <div style="font-size:10px;color:var(--text-dimmer)">📺 ${ch.name}</div></div>
+  </div></td>
+  <td><span class="badge ${catBadges[ch.cat]||'badge-gold'}">${ch.cat}</span></td>
+  <td class="vtCat" style="display:none">${ch.cat}</td>
+  <td>—</td><td>${date}</td>
+  <td><span class="badge badge-green">● منشور</span></td>
+  <td><div style="display:flex;gap:.3rem">
+    <a class="btn btn-outline btn-sm btn-icon" href="https://youtube.com/watch?v=${videoId}" target="_blank">👁</a>
+    <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelete(this,'tr')">🗑</button>
+  </div></td>`;
   tbody.prepend(tr);
-
-  document.getElementById('botChannelId').value = '';
-  document.getElementById('botChannelName').value = '';
-
-  addBotLog(`➕ تمت إضافة قناة: ${name} (${chId})`);
-  showToast(`✅ تمت إضافة القناة "${name}"`, 't-success');
-
-  if (botRunning) setTimeout(() => fetchChannelNow(chId, name), 500);
 }
 
-
-function deleteChannel(btn, chId) {
-  const ch = botChannels[chId];
-  const name = ch ? ch.name : chId;
-
-  // Remove channel row
-  const chRow = document.querySelector(`#channelsTbody tr[data-chid="${chId}"]`);
-  if (chRow) chRow.remove();
-
-  // Remove ALL videos belonging to this channel from videoTbody
-  document.querySelectorAll(`#videoTbody tr[data-chid="${chId}"]`).forEach(r => r.remove());
-
-  // Remove from memory
-  delete botChannels[chId];
-  DB.channels = DB.channels.filter(c => c.id !== chId);
-  saveDB("Channels");
-
-  addBotLog(`🗑 حُذفت القناة "${name}" وجميع فيديوهاتها (${ch ? ch.videoIds.length : 0} فيديو)`);
-  showToast(`🗑 تم حذف القناة "${name}" وفيديوهاتها`, 't-error');
+function syncChannelsToIndex() {
+  const data=Object.entries(botChannels).map(([id,ch])=>({id,name:ch.name,logo:ch.logo,subs:ch.subs,subsRaw:ch.subsRaw||0,cat:ch.cat,videoIds:ch.videoIds||[]}));
+  try { localStorage.setItem('kronos_channels',JSON.stringify(data)); } catch(e) {}
 }
-
-function addBotLog(msg) {
-  const log = document.getElementById('botLog');
-  if (!log) return;
-  const now = new Date().toLocaleString('ar');
-  const div = document.createElement('div');
-  div.textContent = `[${now}] ${msg}`;
-  log.prepend(div);
-  // Keep max 50 lines
-  while (log.children.length > 50) log.removeChild(log.lastChild);
-}
-
-// ─── INITIALIZATION ────────────────────────────────────────────────────────
-function initData() {
-  // Init bot channels
-  DB.channels.forEach(c => {
-    botChannels[c.id] = { name: c.name, cat: c.cat, limit: c.limit || 5, videoIds: [] };
-    const tbody = document.getElementById('channelsTbody');
-    const tr = document.createElement('tr');
-    tr.setAttribute('data-chid', c.id);
-    const catBadges = {
-      'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue',
-      'التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal',
-      'العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'
-    };
-    tr.innerHTML = `
-      <td class="td-main">
-        <div style="display:flex;align-items:center;gap:.6rem">
-          ${c.avatar ? `<img src="${c.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : ''}
-          <div>
-            <div>${c.name}</div>
-            <div style="font-size:10px;color:var(--text-dimmer)">${parseInt(c.subs||0).toLocaleString('ar-EG')} مشترك</div>
-          </div>
-        </div>
-      </td>
-      <td style="font-size:11px;color:var(--text-dimmer)">${c.id}</td>
-      <td>${c.cat ? `<span class="badge ${catBadges[c.cat]||'badge-gold'}">${c.cat}</span>` : `<span style="color:var(--text-dimmer)">-</span>`}</td>
-      <td>${c.limit || 5}</td>
-      <td><span id="count-${c.id}" style="color:var(--gold);font-weight:500">0</span></td>
-      <td style="font-size:11px">لم يُجلب بعد</td>
-      <td><span class="badge badge-green">● نشط</span></td>
-      <td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-outline btn-sm btn-icon" title="جلب الآن" onclick="fetchChannelNow('${c.id}','${c.name}')">▶</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="حذف القناة وفيديوهاتها" onclick="deleteChannel(this,'${c.id}')">🗑</button>
-      </div></td>`;
-    tbody.appendChild(tr);
-  });
-
-  // Render DB.videos
-  if (DB.videos && DB.videos.length > 0) {
-    const vbody = document.getElementById('videoTbody');
-    // iterate backwards to prepend correctly or just append if sorted
-    [...DB.videos].reverse().forEach(v => {
-      if (v.type === 'bot') {
-        const ch = botChannels[v.chId] || { name: v.chName, cat: v.cat };
-        ch.videoIds = ch.videoIds || [];
-        if (!ch.videoIds.includes(v.id)) ch.videoIds.push(v.id);
-        addVideoRowFromBot(v.id, { title: v.title, publishedAt: v.date }, ch, v.chId, false);
-      }
-    });
-    // Update counts
-    Object.keys(botChannels).forEach(id => {
-      const cEl = document.getElementById('count-' + id);
-      if (cEl && botChannels[id].videoIds) {
-        cEl.textContent = botChannels[id].videoIds.length;
-      }
-    });
-  }
-
-  // Start bot automatically
-  if (!botRunning) toggleBot();
-
-  // Run immediately if > 24 hours
-  const lastRun = localStorage.getItem('Knoros_LastBotRun');
-  const now = Date.now();
-  if (!lastRun || (now - parseInt(lastRun)) > 24 * 60 * 60 * 1000) {
-    setTimeout(() => {
-      runBotNow();
-      localStorage.setItem('Knoros_LastBotRun', now.toString());
-    }, 2000); // 2 seconds after load
-  }
-}
-// Call initData immediately so things are loaded even before login (or after)
-initData();
-
 </script>
 </body>
 </html>
