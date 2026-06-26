@@ -2051,16 +2051,63 @@ function toggleNotifPanel() {
   if (!open) { notifications.forEach(n=>n.read=true); updateNotifDot(); renderNotifList(); }
 }
 
-// ─── BACKGROUND YOUTUBE BOT ─────────────────────────────────────────────────
+// ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
+const SUPA_URL = 'https://hlknmtrnlixmctvewobw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
+
+// ── Supabase helpers ──────────────────────────────────────────────────────────
+async function sbGet(table, query='') {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}${query}`, {
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' }
+  });
+  return r.ok ? r.json() : [];
+}
+async function sbInsert(table, data) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
+               'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify(data)
+  });
+  const json = await r.json();
+  if (!r.ok) throw new Error(json?.message || JSON.stringify(json));
+  return Array.isArray(json) ? json[0] : json;
+}
+async function sbUpdate(table, data, eq) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${eq}`, {
+    method: 'PATCH',
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  return r.ok;
+}
+async function sbDelete(table, eq) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${eq}`, {
+    method: 'DELETE',
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+  });
+  return r.ok;
+}
+async function sbUpsert(table, data, conflict) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`,
+               'Content-Type': 'application/json',
+               Prefer: `resolution=merge-duplicates,return=representation` },
+    body: JSON.stringify(data)
+  });
+  return r.ok;
+}
+
+// ─── YOUTUBE CONFIG ───────────────────────────────────────────────────────────
 const YT_API_KEY = 'AIzaSyDHq4kjSuizAM6b4ttJnru0TU0QT1ZoWKM';
 const YT_BASE    = 'https://www.googleapis.com/youtube/v3';
-const botChannels = {};
 
 function extractChannelIdFromUrl(url) {
   const uc  = url.match(/(?:channel\/)([UC][A-Za-z0-9_-]{10,})/);
   if (uc)  return { type:'id',     value:uc[1] };
   const hdl = url.match(/(?:youtube\.com\/)@([A-Za-z0-9._-]+)/);
-  if (hdl) return { type:'handle', value:hdl[1] };
+  if (hdl) return { type:'handle', value:hdl[1] }; 
   const cus = url.match(/(?:youtube\.com\/)(?:c|user)\/([A-Za-z0-9._-]+)/);
   if (cus) return { type:'custom', value:cus[1] };
   const bare = url.match(/^(UC[A-Za-z0-9_-]{10,})$/);
@@ -2075,164 +2122,387 @@ function formatSubs(n) {
   return n.toLocaleString('ar');
 }
 
+// ─── LOAD CHANNELS ON PAGE INIT ──────────────────────────────────────────────
+async function loadChannelsFromDB() {
+  try {
+    const channels = await sbGet('youtube_channels', '?select=*&order=created_at.desc');
+    if (!Array.isArray(channels)) return;
+    const tbody = document.getElementById('channelsTbody');
+    // Clear placeholder
+    const empty = document.getElementById('chEmptyRow');
+    if (channels.length && empty) empty.style.display = 'none';
+    channels.forEach(ch => renderChannelRow(ch));
+    // Load videos for each channel
+    loadAllVideosFromDB();
+  } catch(e) {
+    console.error('loadChannelsFromDB:', e);
+  }
+}
+
+async function loadAllVideosFromDB() {
+  try {
+    const videos = await sbGet('videos', '?select=*&order=published_at.desc&limit=200');
+    if (!Array.isArray(videos)) return;
+    const tbody = document.getElementById('videoTbody');
+    if (!tbody) return;
+    // Remove "no videos" placeholder
+    tbody.innerHTML = '';
+    if (!videos.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-dimmer)">لا توجد فيديوهات بعد</td></tr>';
+      return;
+    }
+    videos.forEach(v => addVideoRowFromDB(v));
+    syncChannelsToIndex();
+  } catch(e) { console.error('loadAllVideosFromDB:', e); }
+}
+
+function renderChannelRow(ch) {
+  const catBadges = { 'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue','التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal','العصر الحديث':'badge-amber','العصر المعاصر':'badge-green' };
+  const tbody = document.getElementById('channelsTbody');
+  if (!tbody) return;
+  // avoid duplicate rows
+  if (document.querySelector(`#channelsTbody tr[data-chid="${ch.channel_id}"]`)) return;
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-chid', ch.channel_id);
+  tr.setAttribute('data-dbid', ch.id);
+  tr.innerHTML = `
+    <td><div style="display:flex;align-items:center;gap:.7rem">
+      <img src="${ch.channel_logo||''}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(201,168,76,0.3)" onerror="this.style.display='none'">
+      <div>
+        <div class="td-main" style="font-size:13px;font-weight:500">${ch.channel_name||ch.channel_id}</div>
+        <div style="font-size:10px;color:var(--text-dimmer);margin-top:1px">${ch.channel_id}</div>
+      </div>
+    </div></td>
+    <td style="font-size:13px;color:var(--gold-dim);font-weight:500">${formatSubs(ch.subscriber_count)}</td>
+    <td><span class="badge ${catBadges[ch.category]||'badge-gold'}">${ch.category||'—'}</span></td>
+    <td style="color:var(--text-dim)">${ch.videos_per_day||5}</td>
+    <td><span id="count-${ch.channel_id}" style="color:var(--gold);font-weight:600">—</span></td>
+    <td id="lastfetch-${ch.channel_id}" style="font-size:11px;color:var(--text-dimmer)">${ch.last_checked_at ? new Date(ch.last_checked_at).toLocaleString('ar-DZ') : 'لم يُجلب بعد'}</td>
+    <td><div style="display:flex;gap:.4rem">
+      <button class="btn btn-outline btn-sm" title="جلب الآن" onclick="fetchChannelNow('${ch.channel_id}','${ch.id}')">▶ جلب</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteChannel('${ch.channel_id}','${ch.id}')">🗑</button>
+    </div></td>`;
+  tbody.prepend(tr);
+  // update counter
+  updateChannelCount(ch.channel_id);
+}
+
+async function updateChannelCount(channelId) {
+  try {
+    const vids = await sbGet('videos', `?channel_youtube_id=eq.${channelId}&select=id`);
+    const el = document.getElementById(`count-${channelId}`);
+    if (el) el.textContent = Array.isArray(vids) ? vids.length : '—';
+  } catch(e) {}
+}
+
+// ─── RESOLVE CHANNEL FROM URL ────────────────────────────────────────────────
 async function resolveChannelFromUrl() {
   const url   = document.getElementById('botChannelUrl')?.value.trim() || '';
   const errEl = document.getElementById('resolveError');
   const btn   = document.getElementById('resolveBtn');
-  if (errEl) errEl.style.display='none';
   const preview = document.getElementById('channelPreview');
-  if (preview) preview.style.display='none';
+  if (errEl) errEl.style.display = 'none';
+  if (preview) preview.style.display = 'none';
+
   if (!url) { if(errEl){errEl.textContent='⚠️ أدخل رابط القناة'; errEl.style.display='block';} return; }
   const parsed = extractChannelIdFromUrl(url);
   if (!parsed) { if(errEl){errEl.textContent='❌ رابط غير صحيح'; errEl.style.display='block';} return; }
+
   if (btn) { btn.textContent='⏳ جاري...'; btn.disabled=true; }
   try {
     let apiUrl;
     if      (parsed.type==='id')     apiUrl=`${YT_BASE}/channels?key=${YT_API_KEY}&id=${parsed.value}&part=snippet,statistics,contentDetails`;
     else if (parsed.type==='handle') apiUrl=`${YT_BASE}/channels?key=${YT_API_KEY}&forHandle=${parsed.value}&part=snippet,statistics,contentDetails`;
     else                             apiUrl=`${YT_BASE}/channels?key=${YT_API_KEY}&forUsername=${parsed.value}&part=snippet,statistics,contentDetails`;
+
     const res  = await fetch(apiUrl);
     const data = await res.json();
-    if (!data.items?.length) throw new Error('القناة غير موجودة');
+    if (!data.items?.length) throw new Error('القناة غير موجودة — تحقق من الرابط');
+
     const ch      = data.items[0];
     const chId    = ch.id;
     const name    = ch.snippet.title;
-    const logo    = ch.snippet.thumbnails?.medium?.url || ch.snippet.thumbnails?.default?.url || '';
+    const logo    = ch.snippet.thumbnails?.high?.url || ch.snippet.thumbnails?.medium?.url || '';
     const subs    = formatSubs(ch.statistics?.subscriberCount);
     const subsRaw = parseInt(ch.statistics?.subscriberCount||0);
-    const uploads = ch.contentDetails?.relatedPlaylists?.uploads||'';
-    if (botChannels[chId]) throw new Error('القناة مضافة مسبقاً');
-    // fetch last 5 videos preview
-    let videosHtml='';
+    const uploads = ch.contentDetails?.relatedPlaylists?.uploads || '';
+
+    // Check if already exists in DB
+    const existing = await sbGet('youtube_channels', `?channel_id=eq.${chId}&select=id`);
+    if (Array.isArray(existing) && existing.length > 0) throw new Error('هذه القناة مضافة مسبقاً');
+
+    // Fetch last 5 videos preview (1 unit)
+    let videosHtml = '';
     if (uploads) {
       const vRes  = await fetch(`${YT_BASE}/playlistItems?key=${YT_API_KEY}&playlistId=${uploads}&part=snippet&maxResults=5`);
       const vData = await vRes.json();
       if (vData.items?.length) {
-        videosHtml = `<div style="font-size:11px;color:var(--text-dimmer);margin-bottom:.4rem">📹 آخر الفيديوهات:</div><div style="display:flex;flex-direction:column;gap:.4rem">` +
-        vData.items.map(v => {
-          const vid=v.snippet?.resourceId?.videoId||'';
-          const ttl=v.snippet?.title||'';
-          const th=v.snippet?.thumbnails?.default?.url||`https://img.youtube.com/vi/${vid}/default.jpg`;
-          return `<div style="display:flex;gap:.5rem;align-items:center"><img src="${th}" style="width:44px;height:30px;object-fit:cover;border-radius:3px;flex-shrink:0"><span style="font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${ttl}</span><a href="https://youtube.com/watch?v=${vid}" target="_blank" style="font-size:10px;color:var(--gold-dim)">▶</a></div>`;
-        }).join('') + '</div>';
+        videosHtml = `<div style="font-size:11px;color:var(--text-dimmer);margin-bottom:.5rem">📹 آخر ${vData.items.length} فيديوهات:</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem">` +
+          vData.items.map(v => {
+            const vid   = v.snippet?.resourceId?.videoId||'';
+            const title = v.snippet?.title||'';
+            const thumb = v.snippet?.thumbnails?.default?.url||`https://img.youtube.com/vi/${vid}/default.jpg`;
+            return `<div style="display:flex;gap:.5rem;align-items:center">
+              <img src="${thumb}" style="width:44px;height:30px;object-fit:cover;border-radius:3px;flex-shrink:0">
+              <span style="font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${title}</span>
+              <a href="https://youtube.com/watch?v=${vid}" target="_blank" style="font-size:10px;color:var(--gold-dim)">▶</a>
+            </div>`;
+          }).join('') + '</div>';
       }
     }
-    window._rc = { chId, name, logo, subs, subsRaw, uploads, videoIds:[] };
-    if(document.getElementById('prevLogo')) document.getElementById('prevLogo').src=logo;
-    if(document.getElementById('prevName')) document.getElementById('prevName').textContent=name;
-    if(document.getElementById('prevSubs')) document.getElementById('prevSubs').textContent=`👥 ${subs} مشترك`;
-    if(document.getElementById('prevId'))   document.getElementById('prevId').textContent=chId;
-    if(document.getElementById('prevVideos')) document.getElementById('prevVideos').innerHTML=videosHtml;
-    if(preview) preview.style.display='block';
+
+    window._rc = { chId, name, logo, subs, subsRaw, uploads };
+
+    if(document.getElementById('prevLogo'))   document.getElementById('prevLogo').src = logo;
+    if(document.getElementById('prevName'))   document.getElementById('prevName').textContent = name;
+    if(document.getElementById('prevSubs'))   document.getElementById('prevSubs').textContent = `👥 ${subs} مشترك`;
+    if(document.getElementById('prevId'))     document.getElementById('prevId').textContent = chId;
+    if(document.getElementById('prevVideos')) document.getElementById('prevVideos').innerHTML = videosHtml;
+    if(preview) preview.style.display = 'block';
+    pushNotif('🔍', `تم جلب بيانات قناة: ${name}`);
+
   } catch(e) {
-    if(errEl){errEl.textContent='❌ '+e.message; errEl.style.display='block';}
+    if(errEl){ errEl.textContent='❌ '+e.message; errEl.style.display='block'; }
   }
-  if(btn){btn.textContent='🔍 جلب بيانات القناة'; btn.disabled=false;}
+  if(btn){ btn.textContent='🔍 جلب بيانات القناة'; btn.disabled=false; }
 }
 
-function confirmAddChannel() {
-  const rc = window._rc; if (!rc) return;
-  const cat   = document.getElementById('botChannelCat')?.value || 'الجغرافيا';
-  const limit = parseInt(document.getElementById('botChannelLimit')?.value||5);
-  botChannels[rc.chId] = { ...rc, cat, limit, videoIds:[], lastFetch:null };
-  addChannelRow(rc.chId, botChannels[rc.chId]);
-  syncChannelsToIndex();
-  document.getElementById('botChannelUrl').value='';
-  const p = document.getElementById('channelPreview'); if(p) p.style.display='none';
-  window._rc = null;
-  showToast(`✅ أُضيفت قناة "${rc.name}"`, 't-success');
-  pushNotif('📺', `أُضيفت قناة: ${rc.name}`);
-  setTimeout(() => bgFetchChannel(rc.chId), 600);
-  setTimeout(function schedNext() {
-    if (!botChannels[rc.chId]) return;
-    bgFetchChannel(rc.chId);
-    setTimeout(schedNext, 24*3600*1000);
-  }, 24*3600*1000);
-}
+// ─── CONFIRM ADD CHANNEL → SAVE TO SUPABASE ──────────────────────────────────
+async function confirmAddChannel() {
+  const rc = window._rc;
+  if (!rc) return;
+  const cat           = document.getElementById('botChannelCat')?.value || 'الجغرافيا';
+  const videos_per_day = parseInt(document.getElementById('botChannelLimit')?.value||5);
 
-function addChannelRow(chId, ch) {
-  const catBadges={'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue','التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal','العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'};
-  const tbody=document.getElementById('channelsTbody'); if(!tbody) return;
-  // hide empty row
-  const emptyRow = document.getElementById('chEmptyRow');
-  if (emptyRow) emptyRow.style.display='none';
-  const tr=document.createElement('tr'); tr.setAttribute('data-chid',chId);
-  tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:.7rem">
-    <img src="${ch.logo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(201,168,76,0.3)" onerror="this.style.display='none'">
-    <div>
-      <div class="td-main" style="font-size:13px;font-weight:500">${ch.name}</div>
-      <div style="font-size:10px;color:var(--text-dimmer);margin-top:1px">${chId}</div>
-    </div>
-  </div></td>
-  <td style="font-size:13px;color:var(--gold-dim);font-weight:500">${ch.subs}</td>
-  <td><span class="badge ${catBadges[ch.cat]||'badge-gold'}">${ch.cat}</span></td>
-  <td style="color:var(--text-dim)">${ch.limit}</td>
-  <td><span id="count-${chId}" style="color:var(--gold);font-weight:600">0</span></td>
-  <td id="lastfetch-${chId}" style="font-size:11px;color:var(--text-dimmer)">⏳ جاري الجلب...</td>
-  <td><div style="display:flex;gap:.4rem">
-    <button class="btn btn-danger btn-sm" onclick="deleteChannel('${chId}')">🗑 حذف</button>
-  </div></td>`;
-  tbody.prepend(tr);
-  // update counter
-  const cnt = document.querySelectorAll('#channelsTbody tr[data-chid]').length;
-  const cntEl = document.getElementById('chCount'); if(cntEl) cntEl.textContent = cnt;
-}
+  const btn = document.querySelector('#channelPreview button[onclick="confirmAddChannel()"]');
+  if (btn) { btn.textContent = '⏳ جاري الحفظ...'; btn.disabled = true; }
 
-function deleteChannel(chId) {
-  const ch=botChannels[chId]; const name=ch?.name||chId; const count=ch?.videoIds?.length||0;
-  document.querySelector(`#channelsTbody tr[data-chid="${chId}"]`)?.remove();
-  document.querySelectorAll(`#videoTbody tr[data-chid="${chId}"]`).forEach(r=>r.remove());
-  delete botChannels[chId]; syncChannelsToIndex();
-  pushNotif('🗑',`حُذفت قناة "${name}" و${count} فيديو`);
-  showToast(`🗑 حُذفت "${name}"`, 't-error');
-}
-
-async function bgFetchChannel(chId) {
-  const ch=botChannels[chId]; if(!ch||!ch.uploads) return;
   try {
-    const res=await fetch(`${YT_BASE}/playlistItems?key=${YT_API_KEY}&playlistId=${ch.uploads}&part=snippet&maxResults=${ch.limit}`);
-    const data=await res.json(); if(!data.items?.length) return;
-    let added=0;
-    for (const item of data.items) {
-      const vid=item.snippet?.resourceId?.videoId;
-      const title=item.snippet?.title||'';
-      const date=(item.snippet?.publishedAt||'').substring(0,10);
-      const thumb=item.snippet?.thumbnails?.medium?.url||item.snippet?.thumbnails?.default?.url||'';
-      if(!vid||ch.videoIds.includes(vid)) continue;
-      ch.videoIds.push(vid); addVideoRowBot(vid,title,date,thumb,ch,chId); added++;
-    }
-    ch.lastFetch=Date.now();
-    const ce=document.getElementById(`count-${chId}`); if(ce) ce.textContent=ch.videoIds.length;
-    const le=document.getElementById(`lastfetch-${chId}`); if(le) le.textContent=new Date().toLocaleString('ar-DZ');
-    if(added>0) pushNotif('📥',`جُلب ${added} فيديو من "${ch.name}"`);
-    syncChannelsToIndex();
-  } catch(e) { pushNotif('❌',`خطأ: ${ch.name}`); }
+    // Save to Supabase
+    const saved = await sbInsert('youtube_channels', {
+      channel_id:     rc.chId,
+      channel_name:   rc.name,
+      channel_logo:   rc.logo,
+      subscriber_count: rc.subsRaw,
+      uploads_playlist_id: rc.uploads,
+      category:       cat,
+      videos_per_day: videos_per_day,
+    });
+
+    // Render row
+    renderChannelRow({
+      id: saved?.id,
+      channel_id: rc.chId,
+      channel_name: rc.name,
+      channel_logo: rc.logo,
+      subscriber_count: rc.subsRaw,
+      category: cat,
+      videos_per_day,
+      last_checked_at: null,
+    });
+
+    // Hide empty row
+    const emptyRow = document.getElementById('chEmptyRow');
+    if (emptyRow) emptyRow.style.display = 'none';
+
+    // Reset form
+    document.getElementById('botChannelUrl').value = '';
+    const preview = document.getElementById('channelPreview');
+    if (preview) preview.style.display = 'none';
+    window._rc = null;
+
+    showToast(`✅ أُضيفت قناة "${rc.name}"`, 't-success');
+    pushNotif('📺', `أُضيفت قناة: ${rc.name}`);
+
+    // Immediately fetch latest 5 videos
+    setTimeout(() => fetchChannelVideos(rc.chId, saved?.id || rc.chId, rc.uploads, cat, videos_per_day), 800);
+
+  } catch(e) {
+    showToast(`❌ خطأ: ${e.message}`, 't-error');
+    pushNotif('❌', `خطأ في إضافة القناة: ${e.message}`);
+  }
+  if (btn) { btn.textContent = '✅ إضافة هذه القناة للبوت'; btn.disabled = false; }
 }
 
-function addVideoRowBot(videoId,title,date,thumb,ch,chId) {
-  const catBadges={'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue','التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal','العصر الحديث':'badge-amber','العصر المعاصر':'badge-green'};
-  const tbody=document.getElementById('videoTbody'); if(!tbody) return;
-  const tr=document.createElement('tr'); tr.setAttribute('data-chid',chId); tr.setAttribute('data-vid',videoId);
-  tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:.6rem">
-    <img src="${thumb||`https://img.youtube.com/vi/${videoId}/default.jpg`}" style="width:50px;height:34px;object-fit:cover;border-radius:3px;flex-shrink:0" onerror="this.src='https://img.youtube.com/vi/${videoId}/default.jpg'">
-    <div><div class="td-main" style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${title}</div>
-    <div style="font-size:10px;color:var(--text-dimmer)">📺 ${ch.name}</div></div>
-  </div></td>
-  <td><span class="badge ${catBadges[ch.cat]||'badge-gold'}">${ch.cat}</span></td>
-  <td class="vtCat" style="display:none">${ch.cat}</td>
-  <td>—</td><td>${date}</td>
-  <td><span class="badge badge-green">● منشور</span></td>
-  <td><div style="display:flex;gap:.3rem">
-    <a class="btn btn-outline btn-sm btn-icon" href="https://youtube.com/watch?v=${videoId}" target="_blank">👁</a>
-    <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelete(this,'tr')">🗑</button>
-  </div></td>`;
+// ─── FETCH LATEST VIDEOS FOR A CHANNEL ───────────────────────────────────────
+async function fetchChannelVideos(channelYtId, dbId, uploadsPlaylist, category, limit=5) {
+  if (!uploadsPlaylist) {
+    // Try to get playlist from DB
+    const rows = await sbGet('youtube_channels', `?channel_id=eq.${channelYtId}&select=uploads_playlist_id,category,videos_per_day`);
+    if (Array.isArray(rows) && rows[0]) {
+      uploadsPlaylist = rows[0].uploads_playlist_id;
+      category = rows[0].category;
+      limit    = rows[0].videos_per_day || 5;
+    }
+  }
+  if (!uploadsPlaylist) { showToast(`⚠️ لا يوجد playlist للقناة`); return; }
+
+  const lastfetchEl = document.getElementById(`lastfetch-${channelYtId}`);
+  if (lastfetchEl) lastfetchEl.textContent = '⏳ جاري الجلب...';
+
+  try {
+    const url  = `${YT_BASE}/playlistItems?key=${YT_API_KEY}&playlistId=${uploadsPlaylist}&part=snippet&maxResults=${limit}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error.message);
+    if (!data.items?.length) { if(lastfetchEl) lastfetchEl.textContent='لا فيديوهات جديدة'; return; }
+
+    let added = 0;
+    for (const item of data.items) {
+      const vid   = item.snippet?.resourceId?.videoId;
+      const title = item.snippet?.title || '';
+      const desc  = (item.snippet?.description||'').substring(0,500);
+      const date  = item.snippet?.publishedAt || new Date().toISOString();
+      const thumb = item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url || '';
+      if (!vid) continue;
+
+      const ok = await sbUpsert('videos', {
+        youtube_id:         vid,
+        title:              title,
+        description:        desc,
+        thumbnail_url:      thumb,
+        published_at:       date,
+        channel_youtube_id: channelYtId,
+        category:           category,
+        status:             'published',
+      }, 'youtube_id');
+
+      if (ok) { added++; addVideoRowToTable(vid, title, date, thumb, channelYtId, category); }
+    }
+
+    // Update last_checked_at in DB
+    await sbUpdate('youtube_channels',
+      { last_checked_at: new Date().toISOString() },
+      `channel_id=eq.${channelYtId}`
+    );
+
+    if (lastfetchEl) lastfetchEl.textContent = new Date().toLocaleString('ar-DZ');
+    updateChannelCount(channelYtId);
+    syncChannelsToIndex();
+
+    if (added > 0) pushNotif('📥', `جُلب ${added} فيديو من "${channelYtId}"`);
+    showToast(`✅ جُلب ${added} فيديو`, 't-success');
+
+  } catch(e) {
+    if (lastfetchEl) lastfetchEl.textContent = '❌ خطأ';
+    showToast(`❌ خطأ في الجلب: ${e.message}`, 't-error');
+    pushNotif('❌', `خطأ في جلب فيديوهات: ${e.message}`);
+  }
+}
+
+// Manual fetch button
+async function fetchChannelNow(channelYtId, dbId) {
+  showToast(`🔄 جاري جلب فيديوهات القناة...`);
+  await fetchChannelVideos(channelYtId, dbId, null, null, 5);
+}
+
+// ─── ADD VIDEO ROW TO TABLE ───────────────────────────────────────────────────
+function addVideoRowToTable(videoId, title, date, thumb, channelId, category) {
+  const tbody = document.getElementById('videoTbody');
+  if (!tbody) return;
+  // avoid duplicate
+  if (document.querySelector(`#videoTbody tr[data-vid="${videoId}"]`)) return;
+  // remove "no videos" placeholder
+  const placeholder = tbody.querySelector('td[colspan]');
+  if (placeholder) placeholder.closest('tr').remove();
+
+  const catBadges = { 'العصور القديمة':'badge-gold','العصور الوسطى':'badge-blue','التاريخ الإسلامي':'badge-teal','الجغرافيا':'badge-teal','العصر الحديث':'badge-amber','العصر المعاصر':'badge-green' };
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-chid', channelId);
+  tr.setAttribute('data-vid', videoId);
+  tr.innerHTML = `
+    <td><div style="display:flex;align-items:center;gap:.6rem">
+      <img src="${thumb||`https://img.youtube.com/vi/${videoId}/default.jpg`}"
+           style="width:50px;height:34px;object-fit:cover;border-radius:3px;flex-shrink:0"
+           onerror="this.src='https://img.youtube.com/vi/${videoId}/default.jpg'">
+      <div>
+        <div class="td-main" style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${title}</div>
+        <div style="font-size:10px;color:var(--text-dimmer)">📺 ${channelId}</div>
+      </div>
+    </div></td>
+    <td><span class="badge ${catBadges[category]||'badge-gold'}">${category||'—'}</span></td>
+    <td class="vtCat" style="display:none">${category||''}</td>
+    <td>—</td>
+    <td>${(date||'').substring(0,10)}</td>
+    <td><span class="badge badge-green">● منشور</span></td>
+    <td><div style="display:flex;gap:.3rem">
+      <a class="btn btn-outline btn-sm btn-icon" href="https://youtube.com/watch?v=${videoId}" target="_blank">👁</a>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="deleteVideoRow(this,'${videoId}')">🗑</button>
+    </div></td>`;
   tbody.prepend(tr);
 }
 
-function syncChannelsToIndex() {
-  const data=Object.entries(botChannels).map(([id,ch])=>({id,name:ch.name,logo:ch.logo,subs:ch.subs,subsRaw:ch.subsRaw||0,cat:ch.cat,videoIds:ch.videoIds||[]}));
-  try { localStorage.setItem('kronos_channels',JSON.stringify(data)); } catch(e) {}
+function addVideoRowFromDB(v) {
+  addVideoRowToTable(v.youtube_id, v.title, v.published_at, v.thumbnail_url, v.channel_youtube_id, v.category);
 }
+
+// ─── DELETE CHANNEL + ITS VIDEOS FROM SUPABASE ───────────────────────────────
+async function deleteChannel(channelYtId, dbId) {
+  const chName = document.querySelector(`#channelsTbody tr[data-chid="${channelYtId}"] .td-main`)?.textContent || channelYtId;
+  if (!confirm(`هل تريد حذف قناة "${chName}" وجميع فيديوهاتها؟`)) return;
+  try {
+    // Delete videos first
+    await sbDelete('videos', `channel_youtube_id=eq.${channelYtId}`);
+    // Delete channel
+    if (dbId) await sbDelete('youtube_channels', `id=eq.${dbId}`);
+    else      await sbDelete('youtube_channels', `channel_id=eq.${channelYtId}`);
+
+    // Remove from DOM
+    document.querySelector(`#channelsTbody tr[data-chid="${channelYtId}"]`)?.remove();
+    document.querySelectorAll(`#videoTbody tr[data-chid="${channelYtId}"]`).forEach(r=>r.remove());
+
+    // Show empty if no channels left
+    const remaining = document.querySelectorAll('#channelsTbody tr[data-chid]').length;
+    if (!remaining) {
+      const empty = document.getElementById('chEmptyRow');
+      if (empty) empty.style.display = '';
+    }
+    syncChannelsToIndex();
+    pushNotif('🗑', `حُذفت قناة "${chName}" وفيديوهاتها`);
+    showToast(`🗑 حُذفت "${chName}"`, 't-error');
+    // update counter label
+    const cntEl = document.getElementById('chCount');
+    if (cntEl) cntEl.textContent = remaining;
+  } catch(e) {
+    showToast(`❌ خطأ في الحذف: ${e.message}`, 't-error');
+  }
+}
+
+// Delete single video row
+async function deleteVideoRow(btn, videoId) {
+  try {
+    await sbDelete('videos', `youtube_id=eq.${videoId}`);
+    btn.closest('tr').remove();
+    showToast('🗑 تم حذف الفيديو');
+  } catch(e) { showToast('❌ خطأ في الحذف'); }
+}
+
+// ─── SYNC TO INDEX.HTML VIA LOCALSTORAGE (for same-browser live preview) ──────
+async function syncChannelsToIndex() {
+  try {
+    const channels = await sbGet('youtube_channels', '?select=channel_id,channel_name,channel_logo,subscriber_count,category');
+    const videos   = await sbGet('videos', '?select=youtube_id,channel_youtube_id&order=published_at.desc&limit=200');
+    if (!Array.isArray(channels)) return;
+    const data = channels.map(ch => ({
+      id:      ch.channel_id,
+      name:    ch.channel_name,
+      logo:    ch.channel_logo,
+      subs:    formatSubs(ch.subscriber_count),
+      subsRaw: ch.subscriber_count||0,
+      cat:     ch.category,
+      videoIds: (Array.isArray(videos) ? videos.filter(v=>v.channel_youtube_id===ch.channel_id).map(v=>v.youtube_id) : [])
+    }));
+    localStorage.setItem('kronos_channels', JSON.stringify(data));
+  } catch(e) {}
+}
+
+// ─── INIT: Load from Supabase on page open ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadChannelsFromDB();
+});
+
 </script>
 </body>
 </html>
