@@ -2082,7 +2082,15 @@ async function sbUpsert(table, body) {
   return true;
 }
 async function sbDelete(table, qs) {
-  await fetch(`${SUPA_URL}/rest/v1/${table}?${qs}`, { method:'DELETE', headers:SB_H });
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${qs}`, {
+    method: 'DELETE',
+    headers: { ...SB_H, Prefer: 'return=minimal' }
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(()=>({}));
+    throw new Error(e.message || e.hint || `Delete failed: ${r.status}`);
+  }
+  return true;
 }
 async function sbPatch(table, qs, body) {
   await fetch(`${SUPA_URL}/rest/v1/${table}?${qs}`, {
@@ -2403,24 +2411,31 @@ async function updateChCount(chId) {
 // DELETE
 // ════════════════════════════════════════════════════════════════════════════
 async function deleteChannel(chId) {
-  // Get row and extract name + dbId from DOM directly
-  const row   = document.querySelector(`#channelsTbody tr[data-chid="${chId}"]`);
-  const name  = row ? (row.querySelector('.td-main')?.textContent?.trim() || chId) : chId;
-  const dbId  = row ? row.getAttribute('data-dbid') : null;
+  const row  = document.querySelector(`#channelsTbody tr[data-chid="${chId}"]`);
+  const name = row ? (row.querySelector('.td-main')?.textContent?.trim() || chId) : chId;
+  const dbId = row ? row.getAttribute('data-dbid') : null;
   if (!confirm(`حذف "${name}" وجميع فيديوهاتها؟`)) return;
   try {
-    await sbDelete('videos',`channel_youtube_id=eq.${chId}`);
-    if (dbId) await sbDelete('youtube_channels',`id=eq.${dbId}`);
-    else      await sbDelete('youtube_channels',`channel_id=eq.${chId}`);
+    // 1. Delete videos first — must succeed before removing channel
+    await sbDelete('videos', `channel_youtube_id=eq.${chId}`);
+    // 2. Delete channel row
+    if (dbId) await sbDelete('youtube_channels', `id=eq.${dbId}`);
+    else      await sbDelete('youtube_channels', `channel_id=eq.${chId}`);
+    // 3. Remove from DOM only after DB deletion confirmed
     row?.remove();
-    document.querySelectorAll(`#videoTbody tr[data-chid="${chId}"]`).forEach(r=>r.remove());
+    document.querySelectorAll(`#videoTbody tr[data-chid="${chId}"]`).forEach(r => r.remove());
+    // 4. Update counter
     const rem = document.querySelectorAll('#channelsTbody tr[data-chid]').length;
-    if (!rem) { const e=document.getElementById('chEmptyRow'); if(e) e.style.display=''; }
-    const ce = document.getElementById('chCount'); if(ce) ce.textContent=rem;
-    syncToIndex();
-    pushNotif('🗑',`حُذفت "${name}"`);
-    showToast(`🗑 حُذفت "${name}"`,'t-error');
-  } catch(e) { showToast(`❌ ${e.message}`,'t-error'); }
+    if (!rem) { const e = document.getElementById('chEmptyRow'); if(e) e.style.display=''; }
+    const ce = document.getElementById('chCount'); if(ce) ce.textContent = rem;
+    // 5. Sync localStorage so index.html updates
+    await syncToIndex();
+    pushNotif('🗑', `حُذفت "${name}" وفيديوهاتها`);
+    showToast(`🗑 حُذفت "${name}"`, 't-error');
+  } catch(e) {
+    showToast(`❌ فشل الحذف: ${e.message}`, 't-error');
+    pushNotif('❌', `فشل الحذف: ${e.message}`);
+  }
 }
 
 async function deleteVideoRow(btn, vid) {

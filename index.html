@@ -2198,38 +2198,42 @@ loadYtFromSupabase();
 
 async function loadYtFromSupabase() {
   try {
-    // Fetch channels and videos separately for better error isolation
     const channels = await sbIdx('youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc');
     const videos   = await sbIdx('videos?select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=200');
-
-    console.log('[Kronos] channels:', channels?.length, '| videos:', videos?.length);
 
     const hasChannels = Array.isArray(channels) && channels.length > 0;
     const hasVideos   = Array.isArray(videos)   && videos.length   > 0;
 
-    // Always show marquee if channels exist
+    // Build active channel IDs set + chMap
+    const activeChIds = new Set();
+    const chMap = {};
+    const chList = [];
     if (hasChannels) {
-      const chList = channels.map(ch => ({
-        id:   ch.channel_id,
-        name: ch.channel_name || ch.channel_id,
-        logo: ch.channel_logo || '',
-        subs: fmtSubsIdx(ch.subscriber_count),
-        cat:  ch.category,
-        videoIds: []
-      }));
+      channels.forEach(ch => {
+        activeChIds.add(ch.channel_id);
+        chMap[ch.channel_id] = ch.channel_name || ch.channel_id;
+        chList.push({
+          id:      ch.channel_id,
+          name:    ch.channel_name || ch.channel_id,
+          logo:    ch.channel_logo || '',
+          subs:    fmtSubsIdx(ch.subscriber_count),
+          cat:     ch.category,
+          videoIds:[]
+        });
+      });
       renderChannelsMarquee(chList);
     }
 
-    // Show videos if they exist
-    if (hasVideos) {
-      // Build chName map
-      const chMap = {};
-      if (hasChannels) channels.forEach(ch => { chMap[ch.channel_id] = ch.channel_name || ch.channel_id; });
-      renderYtGrid([], videos, chMap);
+    // Filter videos — only those whose channel still exists in DB
+    const activeVideos = hasVideos
+      ? videos.filter(v => activeChIds.has(v.channel_youtube_id))
+      : [];
+
+    if (activeVideos.length > 0) {
+      renderYtGrid([], activeVideos, chMap);
     } else if (!hasChannels) {
       showYtEmpty();
     } else {
-      // Channels exist but no videos yet — show marquee, hide grid
       const grid  = document.getElementById('ytGrid');
       const empty = document.getElementById('ytEmpty');
       if (grid)  grid.innerHTML = '';
@@ -2239,7 +2243,7 @@ async function loadYtFromSupabase() {
       }
     }
   } catch(e) {
-    console.error('[Kronos] loadYtFromSupabase error:', e);
+    console.error('[Kronos] loadYtFromSupabase:', e);
     showYtEmpty();
   }
 }
