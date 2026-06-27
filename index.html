@@ -2169,60 +2169,79 @@ document.getElementById('ytModal').addEventListener('click', e => { if(e.target=
 document.getElementById('authOverlay').addEventListener('click', e => { if(e.target===document.getElementById('authOverlay')) closeAuth(); });
 
 // ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
-const SUPA_URL = 'https://hlknmtrnlixmctvewobw.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
-async function sbFetch(path) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
-    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-  });
-  return r.ok ? r.json() : [];
+const SUPA_URL_IDX = 'https://hlknmtrnlixmctvewobw.supabase.co';
+const SUPA_KEY_IDX = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
+async function sbIdx(path) {
+  try {
+    const r = await fetch(`${SUPA_URL_IDX}/rest/v1/${path}`, {
+      headers: {
+        'apikey':        SUPA_KEY_IDX,
+        'Authorization': `Bearer ${SUPA_KEY_IDX}`,
+        'Accept':        'application/json',
+        'Content-Type':  'application/json'
+      }
+    });
+    if (!r.ok) { console.warn('sbIdx error:', r.status, path); return []; }
+    return r.json();
+  } catch(e) { console.warn('sbIdx catch:', e.message); return []; }
+}
+function fmtSubsIdx(n) {
+  n=parseInt(n)||0;
+  if(n>=1e6) return (n/1e6).toFixed(1)+' م';
+  if(n>=1000) return (n/1000).toFixed(1)+' ألف';
+  return n.toLocaleString('ar');
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 setLang('ar');
-loadChannelsFromSupabase();
+loadYtFromSupabase();
 
-async function loadChannelsFromSupabase() {
+async function loadYtFromSupabase() {
   try {
-    // Load channels
-    const channels = await sbFetch('youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc');
-    // Load videos
-    const videos = await sbFetch('videos?select=youtube_id,title,thumbnail_url,channel_youtube_id,category&order=published_at.desc&limit=200');
-    if (!Array.isArray(channels) || !channels.length) { showYtEmpty(); return; }
-    // Build channel objects with their videos
-    const channelList = channels.map(ch => ({
-      id:      ch.channel_id,
-      name:    ch.channel_name || ch.channel_id,
-      logo:    ch.channel_logo || '',
-      subs:    formatSubsIdx(ch.subscriber_count),
-      cat:     ch.category,
-      videoIds: Array.isArray(videos)
-        ? videos.filter(v => v.channel_youtube_id === ch.channel_id).map(v => v.youtube_id)
-        : []
-    }));
-    // Also save to localStorage for same-browser sync
-    localStorage.setItem('kronos_channels', JSON.stringify(channelList));
-    renderChannelsMarquee(channelList);
-    renderYtGrid(channelList, Array.isArray(videos) ? videos : []);
-  } catch(e) {
-    // Fallback to localStorage
-    try {
-      const raw = localStorage.getItem('kronos_channels');
-      if (!raw) { showYtEmpty(); return; }
-      const channels = JSON.parse(raw);
-      if (!channels.length) { showYtEmpty(); return; }
-      renderChannelsMarquee(channels);
-      renderYtGrid(channels, []);
-    } catch(e2) { showYtEmpty(); }
-  }
-}
+    // Fetch channels and videos separately for better error isolation
+    const channels = await sbIdx('youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc');
+    const videos   = await sbIdx('videos?select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=200');
 
-function formatSubsIdx(n) {
-  if (!n) return '—';
-  n = parseInt(n);
-  if (n >= 1000000) return (n/1000000).toFixed(1) + ' م';
-  if (n >= 1000)    return (n/1000).toFixed(1) + ' ألف';
-  return n.toLocaleString('ar');
+    console.log('[Kronos] channels:', channels?.length, '| videos:', videos?.length);
+
+    const hasChannels = Array.isArray(channels) && channels.length > 0;
+    const hasVideos   = Array.isArray(videos)   && videos.length   > 0;
+
+    // Always show marquee if channels exist
+    if (hasChannels) {
+      const chList = channels.map(ch => ({
+        id:   ch.channel_id,
+        name: ch.channel_name || ch.channel_id,
+        logo: ch.channel_logo || '',
+        subs: fmtSubsIdx(ch.subscriber_count),
+        cat:  ch.category,
+        videoIds: []
+      }));
+      renderChannelsMarquee(chList);
+    }
+
+    // Show videos if they exist
+    if (hasVideos) {
+      // Build chName map
+      const chMap = {};
+      if (hasChannels) channels.forEach(ch => { chMap[ch.channel_id] = ch.channel_name || ch.channel_id; });
+      renderYtGrid([], videos, chMap);
+    } else if (!hasChannels) {
+      showYtEmpty();
+    } else {
+      // Channels exist but no videos yet — show marquee, hide grid
+      const grid  = document.getElementById('ytGrid');
+      const empty = document.getElementById('ytEmpty');
+      if (grid)  grid.innerHTML = '';
+      if (empty) {
+        empty.style.display = 'block';
+        empty.innerHTML = '<div style="font-size:3rem;margin-bottom:1rem">⏳</div><div>القنوات مضافة — سيتم جلب الفيديوهات قريباً</div>';
+      }
+    }
+  } catch(e) {
+    console.error('[Kronos] loadYtFromSupabase error:', e);
+    showYtEmpty();
+  }
 }
 
 function renderChannelsMarquee(channels) {
@@ -2244,13 +2263,15 @@ function renderChannelsMarquee(channels) {
   inner.innerHTML = cards + cards; // duplicate for infinite scroll
 }
 
-function renderYtGrid(channels, videosFull) {
+function renderYtGrid(channels, videosFull, chMapOverride) {
   const grid  = document.getElementById('ytGrid');
   const empty = document.getElementById('ytEmpty');
   if (!grid) return;
-  // Build chName map
-  const chMap = {};
-  channels.forEach(ch => { chMap[ch.id] = ch.name; });
+  // Build chName map — support both old and new call signature
+  const chMap = chMapOverride || {};
+  if (!chMapOverride && channels && channels.length) {
+    channels.forEach(ch => { chMap[ch.id || ch.channel_id] = ch.name || ch.channel_name || ch.id; });
+  }
   // Collect videos
   const allVideos = [];
   if (videosFull && videosFull.length) {
@@ -2258,34 +2279,40 @@ function renderYtGrid(channels, videosFull) {
       allVideos.push({
         vid:    v.youtube_id,
         title:  v.title || '',
-        thumb:  v.thumbnail_url || '',
+        thumb:  `https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`,
         chName: chMap[v.channel_youtube_id] || v.channel_youtube_id || '',
         cat:    v.category || ''
       });
     });
   } else {
-    for (const ch of channels) {
+    for (const ch of (channels||[])) {
       for (const vid of (ch.videoIds || [])) {
-        allVideos.push({ vid, title:'', thumb:'', chName: ch.name, cat: ch.cat });
+        allVideos.push({ vid, title:'', thumb:'', chName: ch.name||ch.channel_name||'', cat: ch.cat||ch.category||'' });
       }
     }
   }
   if (!allVideos.length) { showYtEmpty(); return; }
   if (empty) empty.style.display = 'none';
-  grid.innerHTML = allVideos.map(v => `
-    <div class="yt-card" onclick="openYT('${v.vid}','${(v.chName||'').replace(/'/g,"\'")}','${(v.title||'').replace(/'/g,"\'")}')">
+  grid.innerHTML = allVideos.map(v => {
+    const safeTitle = (v.title||v.chName||'').replace(/'/g,"\'").replace(/"/g,'&quot;');
+    const safeCh    = (v.chName||'').replace(/'/g,"\'");
+    const thumbSrc  = v.thumb
+      ? v.thumb
+      : `https://img.youtube.com/vi/${v.vid}/hqdefault.jpg`;
+    return `<div class="yt-card" onclick="openYT('${v.vid}','${safeCh}','${safeTitle}')">
       <div class="yt-thumb">
-        <img src="${v.thumb || 'https://img.youtube.com/vi/'+v.vid+'/hqdefault.jpg'}"
+        <img src="${thumbSrc}"
              style="width:100%;height:100%;object-fit:cover"
              onerror="this.src='https://img.youtube.com/vi/${v.vid}/mqdefault.jpg'" alt="">
         <div class="yt-thumb-cover"><div class="yt-play-btn">▶</div></div>
       </div>
       <div class="yt-info">
-        <div class="yt-cat">${v.cat}</div>
-        <div class="yt-title">${v.title || v.chName}</div>
-        <div class="yt-meta"><span>📺 ${v.chName}</span></div>
+        <div class="yt-cat">${v.cat||''}</div>
+        <div class="yt-title">${v.title||v.chName||''}</div>
+        <div class="yt-meta"><span>📺 ${v.chName||''}</span></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function showYtEmpty() {
@@ -2297,7 +2324,7 @@ function showYtEmpty() {
 
 // Listen for storage changes from admin panel (same browser)
 window.addEventListener('storage', e => {
-  if (e.key === 'kronos_channels') loadChannelsFromSupabase();
+  if (e.key === 'kronos_channels' || e.key === 'kronos_videos') loadYtFromSupabase();
 });
 </script>
 </body>
