@@ -2294,6 +2294,25 @@ function scheduleFetch(chId, uploadsId, cat, limit) {
   }, 24*3600*1000);
 }
 
+async function forceFetchChannel(btn, chId, cat) {
+  try {
+    btn.disabled = true;
+    const oldText = btn.textContent;
+    btn.textContent = '...';
+    showToast('جاري تحديث الفيديوهات...', 't-info');
+    let uploadsId = _uploadsCache[chId] || (chId.startsWith('UC') ? 'UU'+chId.slice(2) : null);
+    if (!uploadsId) { showToast('لا يمكن العثور على القائمة', 't-error'); btn.disabled=false; btn.textContent=oldText; return; }
+    await fetchAndSaveVideos(chId, uploadsId, cat, 5);
+    showToast('تم التحديث بنجاح!', 't-success');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    showToast('حدث خطأ', 't-error');
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'تحديث';
+  }
+}
+
 async function fetchAndSaveVideos(chId, uploadsId, cat, limit=5) {
   if (!uploadsId) {
     // First check in-memory cache
@@ -2371,8 +2390,9 @@ function renderChannelRow(ch) {
     <td id="lastfetch-${ch.channel_id}" style="font-size:11px;color:var(--text-dimmer)">
       ${ch.last_checked_at ? new Date(ch.last_checked_at).toLocaleString('ar-DZ') : 'لم يُجلب بعد'}
     </td>
-    <td>
-      <button class="btn btn-danger btn-sm" onclick="deleteChannel('${ch.channel_id}')">🗑 حذف</button>
+    <td style="display:flex;gap:.3rem">
+      <button class="btn btn-outline btn-sm" onclick="forceFetchChannel(this, '${ch.channel_id}', '${ch.category||''}')">تحديث</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteChannel('${ch.channel_id}')">حذف</button>
     </td>`;
   tbody.prepend(tr);
   updateChCount(ch.channel_id);
