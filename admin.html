@@ -1100,7 +1100,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     <div id="vtab-list" style="display:none">
       <div class="data-table-wrap">
         <div class="data-table-header">
-          <div class="data-table-title">📋 كل الفيديوهات</div>
+          <div class="data-table-title">📋 كل الفيديوهات <span id="vidPageInfo" style="font-size:12px;color:var(--text-dimmer);font-weight:400"></span></div>
           <div class="data-table-actions">
             <button class="btn btn-danger btn-sm" onclick="deleteSelectedVideos()" id="bulkDeleteBtn" style="display:none">🗑 حذف المحدد</button>
             <select class="search-input" style="min-width:130px" onchange="filterBySelect(this,'vtCat','videoTable')">
@@ -1130,6 +1130,12 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         </div>
       </div>
     </div>
+
+
+    <!-- ══ PAGINATION FOR VIDEOS ══ -->
+    <div id="vidPagination" style="display:flex;justify-content:center;align-items:center;gap:.5rem;padding:.8rem 0;flex-wrap:wrap;margin-top:-.5rem"></div>
+
+
 
   </div>
 
@@ -2439,8 +2445,20 @@ async function deleteChannel(chId) {
 }
 
 async function deleteVideoRow(btn, vid) {
-  try { await sbDelete('videos',`youtube_id=eq.${vid}`); btn.closest('tr').remove(); showToast('🗑 حُذف الفيديو'); }
-  catch(e) { showToast('❌ خطأ في الحذف'); }
+  const tr = btn.closest('tr');
+  if (!confirm('هل أنت متأكد من الحذف النهائي؟')) return;
+  try {
+    await sbDelete('videos', `youtube_id=eq.${vid}`);
+    try {
+      const del = JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]');
+      if (!del.includes(vid)) { del.push(vid); localStorage.setItem('kronos_deleted_vids', JSON.stringify(del)); }
+    } catch(e) {}
+    tr?.remove();
+    syncToIndex();
+    showToast('🗑 تم الحذف بنجاح');
+  } catch(e) {
+    showToast('❌ فشل الحذف: ' + e.message, 't-error');
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -2450,8 +2468,16 @@ async function loadChannelsFromDB() {
   try {
     const [channels, videos] = await Promise.all([
       sbGet('youtube_channels','select=*&order=created_at.desc'),
-      sbGet('videos','select=youtube_id,title,channel_youtube_id,category,published_at&order=published_at.desc&limit=300')
+      sbGet('videos','select=youtube_id,title,channel_youtube_id,category,published_at&order=published_at.desc&limit=1000')
     ]);
+    try {
+      const deletedIds = new Set(JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]'));
+      if (deletedIds.size > 0 && Array.isArray(videos)) {
+        for(let i=videos.length-1; i>=0; i--) {
+          if(deletedIds.has(videos[i].youtube_id)) videos.splice(i,1);
+        }
+      }
+    } catch(e) {}
     if (channels.length) document.getElementById('chEmptyRow')?.style && (document.getElementById('chEmptyRow').style.display='none');
     channels.forEach(ch => renderChannelRow(ch));
     const tbody = document.getElementById('videoTbody');
@@ -2476,8 +2502,16 @@ async function syncToIndex() {
   try {
     const [ch,vi] = await Promise.all([
       sbGet('youtube_channels','select=channel_id,channel_name,channel_logo,subscriber_count,category'),
-      sbGet('videos','select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=200')
+      sbGet('videos','select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=1000')
     ]);
+    try {
+      const deletedIds = new Set(JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]'));
+      if (deletedIds.size > 0 && Array.isArray(vi)) {
+        for(let i=vi.length-1; i>=0; i--) {
+          if(deletedIds.has(vi[i].youtube_id)) vi.splice(i,1);
+        }
+      }
+    } catch(e) {}
     const data = ch.map(c=>({
       id:c.channel_id, name:c.channel_name||c.channel_id, logo:c.channel_logo||'',
       subs:fmtSubs(c.subscriber_count), subsRaw:c.subscriber_count||0, cat:c.category,
@@ -2514,20 +2548,78 @@ async function deleteSelectedVideos() {
   if (btn) btn.textContent = '⏳ جاري الحذف...';
   let deleted = 0;
   for (const cb of checked) {
-    const vid = cb.dataset.vid;
+    const vid   = cb.dataset.vid;
+    const tr    = cb.closest('tr');
     try {
       await sbDelete('videos', `youtube_id=eq.${vid}`);
-      cb.closest('tr').remove();
+      try {
+        const del = JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]');
+        if (!del.includes(vid)) { del.push(vid); localStorage.setItem('kronos_deleted_vids', JSON.stringify(del)); }
+      } catch(e) {}
+      tr?.remove();
       deleted++;
-    } catch(e) { console.warn('delete failed:', vid, e.message); }
+    } catch(e) {}
   }
+  syncToIndex();
   if (btn) { btn.textContent = `🗑 حذف المحدد`; btn.style.display = 'none'; }
   const master = document.getElementById('selectAllVids');
   if (master) master.checked = false;
-  syncToIndex();
-  showToast(`🗑 حُذف ${deleted} فيديو`, 't-error');
+  showToast(`🗑 حُذف ${deleted} فيديو بنجاح`, 't-error');
   pushNotif('🗑', `حُذف ${deleted} فيديو`);
 }
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// VIDEOS PAGINATION (admin) — 30 per page
+// ════════════════════════════════════════════════════════════════════════════
+const VIDS_PER_PAGE = 30;
+let _allVideoRows  = []; // all TR elements
+let _vidPage       = 1;
+
+function registerVideoRow(tr) {
+  if (!_allVideoRows.includes(tr)) _allVideoRows.push(tr);
+  renderVidPage(_vidPage);
+}
+
+function renderVidPage(page) {
+  _vidPage = page;
+  const total = _allVideoRows.length;
+  const pages = Math.max(1, Math.ceil(total / VIDS_PER_PAGE));
+  _vidPage = Math.min(_vidPage, pages);
+  const start = (_vidPage - 1) * VIDS_PER_PAGE;
+  const end   = start + VIDS_PER_PAGE;
+
+  // Show/hide rows
+  _allVideoRows.forEach((tr, i) => {
+    tr.style.display = (i >= start && i < end) ? '' : 'none';
+  });
+
+  // Page info
+  const info = document.getElementById('vidPageInfo');
+  if (info) info.textContent = `(${total} فيديو — صفحة ${_vidPage} من ${pages})`;
+
+  // Pagination controls
+  renderVidPagination(pages);
+}
+
+function renderVidPagination(pages) {
+  const wrap = document.getElementById('vidPagination');
+  if (!wrap || pages <= 1) { if(wrap) wrap.innerHTML=''; return; }
+  let html = '';
+  html += `<button class="btn btn-outline btn-sm" onclick="renderVidPage(${_vidPage-1})" ${_vidPage===1?'disabled':''}>→</button>`;
+  const range = 2;
+  for (let p = 1; p <= pages; p++) {
+    if (p === 1 || p === pages || Math.abs(p - _vidPage) <= range) {
+      html += `<button class="btn ${p===_vidPage?'btn-primary':'btn-outline'} btn-sm" onclick="renderVidPage(${p})">${p}</button>`;
+    } else if (Math.abs(p - _vidPage) === range+1) {
+      html += `<span style="color:var(--text-dimmer);padding:0 .3rem">…</span>`;
+    }
+  }
+  html += `<button class="btn btn-outline btn-sm" onclick="renderVidPage(${_vidPage+1})" ${_vidPage===pages?'disabled':''}>←</button>`;
+  wrap.innerHTML = html;
+}
+
+
 
 document.addEventListener('DOMContentLoaded', loadChannelsFromDB);
 
