@@ -2208,7 +2208,7 @@ async function addChannelDirectly() {
                   || `https://img.youtube.com/vi/${vid}/default.jpg`;
       const vDate  = v.snippet?.publishedAt || new Date().toISOString();
       try {
-        await sbUpsert('videos', {
+        const videoBody = {
           youtube_id:         vid,
           title:              vTitle,
           description:        vDesc,
@@ -2217,11 +2217,29 @@ async function addChannelDirectly() {
           channel_youtube_id: chId,
           category:           cat,
           status:             'published',
+        };
+        const ins = await fetch(`${SUPA_URL}/rest/v1/videos`, {
+          method: 'POST',
+          headers: { ...SB_H, Prefer: 'return=minimal' },
+          body: JSON.stringify(videoBody)
         });
+        if (!ins.ok) {
+          const err = await ins.json().catch(() => ({}));
+          if (err.code === '23505') {
+            // مكرر — حدّث بيانات القناة فقط
+            await sbPatch('videos', `youtube_id=eq.${vid}`, {
+              channel_youtube_id: chId,
+              channel_id: dbId,
+              category: cat
+            });
+          } else {
+            console.warn('video insert error:', err.message || err.hint || ins.status);
+          }
+        }
         savedVids++;
-        // Show in videos table immediately
         addVideoRow(vid, vTitle, vDate.substring(0,10), vThumb, chId, cat);
       } catch(e2) { console.warn('video save:', e2.message); }
+
     }
 
     // ── 6. Show channel row in table ──────────────────────────────────────
