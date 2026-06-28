@@ -2199,16 +2199,35 @@ loadYtFromSupabase();
 
 async function loadYtFromSupabase() {
   try {
-    const channels = await sbIdx('youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc');
-    let videos = await sbIdx('videos?select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=1000');
+    // ── Fetch channels ───────────────────────────────────────────────────────
+    const chRes = await fetch(
+      `${SUPA_URL_IDX}/rest/v1/youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc`,
+      { headers:{ 'apikey':SUPA_KEY_IDX,'Authorization':`Bearer ${SUPA_KEY_IDX}`,'Accept':'application/json' } }
+    );
+    const channels = chRes.ok ? await chRes.json() : [];
+    console.log('[YT] channels status:', chRes.status, '| count:', channels?.length, '| data:', channels);
 
-    console.log('[Kronos] channels:', channels?.length, '| videos:', videos?.length);
+    // ── Fetch videos ─────────────────────────────────────────────────────────
+    const vRes = await fetch(
+      `${SUPA_URL_IDX}/rest/v1/videos?select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=1000`,
+      { headers:{ 'apikey':SUPA_KEY_IDX,'Authorization':`Bearer ${SUPA_KEY_IDX}`,'Accept':'application/json' } }
+    );
+    let videos = vRes.ok ? await vRes.json() : [];
+    console.log('[YT] videos status:', vRes.status, '| count:', videos?.length, '| sample:', videos?.slice(0,2));
+
+    // ── Error handling ────────────────────────────────────────────────────────
+    if (!chRes.ok) {
+      console.error('[YT] channels error:', await chRes.text().catch(()=>''));
+    }
+    if (!vRes.ok) {
+      console.error('[YT] videos error:', await vRes.text().catch(()=>''));
+    }
 
     const hasChannels = Array.isArray(channels) && channels.length > 0;
-    const hasVideos   = Array.isArray(videos)  && videos.length  > 0;
+    let   hasVideos   = Array.isArray(videos)   && videos.length   > 0;
 
-    // Build channel name map
-    const chMap = {};
+    // ── Build channel map ─────────────────────────────────────────────────────
+    const chMap  = {};
     const chList = [];
     if (hasChannels) {
       channels.forEach(ch => {
@@ -2216,26 +2235,41 @@ async function loadYtFromSupabase() {
         chList.push({
           id: ch.channel_id, name: ch.channel_name || ch.channel_id,
           logo: ch.channel_logo || '', subs: fmtSubsIdx(ch.subscriber_count),
-          cat: ch.category, videoIds: []
+          cat: ch.category, videoIds:[]
         });
       });
       renderChannelsMarquee(chList);
     }
 
+    // ── Filter locally-deleted videos ─────────────────────────────────────────
     if (hasVideos) {
-      // Filter out locally-deleted videos
       try {
         const deletedIds = new Set(JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]'));
-        if (deletedIds.size > 0) videos = videos.filter(v => !deletedIds.has(v.youtube_id));
-      } catch(e) {}
-      // Show ALL videos — no channel filter needed since DB already has correct data
-      renderYtGrid([], videos, chMap);
-    } else {
-      showYtEmpty();
+        if (deletedIds.size > 0) {
+          videos = videos.filter(v => !deletedIds.has(v.youtube_id));
+          hasVideos = videos.length > 0;
+        }
+      } catch(e){}
     }
 
-  } catch(e) {
-    console.error('[Kronos] loadYtFromSupabase:', e);
+    // ── Render ────────────────────────────────────────────────────────────────
+    if (hasVideos) {
+      renderYtGrid([], videos, chMap);
+    } else if (!hasChannels && !hasVideos) {
+      showYtEmpty();
+    } else {
+      // Channels exist but no videos
+      const grid  = document.getElementById('ytGrid');
+      const empty = document.getElementById('ytEmpty');
+      if (grid) grid.innerHTML='';
+      if (empty) {
+        empty.style.display='block';
+        empty.innerHTML='<div style="font-size:3rem;margin-bottom:1rem">⏳</div><div>القنوات مضافة — الفيديوهات ستظهر قريباً</div>';
+      }
+    }
+
+  } catch(err) {
+    console.error('[YT] Fatal error:', err);
     showYtEmpty();
   }
 }
@@ -2339,11 +2373,16 @@ function renderYtPagination(pages) {
 }
 
 
-function showYtEmpty() {
+function showYtEmpty(msg) {
   const grid  = document.getElementById('ytGrid');
   const empty = document.getElementById('ytEmpty');
-  if (grid)  grid.innerHTML = '';
-  if (empty) empty.style.display = 'block';
+  if (grid) grid.innerHTML = '';
+  if (empty) {
+    empty.style.display = 'block';
+    if (msg) {
+      empty.innerHTML = `<div style="font-size:2rem;margin-bottom:1rem">⚠️</div><div>${msg}</div>`;
+    }
+  }
 }
 
 // Listen for storage changes from admin panel (same browser)

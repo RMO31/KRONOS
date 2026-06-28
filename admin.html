@@ -2066,13 +2066,20 @@ const SB_H     = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'C
 
 // ── Supabase helpers ──────────────────────────────────────────────────────
 async function sbGet(table, qs='') {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${qs}`, { headers: SB_H });
-  if (!r.ok) { const e = await r.json(); throw new Error(e.message||e.hint||r.status); }
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${qs}`, {
+    headers: { ...SB_H, 'Accept': 'application/json' }
+  });
+  if (!r.ok) {
+    const txt = await r.text().catch(()=>'');
+    let msg = r.status;
+    try { msg = JSON.parse(txt).message || JSON.parse(txt).hint || r.status; } catch(e){}
+    throw new Error(msg);
+  }
   return r.json();
 }
 async function sbPost(table, body) {
   const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
-    method:'POST', headers:{...SB_H, Prefer:'return=representation'}, body:JSON.stringify(body)
+    method:'POST', headers:{...SB_H, 'Accept':'application/json', Prefer:'return=representation'}, body:JSON.stringify(body)
   });
   const j = await r.json();
   if (!r.ok) throw new Error(j.message || j.hint || j.details || JSON.stringify(j).substring(0,120));
@@ -2082,7 +2089,7 @@ async function sbUpsert(table, body) {
   // Use on_conflict=youtube_id to force full row update including all fields
   const r = await fetch(`${SUPA_URL}/rest/v1/${table}?on_conflict=youtube_id`, {
     method:'POST',
-    headers:{...SB_H, Prefer:'resolution=merge-duplicates,return=minimal'},
+    headers:{...SB_H, 'Accept':'application/json', Prefer:'resolution=merge-duplicates,return=minimal'},
     body: JSON.stringify(body)
   });
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message||e.hint||r.status); }
