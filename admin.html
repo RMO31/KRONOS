@@ -2317,21 +2317,21 @@ async function forceFetchChannel(btn, chId, cat) {
   try {
     btn.disabled = true;
     btn.textContent = '⏳';
-    showToast('جاري تحديث الفيديوهات...', 't-info');
+    showToast('جاري جلب الفيديوهات...', 't-info');
     let uploadsId = _uploadsCache[chId] || (chId.startsWith('UC') ? 'UU'+chId.slice(2) : null);
     if (!uploadsId) {
-      showToast('لا يمكن العثور على القائمة', 't-error');
-      btn.disabled = false; btn.textContent = 'تحديث'; return;
+      showToast('لا يمكن العثور على playlist', 't-error');
+      btn.disabled = false; btn.textContent = '📥 جلب'; return;
     }
-    await fetchAndSaveVideos(chId, uploadsId, cat, 5);
-    showToast('✅ تم التحديث بنجاح!', 't-success');
+    await fetchAndSaveVideos(chId, uploadsId, cat, 10);
+    showToast('✅ تم الجلب بنجاح!', 't-success');
     btn.textContent = '✅';
-    setTimeout(() => { btn.disabled = false; btn.textContent = 'تحديث'; }, 2000);
+    setTimeout(() => { btn.disabled = false; btn.textContent = '📥 جلب'; }, 2000);
   } catch(e) {
     showToast('❌ حدث خطأ: ' + e.message, 't-error');
     console.error(e);
     btn.disabled = false;
-    btn.textContent = 'تحديث';
+    btn.textContent = '📥 جلب';
   }
 }
 
@@ -2356,7 +2356,7 @@ async function fetchAndSaveVideos(chId, uploadsId, cat, limit=5) {
   const lastEl = document.getElementById(`lastfetch-${chId}`);
   if (lastEl) lastEl.textContent = '⏳ جاري...';
   try {
-    const res  = await fetch(`${YT_BASE}/playlistItems?key=${YT_KEY}&playlistId=${uploadsId}&part=snippet&maxResults=${limit}`);
+    const res  = await fetch(`${YT_BASE}/playlistItems?key=${YT_KEY}&playlistId=${uploadsId}&part=snippet&maxResults=${Math.max(limit,10)}`);
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
     let added = 0;
