@@ -2079,12 +2079,13 @@ async function sbPost(table, body) {
   return Array.isArray(j) ? j[0] : j;
 }
 async function sbUpsert(table, body) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+  // Use on_conflict=youtube_id to force full row update including all fields
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?on_conflict=youtube_id`, {
     method:'POST',
     headers:{...SB_H, Prefer:'resolution=merge-duplicates,return=minimal'},
     body: JSON.stringify(body)
   });
-  if (!r.ok) { const e = await r.json(); throw new Error(e.message||e.hint||r.status); }
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message||e.hint||r.status); }
   return true;
 }
 async function sbDelete(table, qs) {
@@ -2342,15 +2343,42 @@ async function fetchAndSaveVideos(chId, uploadsId, cat, limit=5) {
       const title = v.snippet?.title||'';
       const thumb = v.snippet?.thumbnails?.medium?.url||v.snippet?.thumbnails?.default?.url||'';
       const date  = v.snippet?.publishedAt||'';
-      // Get channel DB id from cache if available
       const chDbId = _channelDbId[chId] || null;
-      const ok = await sbUpsert('videos',{
-        youtube_id:vid, title, description:(v.snippet?.description||'').substring(0,500),
-        published_at:date,
+      const videoBody = {
+        youtube_id: vid,
+        title,
+        description: (v.snippet?.description||'').substring(0,500),
+        published_at: date || null,
         channel_id: chDbId,
-        channel_youtube_id:chId, category:cat, status:'published'
-      });
-      if (ok) { addVideoRow(vid,title,(date||'').substring(0,10),thumb,chId,cat); added++; }
+        channel_youtube_id: chId,
+        category: cat,
+        status: 'published'
+      };
+      try {
+        // Try INSERT first; if duplicate, PATCH to update all fields including channel_youtube_id
+        const ins = await fetch(`${SUPA_URL}/rest/v1/videos`, {
+          method:'POST',
+          headers:{...SB_H, Prefer:'return=minimal'},
+          body: JSON.stringify(videoBody)
+        });
+        if (!ins.ok) {
+          const err = await ins.json().catch(()=>({}));
+          if (err.code === '23505') {
+            // Duplicate – PATCH to update channel info
+            await sbPatch('videos', `youtube_id=eq.${vid}`, {
+              channel_youtube_id: chId,
+              channel_id: chDbId,
+              category: cat
+            });
+          } else {
+            throw new Error(err.message || err.hint || ins.status);
+          }
+        }
+        addVideoRow(vid, title, (date||'').substring(0,10), thumb, chId, cat);
+        added++;
+      } catch(ve) {
+        console.warn('Video save error:', vid, ve.message);
+      }
     }
     if (dbId) await sbPatch('youtube_channels',`id=eq.${dbId}`,{last_checked_at:new Date().toISOString()});
     else await sbPatch('youtube_channels',`channel_id=eq.${chId}`,{last_checked_at:new Date().toISOString()});
