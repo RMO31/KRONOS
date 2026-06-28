@@ -2316,21 +2316,25 @@ function scheduleFetch(chId, uploadsId, cat, limit) {
 async function forceFetchChannel(btn, chId, cat) {
   try {
     btn.disabled = true;
-    const oldText = btn.textContent;
-    btn.textContent = '...';
+    btn.textContent = '⏳';
     showToast('جاري تحديث الفيديوهات...', 't-info');
     let uploadsId = _uploadsCache[chId] || (chId.startsWith('UC') ? 'UU'+chId.slice(2) : null);
-    if (!uploadsId) { showToast('لا يمكن العثور على القائمة', 't-error'); btn.disabled=false; btn.textContent=oldText; return; }
+    if (!uploadsId) {
+      showToast('لا يمكن العثور على القائمة', 't-error');
+      btn.disabled = false; btn.textContent = 'تحديث'; return;
+    }
     await fetchAndSaveVideos(chId, uploadsId, cat, 5);
-    showToast('تم التحديث بنجاح!', 't-success');
-    setTimeout(() => location.reload(), 1500);
+    showToast('✅ تم التحديث بنجاح!', 't-success');
+    btn.textContent = '✅';
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'تحديث'; }, 2000);
   } catch(e) {
-    showToast('حدث خطأ', 't-error');
+    showToast('❌ حدث خطأ: ' + e.message, 't-error');
     console.error(e);
     btn.disabled = false;
     btn.textContent = 'تحديث';
   }
 }
+
 
 async function fetchAndSaveVideos(chId, uploadsId, cat, limit=5) {
   if (!uploadsId) {
