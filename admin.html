@@ -2402,16 +2402,22 @@ async function fetchAndSaveVideos(chId, uploadsId, cat, limit=5) {
         console.warn('Video save error:', vid, ve.message);
       }
     }
-    if (dbId) await sbPatch('youtube_channels',`id=eq.${dbId}`,{last_checked_at:new Date().toISOString()});
-    else await sbPatch('youtube_channels',`channel_id=eq.${chId}`,{last_checked_at:new Date().toISOString()});
+    // تحديث وقت آخر جلب للقناة (باستخدام channel_id دائماً)
+    try {
+      await sbPatch('youtube_channels', `channel_id=eq.${chId}`, {
+        last_checked_at: new Date().toISOString()
+      });
+    } catch(pe) { console.warn('patch last_checked_at:', pe.message); }
     if (lastEl) lastEl.textContent = new Date().toLocaleString('ar-DZ');
     updateChCount(chId);
     syncToIndex();
     if (added) pushNotif('📥',`${added} فيديو جديد من "${chId}"`);
     showToast(`✅ جُلب ${added} فيديو جديد`,'t-success');
+
   } catch(e) {
     if (lastEl) lastEl.textContent='❌ خطأ';
     showToast(`❌ ${e.message}`,'t-error');
+    console.error('[fetchAndSaveVideos]', e);
   }
 }
 
@@ -2441,7 +2447,7 @@ function renderChannelRow(ch) {
       ${ch.last_checked_at ? new Date(ch.last_checked_at).toLocaleString('ar-DZ') : 'لم يُجلب بعد'}
     </td>
     <td style="display:flex;gap:.3rem">
-      <button class="btn btn-outline btn-sm" onclick="forceFetchChannel(this, '${ch.channel_id}', '${ch.category||''}')">تحديث</button>
+      <button class="btn btn-outline btn-sm" onclick="forceFetchChannel(this, '${ch.channel_id}', '${ch.category||''}')" title="جلب آخر الفيديوهات">📥 جلب</button>
       <button class="btn btn-danger btn-sm" onclick="deleteChannel('${ch.channel_id}')">حذف</button>
     </td>`;
   tbody.prepend(tr);
