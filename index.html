@@ -2202,57 +2202,38 @@ async function loadYtFromSupabase() {
     const channels = await sbIdx('youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc');
     let videos = await sbIdx('videos?select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=1000');
 
+    console.log('[Kronos] channels:', channels?.length, '| videos:', videos?.length);
+
     const hasChannels = Array.isArray(channels) && channels.length > 0;
-    const hasVideos = Array.isArray(videos) && videos.length > 0;
+    const hasVideos   = Array.isArray(videos)  && videos.length  > 0;
 
-    // Filter out locally-deleted videos
-    try {
-      const deletedIds = new Set(JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]'));
-      if (deletedIds.size > 0 && Array.isArray(videos)) {
-        videos = videos.filter(v => !deletedIds.has(v.youtube_id));
-      }
-    } catch(e) {}
-
-    // Build active channel IDs set + chMap
-    const activeChIds = new Set();
+    // Build channel name map
     const chMap = {};
     const chList = [];
     if (hasChannels) {
       channels.forEach(ch => {
-        activeChIds.add(ch.channel_id);
         chMap[ch.channel_id] = ch.channel_name || ch.channel_id;
         chList.push({
-          id:      ch.channel_id,
-          name:    ch.channel_name || ch.channel_id,
-          logo:    ch.channel_logo || '',
-          subs:    fmtSubsIdx(ch.subscriber_count),
-          cat:     ch.category,
-          videoIds:[]
+          id: ch.channel_id, name: ch.channel_name || ch.channel_id,
+          logo: ch.channel_logo || '', subs: fmtSubsIdx(ch.subscriber_count),
+          cat: ch.category, videoIds: []
         });
       });
       renderChannelsMarquee(chList);
     }
 
-    // Show videos — filter to active channels if possible, else show all
     if (hasVideos) {
-      // Try filtering by active channels first
-      let activeVideos = activeChIds.size > 0
-        ? videos.filter(v => !v.channel_youtube_id || activeChIds.has(v.channel_youtube_id))
-        : videos;
-      // If filter removed everything, show all videos
-      if (activeVideos.length === 0) activeVideos = videos;
-      renderYtGrid([], activeVideos, chMap);
-    } else if (!hasChannels) {
-      showYtEmpty();
+      // Filter out locally-deleted videos
+      try {
+        const deletedIds = new Set(JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]'));
+        if (deletedIds.size > 0) videos = videos.filter(v => !deletedIds.has(v.youtube_id));
+      } catch(e) {}
+      // Show ALL videos — no channel filter needed since DB already has correct data
+      renderYtGrid([], videos, chMap);
     } else {
-      const grid  = document.getElementById('ytGrid');
-      const empty = document.getElementById('ytEmpty');
-      if (grid)  grid.innerHTML = '';
-      if (empty) {
-        empty.style.display = 'block';
-        empty.innerHTML = '<div style="font-size:3rem;margin-bottom:1rem">⏳</div><div>القنوات مضافة — سيتم جلب الفيديوهات قريباً</div>';
-      }
+      showYtEmpty();
     }
+
   } catch(e) {
     console.error('[Kronos] loadYtFromSupabase:', e);
     showYtEmpty();
