@@ -2361,10 +2361,29 @@ function showYtEmpty() {
   if (empty) empty.style.display = 'block';
 }
 
-// Listen for storage changes from admin panel (same browser)
+
+// ─── SITE THEME — set by admin panel ─────────────────────────────────────────
+function applySiteTheme(t) {
+  if (!t?.gold) return;
+  const root = document.documentElement;
+  root.style.setProperty('--gold',       t.gold);
+  root.style.setProperty('--gold-dim',   t.goldDim   || t.gold);
+  root.style.setProperty('--gold-light', t.goldLight || t.gold);
+}
+(function loadSiteTheme() {
+  try {
+    const t = JSON.parse(localStorage.getItem('kronos_site_theme') || 'null');
+    applySiteTheme(t);
+  } catch(e) {}
+})();
+// Live update when admin changes theme (same browser)
 window.addEventListener('storage', e => {
-  if (e.key === 'kronos_channels' || e.key === 'kronos_videos' || e.key === 'kronos_deleted_vids') loadYtFromSupabase();
+  if (e.key === 'kronos_site_theme') {
+    try { applySiteTheme(JSON.parse(e.newValue || 'null')); } catch(err) {}
+  }
+  if (e.key === 'kronos_channels' || e.key === 'kronos_videos') loadYtFromSupabase();
 });
+
 </script>
 </body>
 </html>
