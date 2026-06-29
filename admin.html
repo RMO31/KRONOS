@@ -985,9 +985,10 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <div class="form-group" style="flex:1;min-width:140px;margin-bottom:0">
             <label>التصنيف التلقائي</label>
             <select id="botChannelCat" class="form-control">
+              <option value="">— بدون تحديد —</option>
               <option>العصور القديمة</option><option>العصور الوسطى</option>
               <option>التاريخ الإسلامي</option><option>العصر الحديث</option>
-              <option selected>الجغرافيا</option><option>العصر المعاصر</option>
+              <option>الجغرافيا</option><option>العصر المعاصر</option>
             </select>
           </div>
           <div class="form-group" style="flex:1;min-width:120px;margin-bottom:0">
@@ -1353,11 +1354,14 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <div class="form-group"><label>اسم الموقع</label><input class="form-control" value="كرونوس — التاريخ والجغرافيا"></div>
             <div class="form-group"><label>الوصف القصير</label><input class="form-control" value="منصة للتاريخ والجغرافيا"></div>
             <div class="form-group"><label>اللغة الافتراضية</label>
-              <select class="form-control">
-                <option>العربية</option><option>English</option><option>Français</option><option>Español</option>
+              <select class="form-control" id="settingLang">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
               </select>
             </div>
-            <button class="btn btn-primary" onclick="showToast('✅ تم حفظ الإعدادات','t-success')">💾 حفظ</button>
+            <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 حفظ</button>
           </div>
         </div>
         <div class="card-box">
@@ -1404,11 +1408,18 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <div class="card-box-title">🎨 مظهر الموقع</div>
           <div style="display:flex;flex-direction:column;gap:.8rem">
             <div class="form-group"><label>اللون الرئيسي</label>
-              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                <button class="btn btn-sm" style="background:#c9a84c;border-color:#c9a84c;color:#0a0908;font-weight:700" onclick="showToast('تم اختيار الذهبي')">ذهبي</button>
-                <button class="btn btn-outline btn-sm" onclick="showToast('تم اختيار الفضي')">فضي</button>
-                <button class="btn btn-outline btn-sm" onclick="showToast('تم اختيار الأحمر')">أحمر</button>
-                <button class="btn btn-outline btn-sm" onclick="showToast('تم اختيار الأزرق')">أزرق</button>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="themeButtons">
+                <button class="btn btn-sm theme-active" data-gold="#c9a84c" data-golddim="#9e7d35" style="background:#c9a84c;border-color:#c9a84c;color:#0a0908;font-weight:700" onclick="applyTheme('#c9a84c','#9e7d35',this)">🟡 ذهبي</button>
+                <button class="btn btn-outline btn-sm" data-gold="#aaaaaa" data-golddim="#777777" onclick="applyTheme('#aaaaaa','#777777',this)">⬜ فضي</button>
+                <button class="btn btn-outline btn-sm" data-gold="#c0392b" data-golddim="#922b21" onclick="applyTheme('#c0392b','#922b21',this)">🔴 أحمر</button>
+                <button class="btn btn-outline btn-sm" data-gold="#2980b9" data-golddim="#1f618d" onclick="applyTheme('#2980b9','#1f618d',this)">🔵 أزرق</button>
+                <button class="btn btn-outline btn-sm" data-gold="#27ae60" data-golddim="#1e8449" onclick="applyTheme('#27ae60','#1e8449',this)">🟢 أخضر</button>
+              </div>
+            </div>
+            <div class="form-group"><label>لون مخصص</label>
+              <div style="display:flex;gap:.6rem;align-items:center">
+                <input type="color" id="customThemeColor" value="#c9a84c" style="width:44px;height:34px;border-radius:4px;border:1px solid rgba(201,168,76,0.3);background:transparent;cursor:pointer">
+                <button class="btn btn-outline btn-sm" onclick="applyTheme(document.getElementById('customThemeColor').value,'',null)">تطبيق</button>
               </div>
             </div>
           </div>
@@ -1790,7 +1801,7 @@ function addNews() {
     <td>${new Date().toLocaleDateString('ar')}</td>
     <td><span class="badge badge-green">● منشور</span></td>
     <td><div style="display:flex;gap:.3rem">
-      <button class="btn btn-outline btn-sm btn-icon" onclick="showToast('جاري التعديل...')">✏️</button>
+      <button class="btn btn-outline btn-sm btn-icon" onclick="editNewsRow(this)">✏️</button>
       <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelete(this,'tr')">🗑</button>
       <button class="btn btn-outline btn-sm" onclick="toggleNewsStatus(this)">إخفاء</button>
     </div></td>`;
@@ -1893,9 +1904,9 @@ function addArchivePost() {
     <td>${new Date().toLocaleDateString('ar')}</td>
     <td><span style="color:var(--gold)">0❤ 0💬</span></td>
     <td><div style="display:flex;gap:.3rem">
-      <button class="btn btn-outline btn-sm btn-icon" onclick="showToast('تعديل...')">✏️</button>
+      <button class="btn btn-outline btn-sm btn-icon" onclick="togglePostStatus(this)">✏️ تعديل الحالة</button>
       <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelete(this,'tr')">🗑</button>
-      <button class="btn btn-outline btn-sm" onclick="showToast('تم الإخفاء')">🙈</button>
+      <button class="btn btn-outline btn-sm" onclick="togglePostVisibility(this)">🙈 إخفاء</button>
     </div></td>`;
   tbody.prepend(tr);
   clearArchiveForm();
@@ -2700,6 +2711,104 @@ function renderVidPagination(pages) {
 }
 
 
+
+// ─── SETTINGS: Theme ─────────────────────────────────────────────────────────
+function applyTheme(gold, goldDim, btn) {
+  const r = document.documentElement;
+  r.style.setProperty('--gold', gold);
+  r.style.setProperty('--gold-dim', goldDim || gold);
+  r.style.setProperty('--gold-light', gold);
+  document.querySelectorAll('#themeButtons .btn').forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-outline');
+    b.style.background=''; b.style.borderColor=''; b.style.color=''; b.style.fontWeight='';
+  });
+  if (btn) {
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-primary');
+    btn.style.background = gold; btn.style.borderColor = gold;
+    btn.style.color = '#0a0908'; btn.style.fontWeight = '700';
+  }
+  try { localStorage.setItem('kronos_admin_theme', JSON.stringify({gold,goldDim})); } catch(e){}
+  showToast('✅ تم تطبيق اللون', 't-success');
+}
+(function loadSavedTheme() {
+  try {
+    const t = JSON.parse(localStorage.getItem('kronos_admin_theme')||'null');
+    if (t?.gold) {
+      document.documentElement.style.setProperty('--gold', t.gold);
+      if (t.goldDim) document.documentElement.style.setProperty('--gold-dim', t.goldDim);
+    }
+  } catch(e){}
+})();
+
+// ─── SETTINGS: General Save ───────────────────────────────────────────────────
+function saveGeneralSettings() {
+  const lang = document.getElementById('settingLang')?.value || 'ar';
+  try { localStorage.setItem('kronos_admin_settings', JSON.stringify({lang})); } catch(e){}
+  if (lang === 'ar') {
+    document.documentElement.setAttribute('dir','rtl');
+    document.documentElement.setAttribute('lang','ar');
+  } else {
+    document.documentElement.setAttribute('dir','ltr');
+    document.documentElement.setAttribute('lang', lang);
+  }
+  showToast('✅ تم حفظ الإعدادات — سيتم تطبيق اللغة عند إعادة فتح الصفحة', 't-success');
+}
+(function loadSavedSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('kronos_admin_settings')||'null');
+    if (!s) return;
+    const sel = document.getElementById('settingLang');
+    if (sel && s.lang) sel.value = s.lang;
+    if (s.lang && s.lang !== 'ar') {
+      document.documentElement.setAttribute('dir','ltr');
+      document.documentElement.setAttribute('lang', s.lang);
+    }
+  } catch(e){}
+})();
+
+// ─── NEWS: Edit ────────────────────────────────────────────────────────────────
+function editNewsRow(btn) {
+  const tr = btn.closest('tr');
+  const td = tr.querySelector('td:nth-child(2)');
+  if (!td) return;
+  const input = prompt('تعديل نص الخبر:', td.textContent.trim());
+  if (input !== null && input.trim()) {
+    td.textContent = input.trim();
+    showToast('✅ تم تعديل الخبر', 't-success');
+  }
+}
+
+// ─── POSTS: Visibility ────────────────────────────────────────────────────────
+function togglePostVisibility(btn) {
+  const tr = btn.closest('tr');
+  const badge = tr.querySelector('.badge-green, .badge-red');
+  if (!badge) return;
+  const isVisible = badge.classList.contains('badge-green');
+  badge.className = isVisible ? 'badge badge-red' : 'badge badge-green';
+  badge.textContent = isVisible ? '● مخفي' : '● منشور';
+  btn.textContent = isVisible ? '👁 إظهار' : '🙈 إخفاء';
+  showToast(isVisible ? '🙈 تم الإخفاء' : '👁 تم الإظهار');
+}
+function togglePostStatus(btn) {
+  const tr = btn.closest('tr');
+  const badge = tr.querySelector('.badge-green,.badge-amber');
+  if (!badge) return;
+  const isPinned = badge.classList.contains('badge-amber');
+  badge.className = isPinned ? 'badge badge-green' : 'badge badge-amber';
+  badge.textContent = isPinned ? '● منشور' : '📌 مثبّت';
+  showToast(isPinned ? 'تم إلغاء التثبيت' : '📌 تم تثبيت المنشور');
+}
+
+// ─── ARCHIVE: Visibility ──────────────────────────────────────────────────────
+function toggleArchiveVisibility(btn) {
+  const tr = btn.closest('tr');
+  const isHidden = btn.textContent.includes('إظهار');
+  tr.style.opacity = isHidden ? '1' : '0.4';
+  btn.textContent = isHidden ? '🙈 إخفاء' : '👁 إظهار';
+  showToast(isHidden ? '👁 تم الإظهار' : '🙈 تم الإخفاء');
+}
 
 document.addEventListener('DOMContentLoaded', loadChannelsFromDB);
 
