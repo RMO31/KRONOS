@@ -2593,7 +2593,11 @@ async function syncToIndex() {
       subs:fmtSubs(c.subscriber_count), subsRaw:c.subscriber_count||0, cat:c.category,
       videoIds:vi.filter(v=>v.channel_youtube_id===c.channel_id).map(v=>v.youtube_id)
     }));
-    const vids = vi.map(v=>({id:v.youtube_id,title:v.title||'',thumb:`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`,chId:v.channel_youtube_id,cat:v.category}));
+    // Exclude currently-trashed videos from the sync
+    const trashedIds = new Set(_trash.map(t=>t.vid));
+    const vids = vi
+      .filter(v => !trashedIds.has(v.youtube_id))
+      .map(v=>({id:v.youtube_id,title:v.title||'',thumb:`https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`,chId:v.channel_youtube_id,cat:v.category}));
     localStorage.setItem('kronos_channels', JSON.stringify(data));
     localStorage.setItem('kronos_videos',   JSON.stringify(vids));
   } catch(e){}

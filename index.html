@@ -2205,6 +2205,8 @@ function fmtSubsIdx(n) {
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 setLang('ar');
+// Clear stale deleted-videos cache on every load
+try { localStorage.removeItem('kronos_deleted_vids'); } catch(e) {}
 loadYtFromSupabase();
 
 async function loadYtFromSupabase() {
@@ -2231,16 +2233,9 @@ async function loadYtFromSupabase() {
     // Render channel marquee
     if (chList.length) renderChannelsMarquee(chList);
 
-    // Filter locally-deleted videos
-    let activeVideos = videos;
-    try {
-      const deletedIds = new Set(JSON.parse(localStorage.getItem('kronos_deleted_vids')||'[]'));
-      if (deletedIds.size > 0) activeVideos = videos.filter(v => !deletedIds.has(v.youtube_id));
-    } catch(e) {}
-
-    // Render videos or empty state
-    if (activeVideos.length > 0) {
-      renderYtGrid([], activeVideos, chMap);
+    // Render videos or empty state (no localStorage filter — rely on Supabase data only)
+    if (videos.length > 0) {
+      renderYtGrid([], videos, chMap);
     } else if (channels.length > 0) {
       // Channels exist but no videos yet
       const empty = document.getElementById('ytEmpty');
