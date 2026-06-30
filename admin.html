@@ -1359,6 +1359,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                 <option value="fr">Français</option>
                 <option value="es">Español</option>
               </select>
+              <div class="form-hint">هذا الإعداد يحدد لغة الموقع العام للزوار — لوحة التحكم تبقى بالعربية دائماً</div>
             </div>
             <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 حفظ</button>
           </div>
@@ -2798,9 +2799,9 @@ function applyTheme(gold, goldDim, btn) {
 function saveGeneralSettings() {
   const lang = document.getElementById('settingLang')?.value || 'ar';
   try { localStorage.setItem('kronos_admin_settings', JSON.stringify({lang})); } catch(e){}
-  document.documentElement.setAttribute('dir',  lang==='ar' ? 'rtl' : 'ltr');
-  document.documentElement.setAttribute('lang', lang);
-  showToast('✅ تم حفظ الإعدادات', 't-success');
+  // ملاحظة: هذا الإعداد يحدد لغة الموقع العام (index.html) فقط.
+  // لوحة التحكم نفسها تبقى بالعربية دائماً ولا تُترجم.
+  showToast('✅ تم حفظ اللغة الافتراضية للموقع', 't-success');
 }
 (function loadSavedSettings() {
   try {
@@ -2808,10 +2809,6 @@ function saveGeneralSettings() {
     if (!s) return;
     const sel = document.getElementById('settingLang');
     if (sel && s.lang) sel.value = s.lang;
-    if (s.lang && s.lang !== 'ar') {
-      document.documentElement.setAttribute('dir','ltr');
-      document.documentElement.setAttribute('lang', s.lang);
-    }
   } catch(e){}
 })();
 
