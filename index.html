@@ -999,6 +999,62 @@ body::before {
   transition: border-color .2s;
 }
 .form-group input:focus { border-color: var(--gold-dim); }
+
+/* Auth: email traffic light + hint */
+.email-light {
+  position: absolute;
+  inset-inline-end: .7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #555;
+  transition: background .25s, box-shadow .25s;
+}
+.email-light.red    { background:#e0504f; box-shadow:0 0 8px rgba(224,80,79,.6); }
+.email-light.orange { background:#e0a23f; box-shadow:0 0 8px rgba(224,162,63,.6); animation: pulse-light 1s infinite; }
+.email-light.green  { background:#3d9e6e; box-shadow:0 0 8px rgba(61,158,110,.6); }
+@keyframes pulse-light { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.auth-hint { font-size: 11px; color: var(--text-dimmer); margin-top: .35rem; min-height: 14px; }
+.auth-msg {
+  font-size: 12px; padding: .55rem .8rem; border-radius: 5px; margin-bottom: .8rem;
+  line-height: 1.5;
+}
+.auth-msg.err  { background: rgba(224,80,79,.1);  border: 1px solid rgba(224,80,79,.35);  color: #e0807f; }
+.auth-msg.ok   { background: rgba(61,158,110,.1); border: 1px solid rgba(61,158,110,.35); color: #6fc99a; }
+.auth-msg a { color: var(--gold); text-decoration: underline; cursor: pointer; }
+
+/* Profile completion card */
+.profile-box { max-width: 460px; }
+.profile-box h3 { text-align: center; }
+.profile-box > p { text-align: center; }
+.avatar-upload-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.3rem; }
+.avatar-circle {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: var(--dark3);
+  border: 2px dashed rgba(201,168,76,0.35);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; overflow: hidden; flex-shrink: 0;
+  transition: border-color .2s;
+}
+.avatar-circle:hover { border-color: var(--gold); }
+.avatar-circle #avatarPlaceholder { font-size: 2rem; opacity: .5; }
+.avatar-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .8rem; }
+.form-control-auth {
+  width: 100%; background: var(--dark3); border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 4px; color: var(--text); font-family: var(--font-ar); font-size: 13px;
+  padding: .55rem .7rem; outline: none;
+}
+.form-control-auth:focus { border-color: var(--gold-dim); }
+.btn-skip {
+  width: 100%; background: transparent; border: none; color: var(--text-dimmer);
+  font-family: var(--font-ar); font-size: 12px; padding: .6rem; cursor: pointer;
+  margin-top: .3rem; text-decoration: underline;
+}
+.btn-skip:hover { color: var(--text-dim); }
+.btn-gold:disabled { opacity: .5; cursor: not-allowed; }
 .auth-close {
   float: inline-end;
   background: transparent;
@@ -1074,7 +1130,7 @@ footer a:hover { color: var(--gold); }
       <option value="fr">Français</option>
       <option value="es">Español</option>
     </select>
-    <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login">دخول</a>
+    <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login" data-nav-login>دخول</a>
   </div>
 </nav>
 
@@ -1489,7 +1545,7 @@ footer a:hover { color: var(--gold); }
 
 <!-- ══════════════════════════════ AUTH MODAL ══════════════════════════════ -->
 <div class="auth-overlay" id="authOverlay">
-  <div class="auth-box">
+  <div class="auth-box" id="authBoxMain">
     <button class="auth-close" onclick="closeAuth()">✕</button>
     <h3 data-i18n="auth.welcome">مرحباً بك</h3>
     <p data-i18n="auth.sub">سجّل دخولك أو أنشئ حساباً جديداً</p>
@@ -1497,32 +1553,93 @@ footer a:hover { color: var(--gold); }
       <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="auth.login">دخول</button>
       <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="auth.register">حساب جديد</button>
     </div>
+
+    <!-- LOGIN FORM -->
     <div class="auth-form active" id="loginForm">
       <div class="form-group">
         <label data-i18n="auth.email">البريد الإلكتروني</label>
-        <input type="email" placeholder="example@email.com">
+        <input type="email" id="loginEmail" placeholder="example@email.com" autocomplete="username">
       </div>
       <div class="form-group">
         <label data-i18n="auth.password">كلمة المرور</label>
-        <input type="password" placeholder="••••••••">
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSiteLogin()">
       </div>
-      <button class="btn-gold" style="width:100%;margin-top:.5rem" onclick="closeAuth();showToast('مرحباً بك في كرونوس!')" data-i18n="auth.loginBtn">تسجيل الدخول</button>
+      <div id="loginMsg" class="auth-msg" style="display:none"></div>
+      <button class="btn-gold" id="loginBtn" style="width:100%;margin-top:.5rem" onclick="doSiteLogin()" data-i18n="auth.loginBtn">تسجيل الدخول</button>
     </div>
+
+    <!-- REGISTER FORM -->
     <div class="auth-form" id="registerForm">
       <div class="form-group">
         <label data-i18n="auth.name">الاسم الكامل</label>
-        <input type="text" placeholder="الاسم الكامل">
+        <input type="text" id="regName" placeholder="الاسم الكامل">
       </div>
       <div class="form-group">
         <label data-i18n="auth.email">البريد الإلكتروني</label>
-        <input type="email" placeholder="example@email.com">
+        <div style="position:relative">
+          <input type="email" id="regEmail" placeholder="example@email.com" autocomplete="username" oninput="onRegEmailInput()" style="padding-inline-end:2.2rem">
+          <span id="emailLight" class="email-light"></span>
+        </div>
+        <div id="emailHint" class="auth-hint"></div>
       </div>
       <div class="form-group">
         <label data-i18n="auth.password">كلمة المرور</label>
-        <input type="password" placeholder="••••••••">
+        <input type="password" id="regPassword" placeholder="•••••••• (6 أحرف على الأقل)" autocomplete="new-password">
       </div>
-      <button class="btn-gold" style="width:100%;margin-top:.5rem" onclick="closeAuth();showToast('تم إنشاء حسابك بنجاح!')" data-i18n="auth.registerBtn">إنشاء الحساب</button>
+      <div id="registerMsg" class="auth-msg" style="display:none"></div>
+      <button class="btn-gold" id="registerBtn" style="width:100%;margin-top:.5rem" onclick="doSiteRegister()" data-i18n="auth.registerBtn">إنشاء الحساب</button>
     </div>
+  </div>
+
+  <!-- PROFILE COMPLETION CARD (shown after first registration) -->
+  <div class="auth-box profile-box" id="profileBox" style="display:none">
+    <h3>🎉 أكمل ملفك الشخصي</h3>
+    <p>أضف بعض المعلومات لتخصيص حسابك على كرونوس</p>
+
+    <div class="avatar-upload-wrap">
+      <label for="avatarInput" class="avatar-circle" id="avatarPreview">
+        <span id="avatarPlaceholder">📷</span>
+        <img id="avatarImg" style="display:none">
+      </label>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
+      <div class="auth-hint" style="text-align:center;margin-top:.5rem">اضغط لرفع صورة شخصية (أي صيغة)</div>
+    </div>
+
+    <div class="form-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="pUsername" placeholder="اختر اسم مستخدم فريد">
+    </div>
+    <div class="profile-grid">
+      <div class="form-group">
+        <label>البلد</label>
+        <select id="pCountry" class="form-control-auth">
+          <option value="">اختر البلد</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>تاريخ الميلاد</label>
+        <input type="date" id="pBirthDate" class="form-control-auth">
+      </div>
+    </div>
+    <div class="profile-grid">
+      <div class="form-group">
+        <label>مكان الميلاد</label>
+        <input type="text" id="pBirthPlace" placeholder="المدينة، البلد">
+      </div>
+      <div class="form-group">
+        <label>الهواية <span style="color:var(--text-dimmer);font-weight:400">(اختياري)</span></label>
+        <select id="pHobby" class="form-control-auth">
+          <option value="">— بدون تحديد —</option>
+          <option>القراءة</option><option>التاريخ والآثار</option><option>السفر</option>
+          <option>التصوير</option><option>الرياضة</option><option>الرسم والفنون</option>
+          <option>الموسيقى</option><option>الكتابة</option><option>الألعاب الإلكترونية</option>
+          <option>الطبخ</option><option>أخرى</option>
+        </select>
+      </div>
+    </div>
+    <div id="profileMsg" class="auth-msg" style="display:none"></div>
+    <button class="btn-gold" id="profileSaveBtn" style="width:100%;margin-top:.5rem" onclick="saveProfile()">💾 حفظ الملف الشخصي</button>
+    <button class="btn-skip" onclick="skipProfile()">تخطّي الآن</button>
   </div>
 </div>
 
@@ -2146,13 +2263,339 @@ function closeYT() {
 }
 
 // ─── AUTH ───────────────────────────────────────────────────────────────────
-function openAuth() { document.getElementById('authOverlay').classList.add('open'); return false; }
+// ════════════════════════════════════════════════════════════════════════════
+// REAL AUTHENTICATION SYSTEM — Supabase Auth
+// ════════════════════════════════════════════════════════════════════════════
+const AUTH_URL = 'https://hlknmtrnlixmctvewobw.supabase.co';
+const AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
+
+function openAuth() {
+  document.getElementById('authOverlay').classList.add('open');
+  document.getElementById('authBoxMain').style.display = 'block';
+  document.getElementById('profileBox').style.display = 'none';
+  return false;
+}
 function closeAuth() { document.getElementById('authOverlay').classList.remove('open'); }
 function switchAuthTab(tab) {
   document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
   document.getElementById('loginForm').classList.toggle('active', tab==='login');
   document.getElementById('registerForm').classList.toggle('active', tab==='register');
+  hideAuthMsg('loginMsg'); hideAuthMsg('registerMsg');
 }
+
+function showAuthMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'auth-msg ' + type;
+  el.style.display = 'block';
+}
+function showAuthMsgHTML(id, html, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = html;
+  el.className = 'auth-msg ' + type;
+  el.style.display = 'block';
+}
+function hideAuthMsg(id) { const el = document.getElementById(id); if(el){el.style.display='none';} }
+
+// ── EMAIL VALIDATION: traffic light (red/orange/green) ──────────────────────
+let emailCheckTimer = null;
+function onRegEmailInput() {
+  const val = document.getElementById('regEmail').value.trim();
+  const light = document.getElementById('emailLight');
+  const hint  = document.getElementById('emailHint');
+  clearTimeout(emailCheckTimer);
+
+  const formatOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
+
+  if (!val) { light.className = 'email-light'; hint.textContent = ''; return; }
+  if (!formatOk) {
+    light.className = 'email-light red';
+    hint.textContent = 'صيغة البريد الإلكتروني غير صحيحة';
+    return;
+  }
+  // Format valid → orange (checking domain)
+  light.className = 'email-light orange';
+  hint.textContent = 'جاري التحقق من البريد...';
+
+  emailCheckTimer = setTimeout(() => verifyEmailDomain(val, light, hint), 600);
+}
+
+async function verifyEmailDomain(email, light, hint) {
+  const domain = email.split('@')[1];
+  if (!domain) { light.className = 'email-light red'; hint.textContent = 'بريد غير صالح'; return; }
+  try {
+    const res  = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`);
+    const data = await res.json();
+    const hasMX = Array.isArray(data.Answer) && data.Answer.length > 0;
+    if (hasMX) {
+      light.className = 'email-light green';
+      hint.textContent = '✓ بريد إلكتروني حقيقي وصالح';
+    } else {
+      light.className = 'email-light red';
+      hint.textContent = 'هذا النطاق لا يستقبل بريداً — تحقق من العنوان';
+    }
+  } catch(e) {
+    // Network issue — fall back to format-valid = orange/acceptable, don't block user
+    light.className = 'email-light orange';
+    hint.textContent = 'تعذّر التحقق من النطاق — تأكد من اتصالك';
+  }
+}
+
+function isEmailGreen() {
+  return document.getElementById('emailLight').classList.contains('green');
+}
+
+// ── REGISTER ──────────────────────────────────────────────────────────────────
+async function doSiteRegister() {
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPassword').value;
+  hideAuthMsg('registerMsg');
+
+  if (!name)  return showAuthMsg('registerMsg', '⚠️ أدخل الاسم الكامل', 'err');
+  if (!email) return showAuthMsg('registerMsg', '⚠️ أدخل البريد الإلكتروني', 'err');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showAuthMsg('registerMsg', '❌ صيغة البريد الإلكتروني غير صحيحة', 'err');
+  if (!isEmailGreen()) return showAuthMsg('registerMsg', '⚠️ يرجى الانتظار حتى يتم التحقق من البريد الإلكتروني (الضوء الأخضر)', 'err');
+  if (pass.length < 6) return showAuthMsg('registerMsg', '⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'err');
+
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري إنشاء الحساب...';
+
+  try {
+    const res  = await fetch(`${AUTH_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass, data: { full_name: name } })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = data.msg || data.error_description || data.error || 'فشل إنشاء الحساب';
+      if (/already.*registered|already.*exists|user.*exists/i.test(msg)) {
+        showAuthMsgHTML('registerMsg', '⚠️ هذا البريد مسجّل بالفعل — <a onclick="switchAuthTab(\'login\')">سجّل دخولك بدلاً من ذلك</a>', 'err');
+      } else {
+        showAuthMsg('registerMsg', '❌ ' + msg, 'err');
+      }
+      btn.disabled = false; btn.textContent = '✅ إنشاء الحساب';
+      return;
+    }
+
+    // Success — store session
+    const token  = data.access_token;
+    const userId = data.user?.id || data.id;
+    const userEmail = data.user?.email || email;
+
+    if (token && userId) {
+      saveSession({ token, userId, email: userEmail, name });
+      showAuthMsg('registerMsg', '✅ تم إنشاء الحساب بنجاح!', 'ok');
+      setTimeout(() => openProfileCompletion(name), 600);
+    } else {
+      // Email confirmation required (depends on Supabase project settings)
+      showAuthMsgHTML('registerMsg', '✅ تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتفعيل الحساب، ثم <a onclick="switchAuthTab(\'login\')">سجّل دخولك</a>', 'ok');
+      btn.disabled = false; btn.textContent = '✅ إنشاء الحساب';
+    }
+  } catch(e) {
+    showAuthMsg('registerMsg', '❌ خطأ في الاتصال: ' + e.message, 'err');
+    btn.disabled = false; btn.textContent = '✅ إنشاء الحساب';
+  }
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────────
+async function doSiteLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPassword').value;
+  hideAuthMsg('loginMsg');
+
+  if (!email || !pass) return showAuthMsg('loginMsg', '⚠️ أدخل البريد وكلمة المرور', 'err');
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الدخول...';
+
+  try {
+    const res  = await fetch(`${AUTH_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Supabase returns generic "Invalid login credentials" for both
+      // wrong password AND non-existent account (security best practice)
+      showAuthMsgHTML('loginMsg',
+        '❌ بيانات الدخول غير صحيحة، أو لا يوجد حساب بهذا البريد.<br>' +
+        '<a onclick="switchAuthTab(\'register\')">⚠️ أنشئ حساباً جديداً من هنا</a>',
+        'err');
+      btn.disabled = false; btn.textContent = '🔑 تسجيل الدخول';
+      return;
+    }
+
+    const token  = data.access_token;
+    const userId = data.user?.id;
+    const userEmail = data.user?.email || email;
+    const fullName  = data.user?.user_metadata?.full_name || '';
+
+    saveSession({ token, userId, email: userEmail, name: fullName });
+
+    // Check if profile already completed
+    const profile = await fetchProfile(userId, token);
+    closeAuth();
+    if (profile) {
+      showToast(`👋 مرحباً بعودتك ${profile.username || fullName || ''}!`, 't-success');
+      refreshAuthUI();
+    } else {
+      openProfileCompletion(fullName);
+    }
+  } catch(e) {
+    showAuthMsg('loginMsg', '❌ خطأ في الاتصال: ' + e.message, 'err');
+  }
+  btn.disabled = false; btn.textContent = '🔑 تسجيل الدخول';
+}
+
+// ── SESSION ──────────────────────────────────────────────────────────────────
+function saveSession({token, userId, email, name}) {
+  try {
+    localStorage.setItem('kronos_session', JSON.stringify({ token, userId, email, name }));
+  } catch(e) {}
+}
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('kronos_session') || 'null'); }
+  catch(e) { return null; }
+}
+function clearSession() { try { localStorage.removeItem('kronos_session'); } catch(e){} }
+
+// ── PROFILE: fetch / save ─────────────────────────────────────────────────────
+async function fetchProfile(userId, token) {
+  try {
+    const res = await fetch(`${AUTH_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
+      headers: { apikey: AUTH_KEY, Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows[0] || null;
+  } catch(e) { return null; }
+}
+
+let avatarBase64 = '';
+function onAvatarSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      // Resize to 200x200 circular-cropped square for reasonable storage size
+      const canvas = document.createElement('canvas');
+      canvas.width = 200; canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2, sy = (img.height - size) / 2;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
+      avatarBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      document.getElementById('avatarImg').src = avatarBase64;
+      document.getElementById('avatarImg').style.display = 'block';
+      document.getElementById('avatarPlaceholder').style.display = 'none';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function openProfileCompletion(name) {
+  document.getElementById('authBoxMain').style.display = 'none';
+  document.getElementById('profileBox').style.display = 'block';
+  document.getElementById('authOverlay').classList.add('open');
+  if (name) document.getElementById('pUsername').value = name.split(' ')[0] + Math.floor(Math.random()*900+100);
+  populateCountries();
+}
+
+function populateCountries() {
+  const sel = document.getElementById('pCountry');
+  if (sel.options.length > 1) return; // already populated
+  const countries = ['الجزائر','السعودية','مصر','المغرب','تونس','الإمارات','العراق','الأردن','الكويت','قطر','عُمان','البحرين','لبنان','سوريا','فلسطين','ليبيا','السودان','اليمن','موريتانيا','الصومال','جزر القمر','جيبوتي','فرنسا','الولايات المتحدة','المملكة المتحدة','ألمانيا','إسبانيا','إيطاليا','كندا','تركيا','أخرى'];
+  countries.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+async function saveProfile() {
+  const session = getSession();
+  if (!session) return showAuthMsg('profileMsg', '❌ انتهت الجلسة — سجّل دخولك مجدداً', 'err');
+
+  const username   = document.getElementById('pUsername').value.trim();
+  const country    = document.getElementById('pCountry').value;
+  const birthDate  = document.getElementById('pBirthDate').value;
+  const birthPlace = document.getElementById('pBirthPlace').value.trim();
+  const hobby      = document.getElementById('pHobby').value;
+
+  if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
+
+  const btn = document.getElementById('profileSaveBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+
+  try {
+    const res = await fetch(`${AUTH_URL}/rest/v1/profiles`, {
+      method: 'POST',
+      headers: {
+        apikey: AUTH_KEY,
+        Authorization: `Bearer ${session.token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=representation'
+      },
+      body: JSON.stringify({
+        id: session.userId,
+        username, country,
+        birth_date: birthDate || null,
+        birth_place: birthPlace,
+        hobby: hobby || null,
+        avatar_url: avatarBase64 || null,
+        email: session.email
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.message || err.hint || 'فشل حفظ الملف الشخصي');
+    }
+    showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
+    setTimeout(() => {
+      closeAuth();
+      showToast(`🎉 مرحباً بك ${username} في كرونوس!`, 't-success');
+      refreshAuthUI();
+    }, 900);
+  } catch(e) {
+    showAuthMsg('profileMsg', '❌ ' + e.message, 'err');
+    btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي';
+  }
+}
+
+function skipProfile() {
+  closeAuth();
+  showToast('يمكنك إكمال ملفك الشخصي لاحقاً من إعدادات الحساب');
+  refreshAuthUI();
+}
+
+// ── UI refresh after login (update nav button to show user) ────────────────────
+function refreshAuthUI() {
+  const session = getSession();
+  const navBtn = document.querySelector('[data-nav-login]') || document.getElementById('navLoginBtn');
+  if (navBtn && session) {
+    navBtn.textContent = '👤 ' + (session.name ? session.name.split(' ')[0] : 'حسابي');
+    navBtn.onclick = () => { /* could open profile page */ };
+  }
+}
+function doSiteLogout() {
+  clearSession();
+  showToast('تم تسجيل الخروج');
+  location.reload();
+}
+
+// Restore session on page load
+(function restoreSession() {
+  const s = getSession();
+  if (s) refreshAuthUI();
+})();
 
 // ─── TOAST ──────────────────────────────────────────────────────────────────
 let toastTimer;
