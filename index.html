@@ -1951,34 +1951,65 @@
         padding: 2rem 1rem 1rem;
       }
     }
-  </style>
+  
+    .nav-left { display: flex; align-items: center; }
+    .btn-logout { background: transparent; border: 1px solid rgba(255,100,100,0.4); color: #ff6b6b; padding: 0.4rem 1rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; transition: 0.3s ease; }
+    .btn-logout:hover { background: rgba(255,100,100,0.1); border-color: #ff6b6b; }
+    .user-profile-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 0.4rem 1rem; border-radius: 50px; background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2); transition: 0.3s ease; }
+    .user-profile-nav:hover { background: rgba(201, 168, 76, 0.2); }
+    .user-profile-nav img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .user-profile-nav span { font-size: 14px; color: var(--gold); font-weight: 600; }
+    .profile-card-popup { display: none; position: absolute; top: 60px; right: 2rem; width: 250px; background: rgba(14, 12, 9, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001; }
+    .profile-card-popup.open { display: block; animation: popIn 0.3s ease forwards; }
+    .profile-card-popup img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--gold); }
+</style>
 </head>
 
 <body>
 
   <!-- NAV -->
-  <nav id="nav">
-    <a class="nav-logo" href="#" onclick="showRoom('home')">
-      KRONOS
-      <span data-i18n="nav.tagline">التاريخ والجغرافيا</span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#" onclick="showRoom('home')" data-nav="home" class="active" data-i18n="nav.home">الرئيسية</a></li>
-      <li><a href="#" onclick="showRoom('archive')" data-nav="archive" data-i18n="nav.archive">المكتب</a></li>
-      <li><a href="#" onclick="showRoom('posts')" data-nav="posts" data-i18n="nav.posts">المنشورات</a></li>
-      <li><a href="#" onclick="showRoom('youtube')" data-nav="youtube" data-i18n="nav.youtube">الفيديوهات</a></li>
-      <li><a href="#" onclick="showRoom('about')" data-nav="about" data-i18n="nav.about">من نحن</a></li>
-    </ul>
-    <div class="nav-right">
-      <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
-        <option value="ar">العربية</option>
-        <option value="en">English</option>
-        <option value="fr">Français</option>
-        <option value="es">Español</option>
-      </select>
-      <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login" data-nav-login>دخول</a>
+      <nav id="nav">
+      <div class="nav-left">
+         <button class="btn-logout" id="navLogoutBtn" onclick="doSiteLogout()" style="display:none;" data-i18n="nav.logout">خروج</button>
+      </div>
+      <a class="nav-logo" href="#" onclick="showRoom('home')">
+        KRONOS
+        <span data-i18n="nav.tagline">صناع المستقبل</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#" onclick="showRoom('home')" data-nav="home" class="active" data-i18n="nav.home">الرئيسية</a></li>
+        <li><a href="#" onclick="showRoom('archive')" data-nav="archive" data-i18n="nav.archive">الأرشيف</a></li>
+        <li><a href="#" onclick="showRoom('posts')" data-nav="posts" data-i18n="nav.posts">المنشورات</a></li>
+        <li><a href="#" onclick="showRoom('youtube')" data-nav="youtube" data-i18n="nav.youtube">محتوى يوتيوب</a></li>
+        <li><a href="#" onclick="showRoom('about')" data-nav="about" data-i18n="nav.about">من نحن</a></li>
+      </ul>
+      <div class="nav-right">
+        <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
+          <option value="ar">العربية</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+        </select>
+        <a class="btn-login" id="navLoginBtn" href="#" onclick="openAuth()" data-i18n="nav.login">تسجيل الدخول</a>
+        
+        <div class="user-profile-nav" id="navUserProfile" style="display:none;" onclick="toggleProfileCard(event)">
+           <img id="navAvatar" src="" alt="avatar">
+           <span id="navUsername">User</span>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Profile Card (Popup) -->
+    <div class="profile-card-popup" id="profileCardPopup">
+        <img id="popupAvatar" src="" alt="avatar">
+        <div id="popupUsername" style="font-weight:700; margin-bottom:5px; color:var(--gold);">User</div>
+        <div style="font-size:12px; color:var(--text-dim); display:flex; gap:15px; margin-bottom:15px; justify-content:center;">
+            <div>متابعون: <span>0</span></div>
+            <div>يتابع: <span>0</span></div>
+        </div>
+        <button class="btn-gold" style="width:100%; font-size:12px;" onclick="openProfileSettings()">إعدادات الملف الشخصي</button>
     </div>
-  </nav>
+
 
   <!-- ══════════════════════════════ HOME ══════════════════════════════ -->
   <section id="room-home" class="room active">
@@ -3064,7 +3095,7 @@
     let activeMediaType = 'none';
 
     function attachMedia() {
-      if (!session) return showToast('يجب تسجيل الدخول أولاً');
+      if (!getSession()) return showToast('يجب تسجيل الدخول أولاً');
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*,video/*';
@@ -3081,7 +3112,7 @@
           const res = await fetch(`${SUPA_URL_IDX}/storage/v1/object/post_media/${fileName}`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${getSession().access_token}`,
               'apikey': SUPA_KEY_IDX,
               'Content-Type': file.type
             },
@@ -3111,7 +3142,7 @@
         const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts?select=*,profiles(username,avatar_url),post_likes(user_id),post_comments(id)&order=created_at.desc`, {
           headers: {
             'apikey': SUPA_KEY_IDX,
-            'Authorization': session ? `Bearer ${session.access_token}` : `Bearer ${SUPA_KEY_IDX}`
+            'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
           }
         });
         if (!r.ok) {
@@ -3130,7 +3161,7 @@
           div.className = 'post-card';
           div.id = `post_${p.id}`;
           
-          const isLiked = session && p.post_likes.some(l => l.user_id === session.user.id);
+          const isLiked = getSession() && p.post_likes.some(l => l.user_id === getSession().user.id);
           const likeCount = p.post_likes.length;
           const commentCount = p.post_comments.length;
           const avatar = p.profiles?.avatar_url || '👤';
@@ -3175,7 +3206,7 @@
     }
 
     async function toggleLike(btn, postId) {
-      if (!session) return showToast('يجب تسجيل الدخول للإعجاب');
+      if (!getSession()) return showToast('يجب تسجيل الدخول للإعجاب');
       const isLiked = btn.classList.contains('liked');
       const span = btn.querySelector('span');
       let count = parseInt(span.textContent);
@@ -3183,10 +3214,10 @@
       if (isLiked) {
         btn.classList.remove('liked');
         span.textContent = count - 1;
-        fetch(`${SUPA_URL_IDX}/rest/v1/post_likes?post_id=eq.${postId}&user_id=eq.${session.user.id}`, {
+        fetch(`${SUPA_URL_IDX}/rest/v1/post_likes?post_id=eq.${postId}&user_id=eq.${getSession().user.id}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${getSession().access_token}`,
             'apikey': SUPA_KEY_IDX
           }
         });
@@ -3196,11 +3227,11 @@
         fetch(`${SUPA_URL_IDX}/rest/v1/post_likes`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${getSession().access_token}`,
             'apikey': SUPA_KEY_IDX,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ post_id: postId, user_id: session.user.id })
+          body: JSON.stringify({ post_id: postId, user_id: getSession().user.id })
         });
       }
     }
@@ -3219,7 +3250,7 @@
             const r = await fetch(`${SUPA_URL_IDX}/rest/v1/post_comments?post_id=eq.${postId}&select=*,profiles(username,avatar_url)&order=created_at.asc`, {
               headers: {
                 'apikey': SUPA_KEY_IDX,
-                'Authorization': session ? `Bearer ${session.access_token}` : `Bearer ${SUPA_KEY_IDX}`
+                'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
               }
             });
             if (r.ok) {
@@ -3248,7 +3279,7 @@
     }
 
     async function addComment(btn, postId) {
-      if (!session) return showToast('يجب تسجيل الدخول للتعليق');
+      if (!getSession()) return showToast('يجب تسجيل الدخول للتعليق');
       const cs = document.getElementById(`cs_${postId}`);
       const input = cs.querySelector('.comment-input');
       const val = input.value.trim();
@@ -3259,12 +3290,12 @@
         const r = await fetch(`${SUPA_URL_IDX}/rest/v1/post_comments`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${getSession().access_token}`,
             'apikey': SUPA_KEY_IDX,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation'
           },
-          body: JSON.stringify({ post_id: postId, user_id: session.user.id, content: val })
+          body: JSON.stringify({ post_id: postId, user_id: getSession().user.id, content: val })
         });
         
         if (r.ok) {
@@ -3276,7 +3307,7 @@
           const avatar = profile?.avatar_url || '👤';
           const isAvatarEmoji = avatar.length <= 4;
           const avatarHtml = isAvatarEmoji ? `<div class="post-avatar" style="width:28px;height:28px;font-size:12px">${avatar}</div>` : `<img src="${avatar}" class="post-avatar" style="width:28px;height:28px;border:none;object-fit:cover;">`;
-          const username = profile?.username || session.user.email.split('@')[0];
+          const username = profile?.username || getSession().user.email.split('@')[0];
           div.innerHTML = `${avatarHtml}<div><div class="comment-author">${username}</div><div class="comment-body">${val}</div></div>`;
           cl.appendChild(div);
           
@@ -3293,7 +3324,7 @@
     }
 
     async function submitPost() {
-      if (!session) return showToast('يجب تسجيل الدخول لنشر مشاركة');
+      if (!getSession()) return showToast('يجب تسجيل الدخول لنشر مشاركة');
       const input = document.getElementById('postInput');
       const val = input.value.trim();
       if (!val && !activeMediaUrl) return showToast('اكتب شيئاً أو أضف مرفقاً');
@@ -3303,13 +3334,13 @@
         const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${getSession().access_token}`,
             'apikey': SUPA_KEY_IDX,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation'
           },
           body: JSON.stringify({
-            user_id: session.user.id,
+            user_id: getSession().user.id,
             content: val,
             media_type: activeMediaType,
             media_url: activeMediaUrl
@@ -3580,35 +3611,76 @@
     }
 
     // ── UI refresh after login (update nav button to show user) ────────────────────
+    
+    function toggleProfileCard(e) {
+      if(e) e.stopPropagation();
+      const popup = document.getElementById('profileCardPopup');
+      popup.classList.toggle('open');
+    }
+    
+    document.addEventListener('click', e => {
+      const popup = document.getElementById('profileCardPopup');
+      const userNav = document.getElementById('navUserProfile');
+      if (popup && popup.classList.contains('open') && !popup.contains(e.target) && !userNav.contains(e.target)) {
+        popup.classList.remove('open');
+      }
+    });
+
+    function openProfileSettings() {
+      const popup = document.getElementById('profileCardPopup');
+      if (popup) popup.classList.remove('open');
+      const session = getSession();
+      if (!session) return;
+      
+      // Call existing profile setup logic
+      document.getElementById('authBoxMain').style.display = 'none';
+      document.getElementById('profileBox').style.display = 'block';
+      document.getElementById('authOverlay').classList.add('open');
+      document.getElementById('pUsername').value = session.name || '';
+      document.getElementById('pCountry').value = session.country || '';
+      document.getElementById('pBirthPlace').value = session.birth_place || '';
+      document.getElementById('pHobby').value = session.hobby || '';
+      if(session.birth_date) document.getElementById('pBirthDate').value = session.birth_date;
+      if (session.avatar) {
+        avatarBase64 = session.avatar;
+        document.getElementById('avatarImg').src = session.avatar;
+        document.getElementById('avatarImg').style.display = 'block';
+        document.getElementById('avatarPlaceholder').style.display = 'none';
+      }
+      populateCountries();
+    }
+
     function refreshAuthUI() {
       const session = getSession();
-      const navBtn = document.querySelector('[data-nav-login]') || document.getElementById('navLoginBtn');
-      if (!navBtn) return;
+      const navLoginBtn = document.getElementById('navLoginBtn');
+      const navLogoutBtn = document.getElementById('navLogoutBtn');
+      const navUserProfile = document.getElementById('navUserProfile');
+      
+      if (!navLoginBtn) return;
 
       if (session) {
-        navBtn.removeAttribute('data-i18n'); // Prevent setLang from overriding
-        const displayName = session.name ? session.name.split(' ')[0] : 'حسابي';
-        navBtn.textContent = '👤 ' + displayName;
-        navBtn.title = session.email || '';
-        navBtn.onclick = (e) => {
-          e.preventDefault();
-          if (confirm('مرحباً ' + displayName + '!\nهل تريد تسجيل الخروج؟')) {
-            doSiteLogout();
-          }
-        };
+        navLoginBtn.style.display = 'none';
+        navLogoutBtn.style.display = 'block';
+        navUserProfile.style.display = 'flex';
+        
+        const displayName = session.name ? session.name.split(' ')[0] : 'مستخدم';
+        const avatarUrl = session.avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23c9a84c"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        
+        document.getElementById('navUsername').textContent = displayName;
+        document.getElementById('navAvatar').src = avatarUrl;
+        
+        document.getElementById('popupUsername').textContent = session.name || displayName;
+        document.getElementById('popupAvatar').src = avatarUrl;
       } else {
-        // المستخدم غير مسجّل — استرجاع زر الدخول الأصلي
-        navBtn.setAttribute('data-i18n', 'nav.login');
-        const lang = typeof currentLang !== 'undefined' ? currentLang : 'ar';
-        navBtn.textContent = (T[lang] || T.ar)['nav.login'] || 'دخول';
-        navBtn.title = '';
-        navBtn.onclick = (e) => {
-          e.preventDefault();
-          openAuth();
-        };
+        navLoginBtn.style.display = 'inline-block';
+        navLogoutBtn.style.display = 'none';
+        navUserProfile.style.display = 'none';
+        
+        const popup = document.getElementById('profileCardPopup');
+        if (popup) popup.classList.remove('open');
       }
     }
-    function doSiteLogout() {
+function doSiteLogout() {
       clearSession();
       showToast('تم تسجيل الخروج');
       location.reload();
