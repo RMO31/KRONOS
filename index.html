@@ -2421,24 +2421,20 @@ async function doSiteLogin() {
     const data = await res.json();
 
     if (!res.ok) {
-      // Supabase returns generic "Invalid login credentials" for both
-      // wrong password AND non-existent account (security best practice)
       showAuthMsgHTML('loginMsg',
         '❌ بيانات الدخول غير صحيحة، أو لا يوجد حساب بهذا البريد.<br>' +
         '<a onclick="switchAuthTab(\'register\')">⚠️ أنشئ حساباً جديداً من هنا</a>',
         'err');
-      btn.disabled = false; btn.textContent = '🔑 تسجيل الدخول';
       return;
     }
 
-    const token  = data.access_token;
-    const userId = data.user?.id;
+    const token     = data.access_token;
+    const userId    = data.user?.id;
     const userEmail = data.user?.email || email;
     const fullName  = data.user?.user_metadata?.full_name || '';
 
     saveSession({ token, userId, email: userEmail, name: fullName });
 
-    // Check if profile already completed
     const profile = await fetchProfile(userId, token);
     closeAuth();
     if (profile) {
@@ -2449,8 +2445,10 @@ async function doSiteLogin() {
     }
   } catch(e) {
     showAuthMsg('loginMsg', '❌ خطأ في الاتصال: ' + e.message, 'err');
+  } finally {
+    // Always re-enable button no matter what happens
+    btn.disabled = false; btn.textContent = '🔑 تسجيل الدخول';
   }
-  btn.disabled = false; btn.textContent = '🔑 تسجيل الدخول';
 }
 
 // ── SESSION ──────────────────────────────────────────────────────────────────
