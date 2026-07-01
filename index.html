@@ -2410,51 +2410,30 @@
     <div class="auth-box" id="authBoxMain">
       <button class="auth-close" onclick="closeAuth()">✕</button>
       <h3 data-i18n="auth.welcome">مرحباً بك</h3>
-      <p data-i18n="auth.sub">سجّل دخولك أو أنشئ حساباً جديداً</p>
-      <div class="auth-tabs">
-        <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="auth.login">دخول</button>
-        <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="auth.register">حساب جديد</button>
-      </div>
+      <p style="color:var(--text-dim);font-size:14px;margin-bottom:1.5rem" data-i18n="auth.sub">سجّل دخولك أو أنشئ حساباً جديداً</p>
 
-      <!-- LOGIN FORM -->
-      <div class="auth-form active" id="loginForm">
-        <div class="form-group">
-          <label data-i18n="auth.email">البريد الإلكتروني</label>
-          <input type="email" id="loginEmail" placeholder="example@email.com" autocomplete="username">
-        </div>
-        <div class="form-group">
-          <label data-i18n="auth.password">كلمة المرور</label>
-          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
-            onkeydown="if(event.key==='Enter')doSiteLogin()">
-        </div>
-        <div id="loginMsg" class="auth-msg" style="display:none"></div>
-        <button class="btn-gold" id="loginBtn" style="width:100%;margin-top:.5rem" onclick="doSiteLogin()"
-          data-i18n="auth.loginBtn">تسجيل الدخول</button>
-      </div>
+      <div id="googleAuthMsg" class="auth-msg" style="display:none"></div>
 
-      <!-- REGISTER FORM -->
-      <div class="auth-form" id="registerForm">
-        <div class="form-group">
-          <label data-i18n="auth.name">الاسم الكامل</label>
-          <input type="text" id="regName" placeholder="الاسم الكامل">
-        </div>
-        <div class="form-group">
-          <label data-i18n="auth.email">البريد الإلكتروني</label>
-          <div style="position:relative">
-            <input type="email" id="regEmail" placeholder="example@email.com" autocomplete="username"
-              oninput="onRegEmailInput()" style="padding-inline-end:2.2rem">
-            <span id="emailLight" class="email-light"></span>
-          </div>
-          <div id="emailHint" class="auth-hint"></div>
-        </div>
-        <div class="form-group">
-          <label data-i18n="auth.password">كلمة المرور</label>
-          <input type="password" id="regPassword" placeholder="•••••••• (6 أحرف على الأقل)" autocomplete="new-password">
-        </div>
-        <div id="registerMsg" class="auth-msg" style="display:none"></div>
-        <button class="btn-gold" id="registerBtn" style="width:100%;margin-top:.5rem" onclick="doSiteRegister()"
-          data-i18n="auth.registerBtn">إنشاء الحساب</button>
-      </div>
+      <button id="googleLoginBtn" onclick="loginWithGoogle()" style="
+        display:flex;align-items:center;justify-content:center;gap:.75rem;
+        width:100%;padding:.85rem 1.2rem;border-radius:12px;
+        background:#fff;color:#1a1a1a;font-size:15px;font-weight:600;
+        border:none;cursor:pointer;transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.15);
+        font-family:inherit;
+      " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,.2)'"
+         onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,0,.15)'">
+        <svg width="22" height="22" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
+          <path fill="#4CAF50" d="M24 44c5.3 0 10.1-2 13.7-5.3l-6.3-5.3C29.5 35.1 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.4C9.7 35.6 16.3 44 24 44z"/>
+          <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.3C37 36.5 44 31 44 24c0-1.3-.1-2.6-.4-3.9z"/>
+        </svg>
+        <span id="googleLoginBtnText">متابعة مع Google</span>
+      </button>
+
+      <p style="margin-top:1.2rem;font-size:12px;color:var(--text-dimmer);text-align:center;line-height:1.6">
+        بالمتابعة توافق على شروط الاستخدام وسياسة الخصوصية
+      </p>
     </div>
 
     <!-- PROFILE COMPLETION CARD (shown after first registration) -->
@@ -3173,316 +3152,63 @@
     }
     function hideAuthMsg(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; } }
 
-    // ── EMAIL VALIDATION: multi-layer (blacklist + MX + API) ─────────────────────
-
-    // قائمة النطاقات المؤقتة / الوهمية الشائعة
-    const DISPOSABLE_DOMAINS = new Set([
-      'mailinator.com','guerrillamail.com','guerrillamail.info','guerrillamail.biz',
-      'guerrillamail.de','guerrillamail.net','guerrillamail.org','guerrillamailblock.com',
-      'tempmail.com','temp-mail.org','throwam.com','throwaway.email','dispostable.com',
-      'mailnull.com','spamgourmet.com','spamgourmet.net','spamgourmet.org','trashmail.at',
-      'trashmail.com','trashmail.de','trashmail.io','trashmail.me','trashmail.net',
-      'trashmail.org','trashmail.xyz','yopmail.com','yopmail.fr','cool.fr.nf','jetable.fr.nf',
-      'nospam.ze.tc','nomail.xl.cx','mega.zik.dj','speed.1s.fr','courriel.fr.nf',
-      'moncourrier.fr.nf','monemail.fr.nf','monmail.fr.nf','fakeinbox.com','mailnesia.com',
-      'getairmail.com','filzmail.com','33mail.com','spamevader.com','spam4.me',
-      'sharklasers.com','guerrillamail.info','grr.la','guerrillamailblock.com',
-      'spam.la','maildrop.cc','spamgrap.com','tempinbox.com','tempr.email',
-      'discard.email','discardmail.com','discardmail.de','spamfree24.org','spamfree24.de',
-      'spamfree24.eu','spamfree24.info','spamfree24.net','spamfree.eu','mytrashmail.com',
-      'mail-temporaire.fr','throwam.com','5minutemail.com','emailsensei.com',
-      'anonbox.net','no-spam.ws','trashmail.at','deadaddress.com','fakemailgenerator.com',
-      'throwam.com','binkmail.com','bobmail.info','chammy.info','devnullmail.com',
-      'discard.email','drdrb.com','dump-email.info','dumpandforfeit.com','dumpmail.de',
-      'dumpyemail.com','emailias.com','emailinfive.com','emailmiser.com','emailsensei.com',
-      'emailtemporaire.fr','fakeinbox.com','fakemailgenerator.com','fastacura.com',
-      'fastchevy.com','fastchrysler.com','fastkawasaki.com','fastmazda.com',
-      'fastnissan.com','fastsubaru.com','fastsuzuki.com','fasttoyota.com','fastyamaha.com',
-      'filzmail.com','fixmail.tk','fleckens.hu','frapmail.com','garliclife.com',
-      'get2mail.fr','getairmail.com','getonemail.com','getonemail.net','girlsundertheinfluence.com',
-      'gishpuppy.com','great-host.in','greensloth.com','greggamel.com','greggamel.net',
-      'guerrillamail.com','guerrillamail.biz','guerrillamail.de','guerrillamail.info',
-      'guerrillamail.net','guerrillamail.org','guerrillamailblock.com','hamham.uk',
-      'hat-geld.de','hmamail.com','hopemail.biz','ieh-mail.de','ihateyoualot.info',
-      'imails.info','inboxclean.com','inboxclean.org','jetable.com','jetable.fr.nf',
-      'jetable.net','jetable.org','junk1.com','kasmail.com','kaspop.com','killmail.com',
-      'killmail.net','klassmaster.com','klassmaster.net','klzlk.com','lazyinbox.com',
-      'letthemeatspam.com','lhsdv.com','linktraining.com','litedrop.com','lol.ovpn.to',
-      'lookugly.com','lortemail.dk','lr78.com','lukecarriere.com','lukemail.com',
-      'lukeslywalker.com','mailinator.com','mailinator.net','mailinator.org','mailinator2.com',
-      'mailme.lv','mailme24.com','mailmetrash.com','mailmoat.com','mailnull.com',
-      'mailscrap.com','mailtothis.com','mailzilla.com','manybrain.com','mbx.cc',
-      'mega.zik.dj','mierdamail.com','migumail.com','mailnesia.com','mintemail.com',
-      'moncourrier.fr.nf','monemail.fr.nf','monmail.fr.nf','mt2009.com','mt2014.com',
-      'mx0.wwwnew.eu','nospam.ze.tc','nowmymail.com','nwldx.com','objectmail.com',
-      'obobbo.com','odnorazovoe.ru','oneoffemail.com','onewaymail.com','online.ms',
-      'oopi.org','opayq.com','ordinaryamerican.net','oreidica.org','owlpic.com',
-      'pecinan.com','pecinan.net','pecinan.org','pepbot.com','pimpedupmyride.com',
-      'pjjkp.com','plexolan.de','poczta.onet.pl','politikerclub.de','postonline.me',
-      'powered.name','privacy.net','proxymail.eu','psv-supporter.com','putthisinyourspamdatabase.com',
-      'quickinbox.com','rcpt.at','regbypass.com','regbypass.comsafe-mail.net',
-      'rklips.com','rmqkr.net','royal.net','rppkn.com','rtrtr.com','s0ny.net',
-      'safe-mail.net','safersignup.de','safetymail.info','safetypost.de',
-      'sanfridvinyard.com','sendspamhere.com','sharklasers.com','shieldedmail.com',
-      'shiftmail.com','shortmail.net','skeefmail.com','skrx.tk','slopsbox.com',
-      'smellfear.com','snakemail.com','sneakemail.com','sneakmail.de','snkmail.com',
-      'sofimail.com','sofort-mail.de','sogetthis.com','solopilotos.com',
-      'soodonims.com','spam.la','spam4.me','spamavert.com','spambob.com',
-      'spambob.net','spambob.org','spamcon.org','spamcorpse.com','spamday.com',
-      'spamex.com','spamfree.eu','spamgap.com','spamgourmet.com','spamgourmet.net',
-      'spamgourmet.org','spamherelots.com','spamhereplease.com','spamhole.com',
-      'spamify.com','spaminmotion.com','spamio.de','spamkill.info','spaml.com',
-      'spaml.de','spammotel.com','spamoff.de','spamspot.com','spamthisplease.com',
-      'spamtrail.com','spamtroll.net','speed.1s.fr','spoofmail.de','stuffmail.de',
-      'super-auswahl.de','supergreatmail.com','supermailer.jp','superstachel.de',
-      'suremail.info','teewars.org','teleworm.com','teleworm.us','tempalias.com',
-      'tempe-mail.com','tempemail.biz','tempemail.com','tempemail.co.za','tempemail.net',
-      'tempinbox.co.uk','tempinbox.com','tempmail.eu','tempmail2.com','tempomail.fr',
-      'temporaryemail.net','temporaryinbox.com','thanksnospam.com','thanksnospam.net',
-      'thisisnotmyrealemail.com','throwam.com','throwaway.email','throwaways.ml',
-      'tilien.com','tittbit.in','tmail.com','tmail.io','tmailinator.com','toiea.com',
-      'tombstone.ws','totalvista.com','tradermail.info','trash-amil.com','trash-mail.at',
-      'trash-mail.com','trash-mail.de','trash-mail.io','trash-mail.org','trashemail.de',
-      'trashimail.de','trashinbox.com','trashmail.at','trashmail.com','trashmail.de',
-      'trashmail.io','trashmail.me','trashmail.net','trashmail.org','trashmail.xyz',
-      'trashmailer.com','trashymail.com','trbvm.com','trickmail.net','trillianpro.com',
-      'trsh.me','turual.com','twinmail.de','tyldd.com','uggsrock.com','umail.net',
-      'uroid.com','usa.cc','veryrealemail.com','viditag.com','viewcastmedia.com',
-      'viewcastmedia.net','viewcastmedia.org','viralplays.com','vomoto.com',
-      'vubby.com','walala.org','walkmail.net','walkmail.ru','webemail.me',
-      'webm4il.info','wegwerfmail.de','wegwerfmail.net','wegwerfmail.org',
-      'welcomes.email','whatpaas.com','whyspam.me','wilemail.com','willselfdestruct.com',
-      'winemaven.info','wireless.email','wishbonix.com','wlistapp.com','wmailcloud.com',
-      'wolf-pack.com','wollan.info','writeme.us','wuzup.net','wuzupmail.net',
-      'wwwnew.eu','xemaps.com','xents.com','xmaily.com','xn--9kq967b.com',
-      'xsecurity.org','xww.ro','yahooproxy.com','yapped.net','yarindachiltern.com',
-      'yodx.ro','yopmail.com','yopmail.fr','yopmail.info','yopmail.net','yopmail.org',
-      'yopmailz.com','youmail.ga','yourdomain.com','yuurok.com','z0d.eu','zebrawritings.com',
-      'zippymail.info','zoho.com.mx','zooglemail.com','zxcv.com','zxcvbnm.com',
-      'zzrgg.com','moakt.com','moakt.ws','sharklasers.com','guerrillamail.com',
-      'tempr.email','discard.email','mailnull.com','spamgrap.com','tempinbox.com',
-      'maildrop.cc','10minutemail.com','10minutemail.net','10minutemail.org',
-      'throwam.com','throwamygmailaway.xyz','gmailnator.com','guerrillamail.com',
-      'mailtemp.info','mailtemp.net','tempail.com','dispostable.com','spamspot.com',
-      'emailondeck.com','mailtemp.org','getairmail.com','inboxbear.com',
-      'spamgourmet.org','nomail.xl.cx','speed.1s.fr','mega.zik.dj',
-      'myfastmail.com','vomoto.com','nwldx.com','linuxmail.org',
-    ]);
-
-    let emailCheckTimer = null;
-    let emailVerified = false; // حالة التحقق الكامل
-
-    function onRegEmailInput() {
-      const val = document.getElementById('regEmail').value.trim();
-      const light = document.getElementById('emailLight');
-      const hint  = document.getElementById('emailHint');
-      clearTimeout(emailCheckTimer);
-      emailVerified = false;
-
-      const formatOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
-
-      if (!val) { light.className = 'email-light'; hint.textContent = ''; return; }
-      if (!formatOk) {
-        light.className = 'email-light red';
-        hint.textContent = '❌ صيغة البريد الإلكتروني غير صحيحة';
-        return;
-      }
-
-      // ── فحص فوري للقائمة السوداء ──
-      const domain = val.split('@')[1]?.toLowerCase();
-      if (domain && DISPOSABLE_DOMAINS.has(domain)) {
-        light.className = 'email-light red';
-        hint.textContent = '🚫 هذا النطاق معروف بتوليد بريد مؤقت — استخدم بريدك الحقيقي';
-        return;
-      }
-
-      // صيغة صحيحة ونطاق غير محظور → برتقالي (جاري التحقق الشبكي)
-      light.className = 'email-light orange';
-      hint.textContent = '⏳ جاري التحقق من صحة البريد...';
-
-      emailCheckTimer = setTimeout(() => verifyEmailDeep(val, light, hint), 800);
+    // ── GOOGLE OAUTH LOGIN ─────────────────────────────────────────────────────
+    function loginWithGoogle() {
+      const btn = document.getElementById('googleLoginBtn');
+      const btnText = document.getElementById('googleLoginBtnText');
+      btn.disabled = true;
+      btnText.textContent = '⏳ جاري التوجيه...';
+      document.getElementById('googleAuthMsg').style.display = 'none';
+      // Navigate directly to Supabase OAuth — no fetch needed
+      const redirectTo = encodeURIComponent(location.origin + location.pathname);
+      window.location.href = `${AUTH_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
     }
 
-    async function verifyEmailDeep(email, light, hint) {
-      const domain = email.split('@')[1]?.toLowerCase();
-      if (!domain) {
-        light.className = 'email-light red';
-        hint.textContent = '❌ بريد غير صالح';
-        return;
-      }
+    // ── HANDLE OAUTH CALLBACK (on page load) ────────────────────────────────────
+    async function handleOAuthCallback() {
+      // Supabase puts the token in the URL hash after OAuth redirect
+      const hash = window.location.hash;
+      if (!hash.includes('access_token')) return;
 
-      // ── طبقة 1: فحص سجلات MX عبر Google DNS ──
-      let hasMX = false;
-      try {
-        const res  = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`);
-        const data = await res.json();
-        hasMX = Array.isArray(data.Answer) && data.Answer.length > 0;
-      } catch (e) {
-        // إذا فشل DNS، لا نحجب المستخدم
-        hasMX = true;
-      }
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      const token = params.get('access_token');
+      const userId = params.get('user_id') || null;
 
-      if (!hasMX) {
-        light.className = 'email-light red';
-        hint.textContent = '❌ هذا النطاق لا يستقبل أي بريد إلكتروني — تحقق من العنوان';
-        emailVerified = false;
-        return;
-      }
+      if (!token) return;
 
-      // ── طبقة 2: API متخصص للكشف عن البريد المؤقت ──
-      try {
-        hint.textContent = '🔍 جاري التحقق من أصالة البريد...';
-        const apiRes  = await fetch(`https://api.mailcheck.ai/email/${encodeURIComponent(email)}`);
-        if (apiRes.ok) {
-          const apiData = await apiRes.json();
-          // mailcheck.ai: { disposable: bool, alias: bool, domain: str, mx: bool }
-          if (apiData.disposable === true) {
-            light.className = 'email-light red';
-            hint.textContent = '🚫 بريد مؤقت أو وهمي — استخدم بريدك الحقيقي لتفعيل حسابك';
-            emailVerified = false;
-            return;
-          }
-          if (apiData.alias === true) {
-            // alias = بريد إعادة توجيه → نرفضه مثل المؤقت
-            light.className = 'email-light red';
-            hint.textContent = '🚫 بريد إعادة توجيه (alias) غير مقبول — استخدم بريدك الأصلي';
-            emailVerified = false;
-            return;
-          }
-          // بريد حقيقي وصالح ✅
-          light.className = 'email-light green';
-          hint.textContent = '✅ بريد إلكتروني حقيقي وصالح';
-          emailVerified = true;
-          return;
-        }
-      } catch (e) {
-        // API غير متاح — نبقى في البرتقالي ونمنع التسجيل احتياطاً
-      }
-
-      // ── فشل API: لا نقبل تلقائياً — نطلب إعادة المحاولة ──
-      light.className = 'email-light orange';
-      hint.textContent = '⚠️ تعذّر التحقق الكامل من البريد — حاول مجدداً أو استخدم بريداً آخر';
-      emailVerified = false;
-    }
-
-    function isEmailGreen() {
-      // يُقبل البريد فقط إذا: الضوء أخضر تماماً + تم التحقق الكامل عبر API
-      const light = document.getElementById('emailLight');
-      return light.classList.contains('green') && !light.classList.contains('orange') && emailVerified;
-    }
-
-    // ── REGISTER ──────────────────────────────────────────────────────────────────
-    async function doSiteRegister() {
-      const name = document.getElementById('regName').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const pass = document.getElementById('regPassword').value;
-      hideAuthMsg('registerMsg');
-
-      if (!name) return showAuthMsg('registerMsg', '⚠️ أدخل الاسم الكامل', 'err');
-      if (!email) return showAuthMsg('registerMsg', '⚠️ أدخل البريد الإلكتروني', 'err');
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showAuthMsg('registerMsg', '❌ صيغة البريد الإلكتروني غير صحيحة', 'err');
-      // التحقق الصارم: لا نسمح بإنشاء حساب إلا بعد التحقق الكامل من البريد
-      const emailLight = document.getElementById('emailLight');
-      if (emailLight.classList.contains('red')) {
-        return showAuthMsg('registerMsg', '❌ البريد الإلكتروني المدخل غير مقبول — استخدم بريدك الحقيقي', 'err');
-      }
-      if (!isEmailGreen()) {
-        return showAuthMsg('registerMsg', '⏳ انتظر حتى يتحول ضوء البريد إلى الأخضر ✅ (يجري التحقق...)', 'err');
-      }
-      if (pass.length < 6) return showAuthMsg('registerMsg', '⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'err');
-
-      const btn = document.getElementById('registerBtn');
-      btn.disabled = true; btn.textContent = '⏳ جاري إنشاء الحساب...';
+      // Clean URL
+      history.replaceState(null, '', location.pathname + location.search);
 
       try {
-        const res = await fetch(`${AUTH_URL}/auth/v1/signup`, {
-          method: 'POST',
-          headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: pass, data: { full_name: name } })
+        // Get user info from Supabase
+        const res = await fetch(`${AUTH_URL}/auth/v1/user`, {
+          headers: { apikey: AUTH_KEY, Authorization: `Bearer ${token}` }
         });
-        const data = await res.json();
+        const user = await res.json();
 
-        if (!res.ok) {
-          const msg = data.msg || data.error_description || data.error || 'فشل إنشاء الحساب';
-          if (/already.*registered|already.*exists|user.*exists/i.test(msg)) {
-            showAuthMsgHTML('registerMsg', '⚠️ هذا البريد مسجّل بالفعل — <a onclick="switchAuthTab(\'login\')">سجّل دخولك بدلاً من ذلك</a>', 'err');
-          } else {
-            showAuthMsg('registerMsg', '❌ ' + msg, 'err');
-          }
-          btn.disabled = false; btn.textContent = '✅ إنشاء الحساب';
-          return;
-        }
+        if (!user?.id) return;
 
-        // Success — store session
-        const token = data.access_token;
-        const userId = data.user?.id || data.id;
-        const userEmail = data.user?.email || email;
+        const uid = user.id;
+        const email = user.email || '';
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+        const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
 
-        if (token && userId) {
-          saveSession({ token, userId, email: userEmail, name });
-          showAuthMsg('registerMsg', '✅ تم إنشاء الحساب بنجاح!', 'ok');
-          setTimeout(() => openProfileCompletion(name), 600);
-        } else {
-          // Email confirmation required (depends on Supabase project settings)
-          showAuthMsgHTML('registerMsg', '✅ تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتفعيل الحساب، ثم <a onclick="switchAuthTab(\'login\')">سجّل دخولك</a>', 'ok');
-          btn.disabled = false; btn.textContent = '✅ إنشاء الحساب';
-        }
-      } catch (e) {
-        showAuthMsg('registerMsg', '❌ خطأ في الاتصال: ' + e.message, 'err');
-        btn.disabled = false; btn.textContent = '✅ إنشاء الحساب';
-      }
-    }
+        saveSession({ token, userId: uid, email, name: fullName });
 
-    // ── LOGIN ──────────────────────────────────────────────────────────────────────
-    async function doSiteLogin() {
-      const email = document.getElementById('loginEmail').value.trim();
-      const pass = document.getElementById('loginPassword').value;
-      hideAuthMsg('loginMsg');
-
-      if (!email || !pass) return showAuthMsg('loginMsg', '⚠️ أدخل البريد وكلمة المرور', 'err');
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showAuthMsg('loginMsg', '❌ صيغة البريد الإلكتروني غير صحيحة — مثال: name@domain.com', 'err');
-
-      const btn = document.getElementById('loginBtn');
-      btn.disabled = true; btn.textContent = '⏳ جاري الدخول...';
-
-      try {
-        const res = await fetch(`${AUTH_URL}/auth/v1/token?grant_type=password`, {
-          method: 'POST',
-          headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: pass })
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          showAuthMsgHTML('loginMsg',
-            '❌ بيانات الدخول غير صحيحة، أو لا يوجد حساب بهذا البريد.<br>' +
-            '<a onclick="switchAuthTab(\'register\')">⚠️ أنشئ حساباً جديداً من هنا</a>',
-            'err');
-          return;
-        }
-
-        const token = data.access_token;
-        const userId = data.user?.id;
-        const userEmail = data.user?.email || email;
-        const fullName = data.user?.user_metadata?.full_name || '';
-
-        saveSession({ token, userId, email: userEmail, name: fullName });
-
-        const profile = await fetchProfile(userId, token);
-        closeAuth();
+        // Check if profile exists
+        const profile = await fetchProfile(uid, token);
         if (profile) {
-          showToast(`👋 مرحباً بعودتك ${profile.username || fullName || ''}!`, 't-success');
+          showToast(`👋 مرحباً ${profile.username || fullName || ''}!`, 't-success');
           refreshAuthUI();
         } else {
-          openProfileCompletion(fullName);
+          // First time — auto-fill avatar from Google if available
+          openProfileCompletion(fullName, avatar);
         }
       } catch (e) {
-        showAuthMsg('loginMsg', '❌ خطأ في الاتصال: ' + e.message, 'err');
-      } finally {
-        // Always re-enable button no matter what happens
-        btn.disabled = false; btn.textContent = '🔑 تسجيل الدخول';
+        showToast('❌ حدث خطأ أثناء تسجيل الدخول: ' + e.message, 't-error');
       }
     }
+
 
     // ── SESSION ──────────────────────────────────────────────────────────────────
     function saveSession({ token, userId, email, name }) {
@@ -3533,11 +3259,18 @@
       reader.readAsDataURL(file);
     }
 
-    function openProfileCompletion(name) {
+    function openProfileCompletion(name, avatar) {
       document.getElementById('authBoxMain').style.display = 'none';
       document.getElementById('profileBox').style.display = 'block';
       document.getElementById('authOverlay').classList.add('open');
       if (name) document.getElementById('pUsername').value = name.split(' ')[0] + Math.floor(Math.random() * 900 + 100);
+      // Pre-fill avatar from Google if available
+      if (avatar) {
+        avatarBase64 = avatar; // store the URL as the avatar value
+        document.getElementById('avatarImg').src = avatar;
+        document.getElementById('avatarImg').style.display = 'block';
+        document.getElementById('avatarPlaceholder').style.display = 'none';
+      }
       populateCountries();
     }
 
@@ -3649,6 +3382,7 @@
     (function restoreSession() {
       const s = getSession();
       if (s) refreshAuthUI();
+      handleOAuthCallback(); // handle Google OAuth redirect token in URL hash
     })();
 
     // ─── TOAST ──────────────────────────────────────────────────────────────────
