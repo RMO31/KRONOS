@@ -3325,7 +3325,8 @@
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || err.hint || 'فشل حفظ الملف الشخصي');
+          console.error("SUPABASE PROFILE SAVE ERROR:", err);
+          throw new Error(err.message || err.hint || err.details || JSON.stringify(err) || 'فشل حفظ الملف الشخصي');
         }
         showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
         setTimeout(() => {
