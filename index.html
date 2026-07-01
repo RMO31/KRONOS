@@ -1621,20 +1621,20 @@ footer a:hover { color: var(--gold); }
         <input type="date" id="pBirthDate" class="form-control-auth">
       </div>
     </div>
-    <div class="profile-grid">
-      <div class="form-group">
-        <label>مكان الميلاد</label>
-        <input type="text" id="pBirthPlace" placeholder="المدينة، البلد">
-      </div>
-      <div class="form-group">
-        <label>الهواية <span style="color:var(--text-dimmer);font-weight:400">(اختياري)</span></label>
-        <select id="pHobby" class="form-control-auth">
-          <option value="">— بدون تحديد —</option>
+    <div class="form-group">
+      <label>مكان الميلاد <span style="color:var(--text-dimmer);font-size:11px">(مدينة - بلد)</span></label>
+      <input type="text" id="pBirthPlace" class="form-control-auth" placeholder="وهران - الجزائر" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>الهواية <span style="color:var(--text-dimmer);font-weight:400">(اختياري — اكتب أو اختر)</span></label>
+      <div style="display:flex;gap:.4rem">
+        <input type="text" id="pHobbyText" class="form-control-auth" placeholder="اكتب هوايتك..." list="hobbyList" style="flex:1">
+        <datalist id="hobbyList">
           <option>القراءة</option><option>التاريخ والآثار</option><option>السفر</option>
           <option>التصوير</option><option>الرياضة</option><option>الرسم والفنون</option>
           <option>الموسيقى</option><option>الكتابة</option><option>الألعاب الإلكترونية</option>
-          <option>الطبخ</option><option>أخرى</option>
-        </select>
+          <option>الطبخ</option><option>البرمجة</option><option>الأفلام والمسلسلات</option>
+        </datalist>
       </div>
     </div>
     <div id="profileMsg" class="auth-msg" style="display:none"></div>
@@ -2407,6 +2407,7 @@ async function doSiteLogin() {
   hideAuthMsg('loginMsg');
 
   if (!email || !pass) return showAuthMsg('loginMsg', '⚠️ أدخل البريد وكلمة المرور', 'err');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showAuthMsg('loginMsg', '❌ صيغة البريد الإلكتروني غير صحيحة — مثال: name@domain.com', 'err');
 
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = '⏳ جاري الدخول...';
@@ -2491,7 +2492,7 @@ function onAvatarSelected(e) {
       const size = Math.min(img.width, img.height);
       const sx = (img.width - size) / 2, sy = (img.height - size) / 2;
       ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
-      avatarBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      avatarBase64 = canvas.toDataURL('image/jpeg', 0.75);  // balanced quality + size
       document.getElementById('avatarImg').src = avatarBase64;
       document.getElementById('avatarImg').style.display = 'block';
       document.getElementById('avatarPlaceholder').style.display = 'none';
@@ -2527,8 +2528,12 @@ async function saveProfile() {
   const username   = document.getElementById('pUsername').value.trim();
   const country    = document.getElementById('pCountry').value;
   const birthDate  = document.getElementById('pBirthDate').value;
-  const birthPlace = document.getElementById('pBirthPlace').value.trim();
-  const hobby      = document.getElementById('pHobby').value;
+  const rawPlace   = document.getElementById('pBirthPlace').value.trim();
+  // Format: "مدينة - بلد"
+  const birthPlace = rawPlace && country && !rawPlace.includes(' - ')
+    ? `${rawPlace} - ${country}`
+    : rawPlace;
+  const hobby = document.getElementById('pHobbyText')?.value.trim() || '';
 
   if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
 
@@ -2547,8 +2552,8 @@ async function saveProfile() {
       body: JSON.stringify({
         id: session.userId,
         username, country,
-        birth_date: birthDate || null,
-        birth_place: birthPlace,
+        birth_place: birthPlace || null,
+        birth_date_text: birthDate || null,
         hobby: hobby || null,
         avatar_url: avatarBase64 || null,
         email: session.email
