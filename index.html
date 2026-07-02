@@ -1959,7 +1959,7 @@
     .user-profile-nav:hover { background: rgba(201, 168, 76, 0.2); }
     .user-profile-nav img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
     .user-profile-nav span { font-size: 14px; color: var(--gold); font-weight: 600; }
-    .profile-card-popup { display: none; position: absolute; top: 60px; left: 2rem; min-width: 260px; width: max-content; max-width: 320px; background: rgba(14, 12, 9, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001; }
+    .profile-card-popup { display: none; position: absolute; top: 60px; right: 2rem; min-width: 260px; width: max-content; max-width: 320px; background: rgba(14, 12, 9, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001; }
     .profile-card-popup.open { display: block; animation: popIn 0.3s ease forwards; }
     .profile-card-popup img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--gold); }
 </style>
@@ -2473,6 +2473,7 @@
 
     <!-- PROFILE COMPLETION CARD (shown after first registration) -->
     <div class="auth-box profile-box" id="profileBox" style="display:none">
+      <button class="auth-close" onclick="closeAuth()">×</button>
       <h3>🎉 أكمل ملفك الشخصي</h3>
       <p>أضف بعض المعلومات لتخصيص حسابك على كرونوس</p>
 
@@ -3799,7 +3800,13 @@ function doSiteLogout() {
     // ─── CLOSE MODALS ON OUTSIDE CLICK ─────────────────────────────────────────
 
     document.getElementById('ytModal').addEventListener('click', e => { if (e.target === document.getElementById('ytModal')) closeYT(); });
-    document.getElementById('authOverlay').addEventListener('click', e => { if (e.target === document.getElementById('authOverlay')) closeAuth(); });
+    document.getElementById('authOverlay').addEventListener('click', e => { 
+      if (e.target === document.getElementById('authOverlay')) {
+        if (document.getElementById('profileBox').style.display !== 'block') {
+          closeAuth(); 
+        }
+      } 
+    });
 
     // ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
     const SUPA_URL_IDX = 'https://hlknmtrnlixmctvewobw.supabase.co';
