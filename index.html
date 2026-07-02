@@ -2316,23 +2316,23 @@
 
   <!-- ══════════════════════════════ POSTS ══════════════════════════════ -->
   <section id="room-posts" class="room">
-    <div class="section-header">
-      <h2><span class="icon">📢</span> <span data-i18n="posts.title">المنشورات</span></h2>
-      <p data-i18n="posts.sub">شارك أفكارك وأبحاثك مع مجتمع المهتمين</p>
+    <div class="section-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:15px;">
+      <div>
+        <h2><span class="icon">📢</span> <span data-i18n="posts.title">المنشورات</span></h2>
+        <p data-i18n="posts.sub" style="margin-bottom:0;">شارك أفكارك وأبحاثك مع مجتمع المهتمين</p>
+      </div>
+      <div class="posts-search-box" style="display:flex; gap:10px; align-items:center;">
+        <input type="text" id="postsSearchInput" placeholder="ابحث هنا..." style="padding:10px; border-radius:8px; border:1px solid rgba(201,168,76,0.3); background:var(--bg); color:var(--text); font-family:var(--font-ar); min-width:200px;">
+        <select id="postsSearchFilter" style="padding:10px; border-radius:8px; border:1px solid rgba(201,168,76,0.3); background:var(--bg); color:var(--text); font-family:var(--font-ar);">
+            <option value="posts" style="background:#1a1a1a; color:#fff;">منشورات</option>
+            <option value="users" style="background:#1a1a1a; color:#fff;">حساب مستخدم</option>
+        </select>
+        <button class="btn-gold" onclick="executePostsSearch()" style="padding:10px 15px;">بحث</button>
+      </div>
     </div>
     <div class="content-wrap">
       <div class="posts-layout">
         <div class="posts-main">
-
-          <!-- Posts Search -->
-          <div class="posts-search-box" style="display:flex; gap:10px; margin-bottom: 20px; align-items:center;">
-            <input type="text" id="postsSearchInput" placeholder="ابحث هنا..." style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(201,168,76,0.3); background:var(--bg); color:var(--text); font-family:var(--font-ar);">
-            <select id="postsSearchFilter" style="padding:10px; border-radius:8px; border:1px solid rgba(201,168,76,0.3); background:var(--bg); color:var(--text); font-family:var(--font-ar);">
-                <option value="posts">منشورات</option>
-                <option value="users">حساب مستخدم</option>
-            </select>
-            <button class="btn-gold" onclick="executePostsSearch()" style="padding:10px 15px;">بحث</button>
-          </div>
 
           <!-- Compose -->
           <div class="post-compose">
@@ -2341,8 +2341,6 @@
             <div class="post-compose-actions">
               <div class="post-type-btns">
                 <button class="post-type-btn" onclick="attachMedia()">🖼 صورة/فيديو</button>
-                <button class="post-type-btn" onclick="showToast('قريباً... ميزة إرفاق الروابط')">🔗 رابط</button>
-                <button class="post-type-btn" onclick="showToast('قريباً... ميزة مشاركة الموقع')">📍 موقع</button>
               </div>
               <button class="btn-gold" onclick="submitPost()" data-i18n="posts.compose.submit">نشر</button>
             </div>
