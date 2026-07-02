@@ -1970,7 +1970,10 @@
   <!-- NAV -->
       <nav id="nav">
       <div class="nav-left">
-         <button class="btn-logout" id="navLogoutBtn" onclick="doSiteLogout()" style="display:none;" data-i18n="nav.logout">خروج</button>
+        <div class="user-profile-nav" id="navUserProfile" style="display:none;" onclick="toggleProfileCard(event)">
+           <img id="navAvatar" src="" alt="avatar">
+           <span id="navUsername">User</span>
+        </div>
       </div>
       <a class="nav-logo" href="#" onclick="showRoom('home')">
         KRONOS
@@ -1991,11 +1994,7 @@
           <option value="es">Español</option>
         </select>
         <a class="btn-login" id="navLoginBtn" href="#" onclick="openAuth()" data-i18n="nav.login">تسجيل الدخول</a>
-        
-        <div class="user-profile-nav" id="navUserProfile" style="display:none;" onclick="toggleProfileCard(event)">
-           <img id="navAvatar" src="" alt="avatar">
-           <span id="navUsername">User</span>
-        </div>
+        <button class="btn-logout" id="navLogoutBtn" onclick="doSiteLogout()" style="display:none;" data-i18n="nav.logout">خروج</button>
       </div>
     </nav>
     
@@ -3534,7 +3533,7 @@
     function populateCountries() {
       const sel = document.getElementById('pCountry');
       if (sel.options.length > 1) return; // already populated
-      const countries = ['الجزائر', 'السعودية', 'مصر', 'المغرب', 'تونس', 'الإمارات', 'العراق', 'الأردن', 'الكويت', 'قطر', 'عُمان', 'البحرين', 'لبنان', 'سوريا', 'فلسطين', 'ليبيا', 'السودان', 'اليمن', 'موريتانيا', 'الصومال', 'جزر القمر', 'جيبوتي', 'فرنسا', 'الولايات المتحدة', 'المملكة المتحدة', 'ألمانيا', 'إسبانيا', 'إيطاليا', 'كندا', 'تركيا', 'أخرى'];
+      const countries = ['المغرب', 'الجزائر', 'مصر', 'السعودية', 'تونس', 'الإمارات', 'الكويت', 'البحرين', 'قطر', 'عمان', 'سوريا', 'العراق', 'الأردن', 'لبنان', 'فلسطين', 'اليمن', 'السودان', 'ليبيا', 'موريتانيا', 'الصومال', 'جزر القمر', 'جيبوتي', 'أوروبا', 'الولايات المتحدة', 'المملكة المتحدة', 'كندا', 'أستراليا', 'تركيا', 'الهند', 'الصين', 'أخرى'];
       countries.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c; opt.textContent = c;
@@ -3566,12 +3565,12 @@
           method: 'POST',
           headers: {
             apikey: AUTH_KEY,
-            Authorization: `Bearer ${session.token}`,
+            Authorization: `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
             Prefer: 'resolution=merge-duplicates,return=representation'
           },
           body: JSON.stringify({
-            id: session.userId,
+            id: session.user.id,
             username,
             full_name: username, // Added to satisfy not-null constraint in DB
             country,
