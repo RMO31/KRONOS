@@ -2494,6 +2494,37 @@
           <label>البلد</label>
           <select id="pCountry" class="form-control-auth">
             <option value="">اختر البلد</option>
+            <option value="المغرب">المغرب</option>
+            <option value="الجزائر">الجزائر</option>
+            <option value="مصر">مصر</option>
+            <option value="السعودية">السعودية</option>
+            <option value="تونس">تونس</option>
+            <option value="الإمارات">الإمارات</option>
+            <option value="الكويت">الكويت</option>
+            <option value="البحرين">البحرين</option>
+            <option value="قطر">قطر</option>
+            <option value="عمان">عمان</option>
+            <option value="سوريا">سوريا</option>
+            <option value="العراق">العراق</option>
+            <option value="الأردن">الأردن</option>
+            <option value="لبنان">لبنان</option>
+            <option value="فلسطين">فلسطين</option>
+            <option value="اليمن">اليمن</option>
+            <option value="السودان">السودان</option>
+            <option value="ليبيا">ليبيا</option>
+            <option value="موريتانيا">موريتانيا</option>
+            <option value="الصومال">الصومال</option>
+            <option value="جزر القمر">جزر القمر</option>
+            <option value="جيبوتي">جيبوتي</option>
+            <option value="أوروبا">أوروبا</option>
+            <option value="الولايات المتحدة">الولايات المتحدة</option>
+            <option value="المملكة المتحدة">المملكة المتحدة</option>
+            <option value="كندا">كندا</option>
+            <option value="أستراليا">أستراليا</option>
+            <option value="تركيا">تركيا</option>
+            <option value="الهند">الهند</option>
+            <option value="الصين">الصين</option>
+            <option value="أخرى">أخرى</option>
           </select>
         </div>
         <div class="form-group">
@@ -3542,25 +3573,25 @@
     }
 
     async function saveProfile() {
-      const session = getSession();
-      if (!session) return showAuthMsg('profileMsg', '❌ انتهت الجلسة — سجّل دخولك مجدداً', 'err');
-
-      const username = document.getElementById('pUsername').value.trim();
-      const country = document.getElementById('pCountry').value;
-      const birthDate = document.getElementById('pBirthDate').value;
-      const rawPlace = document.getElementById('pBirthPlace').value.trim();
-      // Format: "مدينة - بلد"
-      const birthPlace = rawPlace && country && !rawPlace.includes(' - ')
-        ? `${rawPlace} - ${country}`
-        : rawPlace;
-      const hobby = document.getElementById('pHobbyText')?.value.trim() || '';
-
-      if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
-
-      const btn = document.getElementById('profileSaveBtn');
-      btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
-
       try {
+        const session = getSession();
+        if (!session) return showAuthMsg('profileMsg', '❌ انتهت الجلسة — سجّل دخولك مجدداً', 'err');
+
+        const username = document.getElementById('pUsername')?.value.trim() || '';
+        const country = document.getElementById('pCountry')?.value || '';
+        const birthDate = document.getElementById('pBirthDate')?.value || '';
+        const rawPlace = document.getElementById('pBirthPlace')?.value.trim() || '';
+        // Format: "مدينة - بلد"
+        const birthPlace = rawPlace && country && !rawPlace.includes(' - ')
+          ? `${rawPlace} - ${country}`
+          : rawPlace;
+        const hobby = document.getElementById('pHobbyText')?.value.trim() || '';
+
+        if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
+
+        const btn = document.getElementById('profileSaveBtn');
+        if(btn) { btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...'; }
+
         const res = await fetch(`${AUTH_URL}/rest/v1/profiles`, {
           method: 'POST',
           headers: {
@@ -3598,8 +3629,9 @@
           refreshAuthUI();
         }, 900);
       } catch (e) {
-        showAuthMsg('profileMsg', '❌ ' + e.message, 'err');
-        btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي';
+        showAuthMsg('profileMsg', '❌ خطأ: ' + e.message, 'err');
+        const btn = document.getElementById('profileSaveBtn');
+        if(btn) { btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي'; }
       }
     }
 
