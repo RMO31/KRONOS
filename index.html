@@ -3458,6 +3458,7 @@
 
       const params = new URLSearchParams(hash.replace(/^#/, ''));
       const token = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
       const userId = params.get('user_id') || null;
 
       if (!token) return;
@@ -3479,13 +3480,14 @@
         const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
         const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
 
-        saveSession({ token, userId: uid, email, name: fullName });
+        saveSession({ token, refreshToken, userId: uid, email, name: fullName });
 
         // Check if profile exists
         const profile = await fetchProfile(uid, token);
         if (profile) {
           saveSession({ 
-            token, 
+            token,
+            refreshToken,
             userId: uid, 
             email, 
             name: profile.username || fullName || '',
@@ -3591,10 +3593,11 @@
         const country = document.getElementById('pCountry')?.value || '';
         const birthDate = document.getElementById('pBirthDate')?.value || '';
         const rawPlace = document.getElementById('pBirthPlace')?.value.trim() || '';
-        // Format: "مدينة - بلد"
-        const birthPlace = rawPlace && country && !rawPlace.includes(' - ')
-          ? `${rawPlace} - ${country}`
-          : rawPlace;
+        // Format strictly requires " - "
+        if (rawPlace && !rawPlace.includes(' - ')) {
+          return showAuthMsg('profileMsg', '❌ خطأ: مكان الميلاد يجب أن يكتب بصيغة (ولاية - بلد) مع وجود علامة ناقص (-) بينهما', 'err');
+        }
+        const birthPlace = rawPlace;
         const hobby = document.getElementById('pHobbyText')?.value.trim() || '';
 
         if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
@@ -3602,7 +3605,7 @@
         const btn = document.getElementById('profileSaveBtn');
         if(btn) { btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...'; }
 
-        const res = await fetch(`${AUTH_URL}/rest/v1/profiles`, {
+        let res = await fetch(`${AUTH_URL}/rest/v1/profiles`, {
           method: 'POST',
           headers: {
             apikey: AUTH_KEY,
@@ -3622,10 +3625,54 @@
             email: session.email
           })
         });
+
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          console.error("SUPABASE PROFILE SAVE ERROR:", err);
-          throw new Error(err.message || err.hint || err.details || JSON.stringify(err) || 'فشل حفظ الملف الشخصي');
+          let err = await res.json().catch(() => ({}));
+          // If JWT expired, try to refresh it automatically
+          if (err.message && err.message.includes('JWT expired') && session.refreshToken) {
+            const refreshRes = await fetch(`${AUTH_URL}/auth/v1/token?grant_type=refresh_token`, {
+              method: 'POST',
+              headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh_token: session.refreshToken })
+            });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              session.token = refreshData.access_token;
+              session.refreshToken = refreshData.refresh_token;
+              saveSession(session);
+              // Retry the profile save request with the new token
+              res = await fetch(`${AUTH_URL}/rest/v1/profiles`, {
+                method: 'POST',
+                headers: {
+                  apikey: AUTH_KEY,
+                  Authorization: `Bearer ${session.token}`,
+                  'Content-Type': 'application/json',
+                  Prefer: 'resolution=merge-duplicates,return=representation'
+                },
+                body: JSON.stringify({
+                  id: session.userId,
+                  username,
+                  full_name: username,
+                  country,
+                  birth_place: birthPlace || null,
+                  birth_date: birthDate || null,
+                  hobby: hobby || null,
+                  avatar_url: avatarBase64 || null,
+                  email: session.email
+                })
+              });
+              if (!res.ok) {
+                err = await res.json().catch(() => ({}));
+              }
+            } else {
+              throw new Error('انتهت الجلسة بالكامل. يرجى تسجيل الخروج ثم الدخول مجدداً.');
+            }
+          }
+          
+          if (!res.ok) {
+            console.error("SUPABASE PROFILE SAVE ERROR:", err);
+            throw new Error(err.message || err.hint || err.details || JSON.stringify(err) || 'فشل حفظ الملف الشخصي');
+          }
         }
         showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
 
