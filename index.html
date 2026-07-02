@@ -3565,12 +3565,12 @@
           method: 'POST',
           headers: {
             apikey: AUTH_KEY,
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${session.token}`,
             'Content-Type': 'application/json',
             Prefer: 'resolution=merge-duplicates,return=representation'
           },
           body: JSON.stringify({
-            id: session.user.id,
+            id: session.userId,
             username,
             full_name: username, // Added to satisfy not-null constraint in DB
             country,
@@ -3638,7 +3638,7 @@
       document.getElementById('pUsername').value = session.name || '';
       document.getElementById('pCountry').value = session.country || '';
       document.getElementById('pBirthPlace').value = session.birth_place || '';
-      document.getElementById('pHobby').value = session.hobby || '';
+      document.getElementById('pHobbyText').value = session.hobby || '';
       if(session.birth_date) document.getElementById('pBirthDate').value = session.birth_date;
       if (session.avatar) {
         avatarBase64 = session.avatar;
