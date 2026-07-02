@@ -1962,6 +1962,10 @@
     .profile-card-popup { display: none; position: absolute; top: 60px; right: 2rem; min-width: 260px; width: max-content; max-width: 320px; background: rgba(14, 12, 9, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1001; }
     .profile-card-popup.open { display: block; animation: popIn 0.3s ease forwards; }
     .profile-card-popup img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--gold); }
+    .mention-link { color: var(--gold); text-decoration: none; font-weight: 600; }
+    .mention-link:hover { text-decoration: underline; }
+    .hashtag-link { color: #5a99d4; text-decoration: none; }
+    .hashtag-link:hover { text-decoration: underline; }
 </style>
 </head>
 
@@ -2007,6 +2011,20 @@
             <div>يتابع: <span>0</span></div>
         </div>
         <button class="btn-gold" style="width:100%; font-size:12px;" onclick="openProfileSettings()">إعدادات الملف الشخصي</button>
+    </div>
+
+    <!-- Public User Profile Modal -->
+    <div class="auth-overlay" id="userProfileOverlay">
+      <div class="auth-box profile-box" id="userProfileBox" style="text-align: center;">
+        <button class="auth-close" onclick="closeUserProfile()">×</button>
+        <div id="upmAvatarHtml" style="margin-bottom:10px;"></div>
+        <h3 id="upmUsername" style="color:var(--gold);margin-bottom:5px;">Username</h3>
+        <div style="font-size:12px; color:var(--text-dim); display:flex; gap:15px; margin-bottom:15px; justify-content:center;">
+            <div>متابعون: <span id="upmFollowers">0</span></div>
+            <div>يتابع: <span id="upmFollowing">0</span></div>
+        </div>
+        <button id="upmFollowBtn" class="btn-gold" style="width:100%;font-size:14px;margin-top:10px;" onclick="toggleFollow()">متابعة</button>
+      </div>
     </div>
 
 
@@ -2305,6 +2323,16 @@
     <div class="content-wrap">
       <div class="posts-layout">
         <div class="posts-main">
+
+          <!-- Posts Search -->
+          <div class="posts-search-box" style="display:flex; gap:10px; margin-bottom: 20px; align-items:center;">
+            <input type="text" id="postsSearchInput" placeholder="ابحث هنا..." style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(201,168,76,0.3); background:var(--bg); color:var(--text); font-family:var(--font-ar);">
+            <select id="postsSearchFilter" style="padding:10px; border-radius:8px; border:1px solid rgba(201,168,76,0.3); background:var(--bg); color:var(--text); font-family:var(--font-ar);">
+                <option value="posts">منشورات</option>
+                <option value="users">حساب مستخدم</option>
+            </select>
+            <button class="btn-gold" onclick="executePostsSearch()" style="padding:10px 15px;">بحث</button>
+          </div>
 
           <!-- Compose -->
           <div class="post-compose">
@@ -3210,11 +3238,11 @@
           const date = new Date(p.created_at).toLocaleDateString('ar-SA');
 
           div.innerHTML = `
-            <div class="post-user">
+            <div class="post-user" style="cursor:pointer" onclick="openUserProfile('${p.user_id}', '${username.replace(/'/g, "\\'")}', '${avatar.replace(/'/g, "\\'")}')">
               ${avatarHtml}
               <div><div class="post-username">${username}</div><div class="post-date">${date}</div></div>
             </div>
-            <div class="post-body">${p.content}</div>
+            <div class="post-body" style="direction:rtl;text-align:right;">${formatPostContent(p.content)}</div>
             ${mediaHtml}
             <div class="post-actions">
               <button class="post-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(this, '${p.id}')">❤️ <span>${likeCount}</span></button>
@@ -3807,6 +3835,10 @@ function doSiteLogout() {
         }
       } 
     });
+    const upmOverlay = document.getElementById('userProfileOverlay');
+    if (upmOverlay) {
+        upmOverlay.addEventListener('click', e => { if(e.target === upmOverlay) closeUserProfile(); });
+    }
 
     // ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
     const SUPA_URL_IDX = 'https://hlknmtrnlixmctvewobw.supabase.co';
@@ -4042,6 +4074,214 @@ function doSiteLogout() {
         } catch (err) { }
       }
     });
+
+    // ─── POSTS MENTIONS & FOLLOW LOGIC ───────────────────────────────────────────
+    function formatPostContent(text) {
+        if (!text) return '';
+        let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        safeText = safeText.replace(/@([a-zA-Z0-9_\u0600-\u06FF]+)/g, '<a href="#" class="mention-link" onclick="searchUser(\'$1\'); return false;">@$1</a>');
+        safeText = safeText.replace(/#([a-zA-Z0-9_\u0600-\u06FF]+)/g, '<a href="#" class="hashtag-link" onclick="searchHashtag(\'$1\'); return false;">#$1</a>');
+        return safeText.replace(/\n/g, '<br>');
+    }
+
+    function searchUser(username) {
+        showToast('البحث عن: ' + username + '...');
+        fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=eq.${username}&select=*`, {
+            headers: {
+                'apikey': SUPA_KEY_IDX,
+                'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
+            }
+        }).then(async r => {
+            if(r.ok) {
+                const data = await r.json();
+                if(data.length > 0) {
+                    const u = data[0];
+                    openUserProfile(u.id, u.username, u.avatar_url || '👤');
+                } else {
+                    showToast('المستخدم غير موجود');
+                }
+            } else {
+                showToast('خطأ في البحث');
+            }
+        });
+    }
+
+    function searchHashtag(hashtag) {
+        showToast('بحث عن الهاشتاغ: ' + hashtag);
+        const feed = document.getElementById('postsFeed');
+        if (!feed) return;
+        const cards = feed.querySelectorAll('.post-card');
+        cards.forEach(card => {
+            if (card.querySelector('.post-body').innerText.includes('#' + hashtag)) card.style.display = 'block';
+            else card.style.display = 'none';
+        });
+        // We could also implement a real backend query here if needed
+    }
+    function executePostsSearch() {
+        const val = document.getElementById('postsSearchInput').value.trim();
+        const filter = document.getElementById('postsSearchFilter').value;
+        
+        if(!val) {
+            // Show all posts if search is empty
+            const feed = document.getElementById('postsFeed');
+            if (feed) {
+                const cards = feed.querySelectorAll('.post-card');
+                cards.forEach(card => card.style.display = 'block');
+            }
+            return;
+        }
+
+        if (filter === 'users') {
+            showToast('جاري البحث عن حساب...');
+            fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=ilike.*${val}*&select=*`, {
+                headers: {
+                    'apikey': SUPA_KEY_IDX,
+                    'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
+                }
+            }).then(async r => {
+                if(r.ok) {
+                    const data = await r.json();
+                    if(data.length > 0) {
+                        const u = data[0];
+                        openUserProfile(u.id, u.username, u.avatar_url || '👤');
+                    } else {
+                        showToast('لا يوجد حساب بهذا الاسم');
+                    }
+                } else {
+                    showToast('خطأ في البحث');
+                }
+            });
+        } else {
+            const feed = document.getElementById('postsFeed');
+            if (!feed) return;
+            const cards = feed.querySelectorAll('.post-card');
+            let count = 0;
+            cards.forEach(card => {
+                const bodyText = card.querySelector('.post-body') ? card.querySelector('.post-body').innerText : '';
+                if (bodyText.includes(val)) {
+                    card.style.display = 'block';
+                    count++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            if(count === 0) {
+                showToast('لا توجد منشورات مطابقة');
+            } else {
+                showToast(`تم العثور على ${count} منشور`);
+            }
+        }
+    }
+
+    let currentUserProfileId = null;
+
+    async function openUserProfile(userId, username, avatar) {
+        if(!userId) return;
+        if(getSession() && getSession().user.id === userId) {
+            // Own profile -> open settings directly
+            openProfileSettings();
+            return;
+        }
+        currentUserProfileId = userId;
+        document.getElementById('upmUsername').textContent = username;
+        const isEmoji = avatar.length <= 4;
+        document.getElementById('upmAvatarHtml').innerHTML = isEmoji ? 
+            `<div style="font-size:50px;width:100px;height:100px;line-height:100px;margin:0 auto 10px;border-radius:50%;border:2px solid var(--gold);background:var(--card-bg)">${avatar}</div>` : 
+            `<img src="${avatar}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid var(--gold);">`;
+        
+        document.getElementById('userProfileOverlay').style.display = 'flex';
+        document.getElementById('upmFollowers').textContent = '...';
+        document.getElementById('upmFollowing').textContent = '...';
+        
+        try {
+            const h = { 'apikey': SUPA_KEY_IDX, 'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}` };
+            
+            // Followers count
+            fetch(`${SUPA_URL_IDX}/rest/v1/followers?following_id=eq.${userId}&select=id`, {headers: h})
+                .then(r => r.ok ? r.json() : []).then(d => document.getElementById('upmFollowers').textContent = d.length || 0);
+                
+            // Following count
+            fetch(`${SUPA_URL_IDX}/rest/v1/followers?follower_id=eq.${userId}&select=id`, {headers: h})
+                .then(r => r.ok ? r.json() : []).then(d => document.getElementById('upmFollowing').textContent = d.length || 0);
+            
+            const btn = document.getElementById('upmFollowBtn');
+            btn.style.display = getSession() ? 'block' : 'none';
+            
+            if(getSession()) {
+                const me = getSession().user.id;
+                fetch(`${SUPA_URL_IDX}/rest/v1/followers?follower_id=eq.${me}&following_id=eq.${userId}&select=id`, {headers: h})
+                    .then(async r => {
+                        if(r.ok) {
+                            const d = await r.json();
+                            if(d.length > 0) {
+                                btn.textContent = 'إلغاء المتابعة';
+                                btn.style.background = 'rgba(255,0,0,0.2)';
+                                btn.style.color = '#ff6b6b';
+                                btn.style.borderColor = '#ff6b6b';
+                                btn.setAttribute('data-following', 'true');
+                            } else {
+                                btn.textContent = 'متابعة';
+                                btn.style.background = '';
+                                btn.style.color = '';
+                                btn.style.borderColor = '';
+                                btn.setAttribute('data-following', 'false');
+                            }
+                        }
+                    });
+            }
+        } catch(e) {}
+    }
+
+    function closeUserProfile() {
+        document.getElementById('userProfileOverlay').style.display = 'none';
+        currentUserProfileId = null;
+    }
+
+    async function toggleFollow() {
+        if(!getSession()) return showToast('يجب تسجيل الدخول');
+        if(!currentUserProfileId) return;
+        const me = getSession().user.id;
+        const btn = document.getElementById('upmFollowBtn');
+        const isFollowing = btn.getAttribute('data-following') === 'true';
+        
+        btn.disabled = true;
+        const h = { 
+            'apikey': SUPA_KEY_IDX, 
+            'Authorization': `Bearer ${getSession().access_token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+        
+        try {
+            if(isFollowing) {
+                await fetch(`${SUPA_URL_IDX}/rest/v1/followers?follower_id=eq.${me}&following_id=eq.${currentUserProfileId}`, { method: 'DELETE', headers: h });
+                btn.textContent = 'متابعة';
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+                btn.setAttribute('data-following', 'false');
+                let c = parseInt(document.getElementById('upmFollowers').textContent) || 1;
+                document.getElementById('upmFollowers').textContent = c - 1;
+            } else {
+                await fetch(`${SUPA_URL_IDX}/rest/v1/followers`, {
+                    method: 'POST',
+                    headers: h,
+                    body: JSON.stringify({ follower_id: me, following_id: currentUserProfileId })
+                });
+                btn.textContent = 'إلغاء المتابعة';
+                btn.style.background = 'rgba(255,0,0,0.2)';
+                btn.style.color = '#ff6b6b';
+                btn.style.borderColor = '#ff6b6b';
+                btn.setAttribute('data-following', 'true');
+                let c = parseInt(document.getElementById('upmFollowers').textContent) || 0;
+                document.getElementById('upmFollowers').textContent = c + 1;
+            }
+        } catch(e) {
+            showToast('حدث خطأ');
+        }
+        btn.disabled = false;
+    }
+
 
   </script>
 </body>
