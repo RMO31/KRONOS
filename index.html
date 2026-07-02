@@ -3484,7 +3484,17 @@
         // Check if profile exists
         const profile = await fetchProfile(uid, token);
         if (profile) {
-          saveSession({ token, userId: uid, email, name: profile.username || fullName || '' });
+          saveSession({ 
+            token, 
+            userId: uid, 
+            email, 
+            name: profile.username || fullName || '',
+            country: profile.country || '',
+            birth_date: profile.birth_date || '',
+            birth_place: profile.birth_place || '',
+            hobby: profile.hobby || '',
+            avatar: profile.avatar_url || ''
+          });
           showToast(`👋 مرحباً ${profile.username || fullName || ''}!`, 't-success');
           refreshAuthUI();
         } else {
@@ -3498,9 +3508,9 @@
 
 
     // ── SESSION ──────────────────────────────────────────────────────────────────
-    function saveSession({ token, userId, email, name }) {
+    function saveSession(sessionObj) {
       try {
-        localStorage.setItem('kronos_session', JSON.stringify({ token, userId, email, name }));
+        localStorage.setItem('kronos_session', JSON.stringify(sessionObj));
       } catch (e) { }
     }
     function getSession() {
@@ -3619,8 +3629,13 @@
         }
         showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
 
-        // Update session with new username
+        // Update session with all profile data so UI and form preserve it locally
         session.name = username;
+        session.country = country;
+        session.birth_date = birthDate;
+        session.birth_place = birthPlace;
+        session.hobby = hobby;
+        if (avatarBase64) session.avatar = avatarBase64;
         saveSession(session);
 
         setTimeout(() => {
