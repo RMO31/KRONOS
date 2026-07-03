@@ -2463,6 +2463,22 @@
   </section>
 
   <!-- ══════════════════════════════ AUTH MODAL ══════════════════════════════ -->
+  
+  <div class="auth-overlay" id="editPostOverlay">
+    <div class="auth-box" id="editPostBox" style="max-width: 500px; padding: 2rem;">
+      <button class="auth-close" onclick="closeEditPost()">×</button>
+      <h3 style="margin-bottom: 1.5rem; color: var(--gold);">تعديل المنشور</h3>
+      <textarea id="editPostInput" class="auth-input" style="min-height: 120px; width: 100%; margin-bottom: 1rem; resize: vertical;" placeholder="عدل منشورك..."></textarea>
+      
+      <div id="editPostMediaPreview" style="display:none; margin-top: 10px; margin-bottom: 10px; text-align: center; position: relative;"></div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
+        <button class="post-type-btn" style="background: none; border: 1px solid var(--gold-dim); color: var(--gold); padding: 0.5rem 1rem; cursor: pointer; border-radius: var(--radius);" onclick="attachEditMedia()">📷 تعديل/حذف المرفق</button>
+        <button class="btn-gold" style="padding: 0.6rem 2rem; border-radius: var(--radius); border: none; background: var(--gold); color: #000; cursor: pointer; font-weight: bold;" onclick="submitEditPost()">حفظ التعديلات</button>
+      </div>
+    </div>
+  </div>
+
   <div class="auth-overlay" id="authOverlay">
     <div class="auth-box" id="authBoxMain">
       <button class="auth-close" onclick="closeAuth()">✕</button>
@@ -3223,6 +3239,7 @@
           return;
         }
         const posts = await r.json();
+        window.currentPostsData = posts;
         if (!posts.length) {
           feed.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات حتى الآن — كن أول من ينشر!</div>';
           return;
@@ -3281,67 +3298,169 @@
     }
 
 
-    async function editPost(postId) {
-      const el = document.getElementById('postBody_'+postId);
-      const newContent = prompt('قم بتعديل منشورك:', el ? el.innerText : '');
-      if (newContent === null) return;
-      if (!newContent.trim()) return showToast('لا يمكن ترك المنشور فارغاً');
+    let currentEditingPostId = null;
+    let currentEditMediaFile = null;
+    let removeExistingMedia = false;
+
+    function editPost(postId) {
+      const post = (window.currentPostsData || []).find(p => p.id === postId);
+      if (!post) return;
+      currentEditingPostId = postId;
+      currentEditMediaFile = null;
+      removeExistingMedia = false;
       
-      showToast('جاري التحديث...');
+      document.getElementById('editPostInput').value = post.content || '';
+      
+      const preview = document.getElementById('editPostMediaPreview');
+      if (post.media_url) {
+        let previewHtml = '';
+        if (post.media_type === 'image') {
+           previewHtml = `<img src="${post.media_url}" style="max-width:100%;max-height:200px;border-radius:var(--radius);">`;
+        } else if (post.media_type === 'video') {
+           previewHtml = `<video src="${post.media_url}" controls style="max-width:100%;max-height:200px;border-radius:var(--radius);"></video>`;
+        }
+        previewHtml += `<br><button onclick="removeEditMedia()" style="margin-top:5px; background:var(--red-accent); color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">🗑️ إزالة المرفق</button>`;
+        preview.innerHTML = previewHtml;
+        preview.style.display = 'block';
+      } else {
+        preview.innerHTML = '';
+        preview.style.display = 'none';
+      }
+      
+      document.getElementById('editPostOverlay').classList.add('open');
+      document.getElementById('editPostBox').style.display = 'block';
+    }
+
+    function closeEditPost() {
+      document.getElementById('editPostOverlay').classList.remove('open');
+    }
+
+    function removeEditMedia() {
+      removeExistingMedia = true;
+      currentEditMediaFile = null;
+      const preview = document.getElementById('editPostMediaPreview');
+      preview.innerHTML = '';
+      preview.style.display = 'none';
+    }
+
+    function attachEditMedia() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,video/*';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 15 * 1024 * 1024) return showToast('حجم الملف كبير جداً', 't-error');
+        
+        currentEditMediaFile = file;
+        removeExistingMedia = true; // replacing existing
+        const preview = document.getElementById('editPostMediaPreview');
+        const url = URL.createObjectURL(file);
+        
+        if (file.type.startsWith('image/')) {
+          preview.innerHTML = `<img src="${url}" style="max-width:100%;max-height:200px;border-radius:var(--radius);"><br><button onclick="removeEditMedia()" style="margin-top:5px; background:var(--red-accent); color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">🗑️ إزالة المرفق</button>`;
+        } else {
+          preview.innerHTML = `<video src="${url}" controls style="max-width:100%;max-height:200px;border-radius:var(--radius);"></video><br><button onclick="removeEditMedia()" style="margin-top:5px; background:var(--red-accent); color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">🗑️ إزالة المرفق</button>`;
+        }
+        preview.style.display = 'block';
+      };
+      input.click();
+    }
+
+    async function submitEditPost() {
+      if (!currentEditingPostId) return;
+      const newContent = document.getElementById('editPostInput').value.trim();
+      if (!newContent) return showToast('لا يمكن ترك الوصف فارغاً');
+      
+      showToast('جاري حفظ التعديلات...');
+      const session = getSession();
+      if (!session) return showToast('انتهت الجلسة');
+
       try {
-        const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts?id=eq.${postId}`, {
+        let mediaUrl = undefined;
+        let mediaType = undefined;
+        const post = window.currentPostsData.find(p => p.id === currentEditingPostId);
+        
+        if (currentEditMediaFile) {
+          const fileExt = currentEditMediaFile.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const uploadRes = await fetch(`${SUPA_URL_IDX}/storage/v1/object/posts_media/${fileName}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': SUPA_KEY_IDX,
+              'Content-Type': currentEditMediaFile.type
+            },
+            body: currentEditMediaFile
+          });
+          if (!uploadRes.ok) throw new Error('فشل رفع المرفق الجديد');
+          mediaUrl = `${SUPA_URL_IDX}/storage/v1/object/public/posts_media/${fileName}`;
+          mediaType = currentEditMediaFile.type.startsWith('image/') ? 'image' : 'video';
+        } else if (removeExistingMedia) {
+          mediaUrl = null;
+          mediaType = null;
+        } else {
+          mediaUrl = post.media_url;
+          mediaType = post.media_type;
+        }
+
+        const updateData = { content: newContent };
+        if (mediaUrl !== undefined) {
+          updateData.media_url = mediaUrl;
+          updateData.media_type = mediaType;
+        }
+
+        const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts?id=eq.${currentEditingPostId}`, {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${getSession().access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'apikey': SUPA_KEY_IDX,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ content: newContent.trim() })
+          body: JSON.stringify(updateData)
         });
+        
         if (r.ok) {
-          showToast('تم تحديث المنشور!');
-          loadPosts();
+          showToast('تم تعديل المنشور بنجاح', 't-success');
+          closeEditPost();
+          loadPosts(); // refresh
         } else {
-          showToast('فشل في تحديث المنشور');
+          throw new Error('فشل التعديل');
         }
-      } catch (e) {
-        showToast('خطأ في الاتصال');
+      } catch(e) {
+        showToast(e.message, 't-error');
       }
     }
 
-    function sharePost(postId) {
-      let url = window.location.origin + window.location.pathname + '?post=' + postId;
-      if (window.location.protocol === 'file:') {
-         url = window.location.href.split('?')[0] + '?post=' + postId;
-      }
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(url).then(() => {
-          showToast('تم نسخ رابط المنشور بنجاح!');
-        }).catch(() => {
-          prompt('انسخ هذا الرابط:', url);
-        });
-      } else {
-        prompt('انسخ هذا الرابط:', url);
-      }
-    }
-
+    
     window.addEventListener('DOMContentLoaded', () => {
-      startTokenBot();
+      if(typeof startTokenBot === 'function') startTokenBot();
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('post')) {
         setTimeout(() => {
           showTab('posts');
           setTimeout(() => {
-            const el = document.getElementById('post_' + urlParams.get('post'));
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              el.style.border = '2px solid var(--gold)';
-              setTimeout(() => el.style.border = 'none', 3000);
+            const p = document.getElementById('post_' + urlParams.get('post'));
+            if (p) {
+               p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+               p.style.transition = 'box-shadow 0.5s ease-in-out';
+               p.style.boxShadow = '0 0 20px var(--gold)';
+               setTimeout(() => { p.style.boxShadow = 'none'; }, 3000);
             }
           }, 1000);
-        }, 500);
+        }, 300);
       }
     });
+
+    
+    function sharePost(postId) {
+      const url = window.location.origin + window.location.pathname + '?post=' + postId;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('تم نسخ الرابط بنجاح');
+      }).catch(() => {
+        showToast('فشل نسخ الرابط', 't-error');
+      });
+    }
 
     async function toggleLike(btn, postId) {
       if (!getSession()) return showToast('يجب تسجيل الدخول للإعجاب');
