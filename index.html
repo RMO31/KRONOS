@@ -2338,6 +2338,7 @@
           <div class="post-compose">
             <textarea id="postInput" placeholder="شارك فكرة أو بحثاً أو سؤالاً..."
               data-i18n-placeholder="posts.compose.placeholder"></textarea>
+            <div id="postMediaPreview" style="display:none; margin-top: 10px; text-align: center; position: relative;"></div>
             <div class="post-compose-actions">
               <div class="post-type-btns">
                 <button class="post-type-btn" onclick="attachMedia()">🖼 صورة/فيديو</button>
@@ -3179,7 +3180,10 @@
             activeMediaUrl = `${SUPA_URL_IDX}/storage/v1/object/public/post_media/${fileName}`;
             activeMediaType = type;
             showToast('تم إرفاق الملف بنجاح');
-            document.getElementById('postInput').value += `\n[مرفق: ${type}]`;
+            const preview = document.getElementById('postMediaPreview');
+            preview.style.display = 'block';
+            if (type === 'image') preview.innerHTML = `<img src="${activeMediaUrl}" style="max-height:200px; max-width:100%; border-radius:8px; object-fit:contain; background:#111;"><button onclick="clearMedia()" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">X</button>`;
+            if (type === 'video') preview.innerHTML = `<video src="${activeMediaUrl}" controls style="max-height:200px; max-width:100%; border-radius:8px; object-fit:contain; background:#111;"></video><button onclick="clearMedia()" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">X</button>`;
           } else {
             showToast('حدث خطأ أثناء الرفع');
           }
@@ -3190,6 +3194,12 @@
       input.click();
     }
 
+    function clearMedia() {
+        activeMediaUrl = null;
+        activeMediaType = 'none';
+        const preview = document.getElementById('postMediaPreview');
+        if(preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+    }
     async function loadPosts() {
       const feed = document.getElementById('postsFeed');
       if (!feed) return;
@@ -3233,7 +3243,7 @@
             mediaHtml = `<video src="${p.media_url}" controls style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:400px;"></video>`;
           }
 
-          const date = new Date(p.created_at).toLocaleDateString('ar-SA');
+          const date = new Date(p.created_at).toLocaleDateString('en-GB');
 
           div.innerHTML = `
             <div class="post-user" style="cursor:pointer" onclick="openUserProfile('${p.user_id}', '${username.replace(/'/g, "\\'")}', '${avatar.replace(/'/g, "\\'")}')">
@@ -3261,6 +3271,61 @@
         feed.innerHTML = '<div style="text-align:center;padding:2rem;">حدث خطأ في تحميل المنشورات</div>';
       }
     }
+
+
+    async function editPost(postId) {
+      const el = document.getElementById('postBody_'+postId);
+      const newContent = prompt('قم بتعديل منشورك:', el ? el.innerText : '');
+      if (newContent === null) return;
+      if (!newContent.trim()) return showToast('لا يمكن ترك المنشور فارغاً');
+      
+      showToast('جاري التحديث...');
+      try {
+        const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts?id=eq.${postId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${getSession().access_token}`,
+            'apikey': SUPA_KEY_IDX,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content: newContent.trim() })
+        });
+        if (r.ok) {
+          showToast('تم تحديث المنشور!');
+          loadPosts();
+        } else {
+          showToast('فشل في تحديث المنشور');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال');
+      }
+    }
+
+    function sharePost(postId) {
+      const url = window.location.origin + window.location.pathname + '?post=' + postId;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('تم نسخ رابط المنشور بنجاح!');
+      }).catch(() => {
+        showToast('فشل في نسخ الرابط');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('post')) {
+        setTimeout(() => {
+          showTab('posts');
+          setTimeout(() => {
+            const el = document.getElementById('post_' + urlParams.get('post'));
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.style.border = '2px solid var(--gold)';
+              setTimeout(() => el.style.border = 'none', 3000);
+            }
+          }, 1000);
+        }, 500);
+      }
+    });
 
     async function toggleLike(btn, postId) {
       if (!getSession()) return showToast('يجب تسجيل الدخول للإعجاب');
@@ -3406,8 +3471,7 @@
         
         if (r.ok) {
           input.value = '';
-          activeMediaUrl = null;
-          activeMediaType = 'none';
+          clearMedia();
           showToast('تم النشر بنجاح!');
           loadPosts();
         } else {
@@ -3878,7 +3942,7 @@ function doSiteLogout() {
       n = parseInt(n) || 0;
       if (n >= 1e6) return (n / 1e6).toFixed(1) + ' م';
       if (n >= 1000) return (n / 1000).toFixed(1) + ' ألف';
-      return n.toLocaleString('ar');
+      return n.toLocaleString('en-US');
     }
 
     // ─── INIT ────────────────────────────────────────────────────────────────────
