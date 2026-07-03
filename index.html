@@ -3543,7 +3543,16 @@
       } catch (e) { }
     }
     function getSession() {
-      try { return JSON.parse(localStorage.getItem('kronos_session') || 'null'); }
+      try {
+        const session = JSON.parse(localStorage.getItem('kronos_session') || 'null');
+        if (session) {
+          session.access_token = session.token;
+          if (!session.user) {
+            session.user = { id: session.userId, email: session.email };
+          }
+        }
+        return session;
+      }
       catch (e) { return null; }
     }
     function clearSession() { try { localStorage.removeItem('kronos_session'); } catch (e) { } }
