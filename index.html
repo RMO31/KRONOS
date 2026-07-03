@@ -3551,7 +3551,6 @@
         preview.style.display = 'none';
       }
     }
-    }
 
     function closeEditPost() {
       document.getElementById('editPostOverlay').classList.remove('open');
@@ -4752,8 +4751,6 @@ function doSiteLogout() {
     function searchHashtag(hashtag) {
         showToast('جاري البحث عن: #' + hashtag);
         loadPosts(hashtag);
-    });
-        // We could also implement a real backend query here if needed
     }
     function executePostsSearch() {
         const val = document.getElementById('postsSearchInput').value.trim();
