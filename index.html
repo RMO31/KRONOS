@@ -1966,6 +1966,123 @@
     .mention-link:hover { text-decoration: underline; }
     .hashtag-link { color: #5a99d4; text-decoration: none; }
     .hashtag-link:hover { text-decoration: underline; }
+
+    /* MULTIPLE MEDIA GRID & LIGHTBOX */
+    .media-grid {
+      display: grid;
+      gap: 5px;
+      margin-top: 1rem;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--dark3);
+    }
+    .media-grid-1 { grid-template-columns: 1fr; }
+    .media-grid-2 { grid-template-columns: 1fr 1fr; }
+    .media-grid-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 200px 200px; }
+    .media-grid-3 > :first-child { grid-column: span 2; }
+    .media-grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 200px 200px; }
+    
+    .media-item {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      background: var(--dark2);
+    }
+    .media-grid-1 .media-item { max-height: 450px; object-fit: contain; background: #111; }
+    .media-grid-2 .media-item { height: 300px; }
+    
+    .more-media-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      pointer-events: none;
+    }
+    
+    /* LIGHTBOX */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox-overlay.open { display: flex; }
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2.5rem;
+      cursor: pointer;
+      z-index: 10001;
+    }
+    .lightbox-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+    }
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      padding: 1rem;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.3); }
+    .lightbox-prev { right: 20px; }
+    .lightbox-next { left: 20px; }
+
+    /* TEXTAREA ENHANCEMENTS */
+    #postInput, #editPostInput {
+      background: var(--dark3);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      padding: 1rem;
+      font-family: inherit;
+      color: var(--text);
+      font-size: 15px;
+      border-radius: var(--radius);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #postInput:focus, #editPostInput:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 10px rgba(201, 168, 76, 0.1);
+    }
+    
+    /* MENTIONS AND HASHTAGS */
+    .mention-link { 
+      color: var(--gold); 
+      background: rgba(201, 168, 76, 0.1); 
+      padding: 0 4px; 
+      border-radius: 4px; 
+      font-weight: bold; 
+      text-decoration: none; 
+    }
+    .mention-link:hover { background: rgba(201, 168, 76, 0.2); text-decoration: none; }
+    .hashtag-link { 
+      color: #72a9df; 
+      font-weight: 500; 
+      text-decoration: none; 
+    }
+    .hashtag-link:hover { text-decoration: underline; }
+
 </style>
 </head>
 
@@ -3168,54 +3285,101 @@
     let activeMediaUrl = null;
     let activeMediaType = 'none';
 
+    let currentPostMediaUrls = [];
+    let currentPostMediaTypes = [];
+
     function attachMedia() {
-      if (!getSession()) return showToast('يجب تسجيل الدخول أولاً');
+      if (!getSession()) return showToast('يرجى تسجيل الدخول أولاً');
       const input = document.createElement('input');
       input.type = 'file';
+      input.multiple = true;
       input.accept = 'image/*,video/*';
       input.onchange = async e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const type = file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : null);
-        if (!type) return showToast('نوع الملف غير مدعوم');
-        showToast('جاري الرفع...');
-        const ext = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        if (files.length > 4) return showToast('يمكنك رفع 4 ملفات كحد أقصى', 't-error');
         
-        try {
-          const res = await fetch(`${SUPA_URL_IDX}/storage/v1/object/post_media/${fileName}`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${getSession().access_token}`,
-              'apikey': SUPA_KEY_IDX,
-              'Content-Type': file.type
-            },
-            body: file
-          });
-          if (res.ok) {
-            activeMediaUrl = `${SUPA_URL_IDX}/storage/v1/object/public/post_media/${fileName}`;
-            activeMediaType = type;
-            showToast('تم إرفاق الملف بنجاح');
-            const preview = document.getElementById('postMediaPreview');
-            preview.style.display = 'block';
-            if (type === 'image') preview.innerHTML = `<img src="${activeMediaUrl}" style="max-height:200px; max-width:100%; border-radius:8px; object-fit:contain; background:#111;"><button onclick="clearMedia()" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">X</button>`;
-            if (type === 'video') preview.innerHTML = `<video src="${activeMediaUrl}" controls style="max-height:200px; max-width:100%; border-radius:8px; object-fit:contain; background:#111;"></video><button onclick="clearMedia()" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">X</button>`;
-          } else {
-            showToast('حدث خطأ أثناء الرفع');
+        let valid = true;
+        files.forEach(f => {
+           if (f.size > 15 * 1024 * 1024) valid = false;
+        });
+        if (!valid) return showToast('حجم أحد الملفات يتجاوز 15MB', 't-error');
+
+        showToast('جاري رفع الملفات...');
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const type = file.type.startsWith('image/') ? 'image' : 'video';
+          const ext = file.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+          
+          try {
+            const res = await fetch(`${SUPA_URL_IDX}/storage/v1/object/post_media/${fileName}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${getSession().access_token}`,
+                'apikey': SUPA_KEY_IDX,
+                'Content-Type': file.type
+              },
+              body: file
+            });
+            if (res.ok) {
+               currentPostMediaUrls.push(`${SUPA_URL_IDX}/storage/v1/object/public/post_media/${fileName}`);
+               currentPostMediaTypes.push(type);
+            }
+          } catch(e) {
+             console.error('فشل رفع الملف', e);
           }
-        } catch(err) {
-            showToast('حدث خطأ في الاتصال');
         }
+        
+        const preview = document.getElementById('postMediaPreview');
+        preview.innerHTML = `تم إرفاق ${currentPostMediaUrls.length} ملفات <br><button onclick="currentPostMediaUrls=[]; currentPostMediaTypes=[]; document.getElementById('postMediaPreview').style.display='none';" style="margin-top:5px;background:var(--red-accent);color:white;border:none;padding:5px;border-radius:3px;cursor:pointer;">🗑️ إزالة الكل</button>`;
+        preview.style.display = 'block';
+        showToast('تم الرفع بنجاح', 't-success');
       };
       input.click();
     }
 
-    function clearMedia() {
-        activeMediaUrl = null;
-        activeMediaType = 'none';
-        const preview = document.getElementById('postMediaPreview');
-        if(preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+    async function submitPost() {
+      const input = document.getElementById('postInput');
+      const val = input.value.trim();
+      if (!val && !currentPostMediaUrls.length) return showToast('لا يمكن ترك المنشور فارغاً');
+      if (!getSession()) return showToast('يرجى تسجيل الدخول أولاً');
+
+      showToast('جاري النشر...');
+      const session = getSession();
+      try {
+        const postData = {
+          user_id: session.user.id,
+          content: val,
+          media_url: currentPostMediaUrls.length ? JSON.stringify(currentPostMediaUrls) : null,
+          media_type: currentPostMediaTypes.length ? JSON.stringify(currentPostMediaTypes) : null
+        };
+        const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': SUPA_KEY_IDX,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(postData)
+        });
+        if (r.ok) {
+          input.value = '';
+          currentPostMediaUrls = [];
+          currentPostMediaTypes = [];
+          document.getElementById('postMediaPreview').style.display = 'none';
+          showToast('تم النشر بنجاح!', 't-success');
+          loadPosts();
+        } else {
+          showToast('حدث خطأ أثناء النشر', 't-error');
+        }
+      } catch (e) {
+        showToast(e.message, 't-error');
+      }
     }
+
     async function loadPosts() {
       const feed = document.getElementById('postsFeed');
       if (!feed) return;
@@ -3259,12 +3423,9 @@
           const avatarHtml = isAvatarEmoji ? `<div class="post-avatar">${avatar}</div>` : `<img src="${avatar}" class="post-avatar" style="object-fit:cover;border:none;">`;
           const username = p.profiles?.username || 'مستخدم مجهول';
           
-          let mediaHtml = '';
-          if (p.media_type === 'image' && p.media_url) {
-            mediaHtml = `<img src="${p.media_url}" style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:450px;object-fit:contain;background:#111;">`;
-          } else if (p.media_type === 'video' && p.media_url) {
-            mediaHtml = `<video src="${p.media_url}" controls style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:450px;object-fit:contain;background:#111;"></video>`;
-          }
+          
+          const mediaItems = getMediaItems(p);
+          let mediaHtml = renderMediaGrid(mediaItems);
 
           const date = new Date(p.created_at).toLocaleDateString('ar-SA', { numberingSystem: 'latn', year: 'numeric', month: 'short', day: 'numeric' });
           const isOwner = getSession() && getSession().user.id === p.user_id;
@@ -3299,70 +3460,102 @@
 
 
     let currentEditingPostId = null;
-    let currentEditMediaFile = null;
-    let removeExistingMedia = false;
+    let currentEditMediaUrls = [];
+    let currentEditMediaTypes = [];
 
     function editPost(postId) {
       const post = (window.currentPostsData || []).find(p => p.id === postId);
       if (!post) return;
       currentEditingPostId = postId;
-      currentEditMediaFile = null;
-      removeExistingMedia = false;
+      currentEditMediaUrls = [];
+      currentEditMediaTypes = [];
       
       document.getElementById('editPostInput').value = post.content || '';
       
       const preview = document.getElementById('editPostMediaPreview');
-      if (post.media_url) {
-        let previewHtml = '';
-        if (post.media_type === 'image') {
-           previewHtml = `<img src="${post.media_url}" style="max-width:100%;max-height:200px;border-radius:var(--radius);">`;
-        } else if (post.media_type === 'video') {
-           previewHtml = `<video src="${post.media_url}" controls style="max-width:100%;max-height:200px;border-radius:var(--radius);"></video>`;
+      
+      try {
+        const urls = JSON.parse(post.media_url);
+        const types = JSON.parse(post.media_type);
+        currentEditMediaUrls = [...urls];
+        currentEditMediaTypes = [...types];
+      } catch(e) {
+        if (post.media_url) {
+           currentEditMediaUrls = [post.media_url];
+           currentEditMediaTypes = [post.media_type];
         }
-        previewHtml += `<br><button onclick="removeEditMedia()" style="margin-top:5px; background:var(--red-accent); color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">🗑️ إزالة المرفق</button>`;
-        preview.innerHTML = previewHtml;
+      }
+      
+      updateEditPreview();
+      
+      document.getElementById('editPostOverlay').classList.add('open');
+      document.getElementById('editPostBox').style.display = 'block';
+    }
+    
+    function updateEditPreview() {
+      const preview = document.getElementById('editPostMediaPreview');
+      if (currentEditMediaUrls.length > 0) {
+        preview.innerHTML = `تم إرفاق ${currentEditMediaUrls.length} ملفات <br><button onclick="currentEditMediaUrls=[]; currentEditMediaTypes=[]; updateEditPreview();" style="margin-top:5px;background:var(--red-accent);color:white;border:none;padding:5px;border-radius:3px;cursor:pointer;">🗑️ إزالة الكل</button>`;
         preview.style.display = 'block';
       } else {
         preview.innerHTML = '';
         preview.style.display = 'none';
       }
-      
-      document.getElementById('editPostOverlay').classList.add('open');
-      document.getElementById('editPostBox').style.display = 'block';
     }
 
     function closeEditPost() {
       document.getElementById('editPostOverlay').classList.remove('open');
     }
 
-    function removeEditMedia() {
-      removeExistingMedia = true;
-      currentEditMediaFile = null;
-      const preview = document.getElementById('editPostMediaPreview');
-      preview.innerHTML = '';
-      preview.style.display = 'none';
-    }
-
     function attachEditMedia() {
       const input = document.createElement('input');
       input.type = 'file';
+      input.multiple = true;
       input.accept = 'image/*,video/*';
-      input.onchange = e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 15 * 1024 * 1024) return showToast('حجم الملف كبير جداً', 't-error');
+      input.onchange = async e => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        if (files.length > 4) return showToast('يمكنك رفع 4 ملفات كحد أقصى', 't-error');
         
-        currentEditMediaFile = file;
-        removeExistingMedia = true; // replacing existing
-        const preview = document.getElementById('editPostMediaPreview');
-        const url = URL.createObjectURL(file);
+        let valid = true;
+        files.forEach(f => {
+           if (f.size > 15 * 1024 * 1024) valid = false;
+        });
+        if (!valid) return showToast('حجم أحد الملفات يتجاوز 15MB', 't-error');
+
+        showToast('جاري رفع الملفات...');
         
-        if (file.type.startsWith('image/')) {
-          preview.innerHTML = `<img src="${url}" style="max-width:100%;max-height:200px;border-radius:var(--radius);"><br><button onclick="removeEditMedia()" style="margin-top:5px; background:var(--red-accent); color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">🗑️ إزالة المرفق</button>`;
-        } else {
-          preview.innerHTML = `<video src="${url}" controls style="max-width:100%;max-height:200px;border-radius:var(--radius);"></video><br><button onclick="removeEditMedia()" style="margin-top:5px; background:var(--red-accent); color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;">🗑️ إزالة المرفق</button>`;
+        // If replacing, clear the current array
+        currentEditMediaUrls = [];
+        currentEditMediaTypes = [];
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const type = file.type.startsWith('image/') ? 'image' : 'video';
+          const ext = file.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+          
+          try {
+            const res = await fetch(`${SUPA_URL_IDX}/storage/v1/object/posts_media/${fileName}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${getSession().access_token}`,
+                'apikey': SUPA_KEY_IDX,
+                'Content-Type': file.type
+              },
+              body: file
+            });
+            if (res.ok) {
+               currentEditMediaUrls.push(`${SUPA_URL_IDX}/storage/v1/object/public/posts_media/${fileName}`);
+               currentEditMediaTypes.push(type);
+            }
+          } catch(e) {
+             console.error('فشل رفع الملف', e);
+          }
         }
-        preview.style.display = 'block';
+        
+        updateEditPreview();
+        showToast('تم الرفع بنجاح', 't-success');
       };
       input.click();
     }
@@ -3370,44 +3563,21 @@
     async function submitEditPost() {
       if (!currentEditingPostId) return;
       const newContent = document.getElementById('editPostInput').value.trim();
-      if (!newContent) return showToast('لا يمكن ترك الوصف فارغاً');
+      if (!newContent && !currentEditMediaUrls.length) return showToast('لا يمكن ترك المنشور فارغاً');
       
       showToast('جاري حفظ التعديلات...');
       const session = getSession();
       if (!session) return showToast('انتهت الجلسة');
 
       try {
-        let mediaUrl = undefined;
-        let mediaType = undefined;
-        const post = window.currentPostsData.find(p => p.id === currentEditingPostId);
-        
-        if (currentEditMediaFile) {
-          const fileExt = currentEditMediaFile.name.split('.').pop();
-          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const uploadRes = await fetch(`${SUPA_URL_IDX}/storage/v1/object/posts_media/${fileName}`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'apikey': SUPA_KEY_IDX,
-              'Content-Type': currentEditMediaFile.type
-            },
-            body: currentEditMediaFile
-          });
-          if (!uploadRes.ok) throw new Error('فشل رفع المرفق الجديد');
-          mediaUrl = `${SUPA_URL_IDX}/storage/v1/object/public/posts_media/${fileName}`;
-          mediaType = currentEditMediaFile.type.startsWith('image/') ? 'image' : 'video';
-        } else if (removeExistingMedia) {
-          mediaUrl = null;
-          mediaType = null;
-        } else {
-          mediaUrl = post.media_url;
-          mediaType = post.media_type;
-        }
-
         const updateData = { content: newContent };
-        if (mediaUrl !== undefined) {
-          updateData.media_url = mediaUrl;
-          updateData.media_type = mediaType;
+        
+        if (currentEditMediaUrls.length > 0) {
+          updateData.media_url = JSON.stringify(currentEditMediaUrls);
+          updateData.media_type = JSON.stringify(currentEditMediaTypes);
+        } else {
+          updateData.media_url = null;
+          updateData.media_type = null;
         }
 
         const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts?id=eq.${currentEditingPostId}`, {
@@ -3421,9 +3591,9 @@
         });
         
         if (r.ok) {
-          showToast('تم تعديل المنشور بنجاح', 't-success');
+          showToast('تم التعديل بنجاح', 't-success');
           closeEditPost();
-          loadPosts(); // refresh
+          loadPosts();
         } else {
           throw new Error('فشل التعديل');
         }
@@ -3432,7 +3602,6 @@
       }
     }
 
-    
     window.addEventListener('DOMContentLoaded', () => {
       if(typeof startTokenBot === 'function') startTokenBot();
       const urlParams = new URLSearchParams(window.location.search);
@@ -4313,6 +4482,107 @@ function doSiteLogout() {
     });
 
     // ─── POSTS MENTIONS & FOLLOW LOGIC ───────────────────────────────────────────
+    
+    // LIGHTBOX LOGIC
+    let lightboxMedia = [];
+    let currentLightboxIndex = 0;
+
+    function openLightbox(mediaJsonStr, index) {
+      try {
+        lightboxMedia = JSON.parse(decodeURIComponent(mediaJsonStr));
+      } catch(e) {
+        return; // fallback failsafe
+      }
+      if (!lightboxMedia || !lightboxMedia.length) return;
+      currentLightboxIndex = index;
+      renderLightbox();
+      document.getElementById('lightboxOverlay').classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxOverlay').classList.remove('open');
+      document.getElementById('lightboxContentContainer').innerHTML = '';
+    }
+
+    function navigateLightbox(dir) {
+      currentLightboxIndex += dir;
+      if (currentLightboxIndex < 0) currentLightboxIndex = lightboxMedia.length - 1;
+      if (currentLightboxIndex >= lightboxMedia.length) currentLightboxIndex = 0;
+      renderLightbox();
+    }
+
+    function renderLightbox() {
+      const container = document.getElementById('lightboxContentContainer');
+      const item = lightboxMedia[currentLightboxIndex];
+      const type = item.type || 'image';
+      
+      document.getElementById('lightboxNextBtn').style.display = lightboxMedia.length > 1 ? 'block' : 'none';
+      document.getElementById('lightboxPrevBtn').style.display = lightboxMedia.length > 1 ? 'block' : 'none';
+      
+      if (type === 'image') {
+        container.innerHTML = `<img src="${item.url}" class="lightbox-content">`;
+      } else {
+        container.innerHTML = `<video src="${item.url}" class="lightbox-content" controls autoplay></video>`;
+      }
+    }
+
+    // HELPER TO PARSE MEDIA JSON
+    function getMediaItems(post) {
+      let items = [];
+      try {
+        const urls = JSON.parse(post.media_url);
+        const types = JSON.parse(post.media_type);
+        for(let i=0; i<urls.length; i++) {
+          items.push({url: urls[i], type: types[i]});
+        }
+      } catch(e) {
+        if (post.media_url) {
+          items.push({url: post.media_url, type: post.media_type});
+        }
+      }
+      return items;
+    }
+
+    // HELPER TO RENDER GRID
+    function renderMediaGrid(items) {
+      if (!items || items.length === 0) return '';
+      
+      const count = items.length;
+      let gridClass = 'media-grid-1';
+      if (count === 2) gridClass = 'media-grid-2';
+      else if (count === 3) gridClass = 'media-grid-3';
+      else if (count >= 4) gridClass = 'media-grid-4';
+      
+      let html = `<div class="media-grid ${gridClass}">`;
+      
+      const maxRender = Math.min(count, 4);
+      const itemsJson = encodeURIComponent(JSON.stringify(items));
+      
+      for(let i=0; i<maxRender; i++) {
+        const item = items[i];
+        const isLast = (i === 3);
+        const hasMore = (count > 4);
+        
+        let inner = '';
+        if (item.type === 'image') {
+          inner = `<img src="${item.url}" class="media-item" onclick="openLightbox('${itemsJson}', ${i})">`;
+        } else {
+          inner = `<video src="${item.url}" class="media-item" onclick="openLightbox('${itemsJson}', ${i})"></video>`;
+        }
+        
+        if (isLast && hasMore) {
+          inner = `<div style="position:relative; width:100%; height:100%; cursor:pointer;" onclick="openLightbox('${itemsJson}', ${i})">
+            ${inner}
+            <div class="more-media-overlay">+${count - 4}</div>
+          </div>`;
+        }
+        html += inner;
+      }
+      
+      html += `</div>`;
+      return html;
+    }
+
     function formatPostContent(text) {
         if (!text) return '';
         let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -4521,6 +4791,15 @@ function doSiteLogout() {
 
 
   </script>
+
+  <div class="lightbox-overlay" id="lightboxOverlay">
+    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <button class="lightbox-nav lightbox-next" id="lightboxNextBtn" onclick="navigateLightbox(1)">❮</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrevBtn" onclick="navigateLightbox(-1)">❯</button>
+    <div id="lightboxContentContainer" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%;">
+    </div>
+  </div>
+
 </body>
 
 </html>
