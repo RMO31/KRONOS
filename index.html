@@ -4131,7 +4131,7 @@ function doSiteLogout() {
 
         if (filter === 'users') {
             showToast('جاري البحث عن حساب...');
-            fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=ilike.*${val}*&select=*`, {
+            fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=ilike.*${encodeURIComponent(val)}*&select=*`, {
                 headers: {
                     'apikey': SUPA_KEY_IDX,
                     'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
