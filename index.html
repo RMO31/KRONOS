@@ -2083,6 +2083,34 @@
     }
     .hashtag-link:hover { text-decoration: underline; }
 
+
+    /* MENTION DROPDOWN */
+    .mention-dropdown {
+      position: absolute;
+      background: var(--dark3);
+      border: 1px solid var(--gold-dim);
+      border-radius: var(--radius);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      width: 250px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .mention-item {
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.2s;
+    }
+    .mention-item:hover, .mention-item.active { background: rgba(201, 168, 76, 0.2); }
+    .mention-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
+    .mention-item span { font-weight: 500; font-size: 14px; }
+
 </style>
 </head>
 
@@ -3380,13 +3408,29 @@
       }
     }
 
-    async function loadPosts() {
+    let currentHashtagFilter = null;
+
+    async function loadPosts(filterHashtag = null) {
+      currentHashtagFilter = filterHashtag;
       const feed = document.getElementById('postsFeed');
       if (!feed) return;
-      feed.innerHTML = '<div style="text-align:center;padding:2rem;">جاري تحميل المنشورات...</div>';
+      
+      let loadingHtml = '<div style="text-align:center;padding:2rem;">جاري تحميل المنشورات...</div>';
+      if (filterHashtag) {
+         loadingHtml = `<div style="text-align:center;padding:1rem;background:rgba(201,168,76,0.1);border-radius:var(--radius);margin-bottom:1rem;">
+           تصفية بالهاشتاغ: <span class="hashtag-link">#${filterHashtag}</span>
+           <button onclick="loadPosts()" style="margin-right:10px;background:var(--red-accent);color:white;border:none;padding:5px 10px;border-radius:var(--radius-sm);cursor:pointer;">إلغاء الفلتر ✖</button>
+         </div>` + loadingHtml;
+      }
+      feed.innerHTML = loadingHtml;
       
       try {
-        const r = await fetch(`${SUPA_URL_IDX}/rest/v1/posts?select=*,profiles(username,avatar_url),post_likes(user_id),post_comments(id)&order=created_at.desc`, {
+        let queryUrl = `${SUPA_URL_IDX}/rest/v1/posts?select=*,profiles(username,avatar_url),post_likes(user_id),post_comments(id)&order=created_at.desc`;
+        if (filterHashtag) {
+           queryUrl += `&content=ilike.%25%23${filterHashtag}%25`;
+        }
+        
+        const r = await fetch(queryUrl, {
           headers: {
             'apikey': SUPA_KEY_IDX,
             'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
@@ -3495,12 +3539,18 @@
     function updateEditPreview() {
       const preview = document.getElementById('editPostMediaPreview');
       if (currentEditMediaUrls.length > 0) {
-        preview.innerHTML = `تم إرفاق ${currentEditMediaUrls.length} ملفات <br><button onclick="currentEditMediaUrls=[]; currentEditMediaTypes=[]; updateEditPreview();" style="margin-top:5px;background:var(--red-accent);color:white;border:none;padding:5px;border-radius:3px;cursor:pointer;">🗑️ إزالة الكل</button>`;
+        let items = [];
+        for(let i=0; i<currentEditMediaUrls.length; i++) {
+           items.push({url: currentEditMediaUrls[i], type: currentEditMediaTypes[i]});
+        }
+        let gridHtml = renderMediaGrid(items);
+        preview.innerHTML = gridHtml + `<br><button onclick="currentEditMediaUrls=[]; currentEditMediaTypes=[]; updateEditPreview();" style="margin-top:5px;background:var(--red-accent);color:white;border:none;padding:5px;border-radius:3px;cursor:pointer;width:100%;">🗑️ إزالة المرفقات</button>`;
         preview.style.display = 'block';
       } else {
         preview.innerHTML = '';
         preview.style.display = 'none';
       }
+    }
     }
 
     function closeEditPost() {
@@ -3603,6 +3653,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      initMentions();
       if(typeof startTokenBot === 'function') startTokenBot();
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('post')) {
@@ -4583,6 +4634,91 @@ function doSiteLogout() {
       return html;
     }
 
+    
+    // MENTIONS AUTOCOMPLETE
+    let mentionTargetInput = null;
+    let mentionSearchString = null;
+    let mentionStartIndex = -1;
+
+    function initMentions() {
+      const inputs = [document.getElementById('postInput'), document.getElementById('editPostInput')];
+      inputs.forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', handleMentionInput);
+      });
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#mentionDropdown')) {
+          document.getElementById('mentionDropdown').style.display = 'none';
+        }
+      });
+    }
+
+    async function handleMentionInput(e) {
+      const input = e.target;
+      const val = input.value;
+      const cursor = input.selectionStart;
+      
+      const textBeforeCursor = val.substring(0, cursor);
+      const lastAtSign = textBeforeCursor.lastIndexOf('@');
+      
+      if (lastAtSign !== -1) {
+        const textAfterAt = textBeforeCursor.substring(lastAtSign + 1);
+        if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
+          mentionTargetInput = input;
+          mentionSearchString = textAfterAt;
+          mentionStartIndex = lastAtSign;
+          showMentionDropdown(input, mentionSearchString);
+          return;
+        }
+      }
+      
+      document.getElementById('mentionDropdown').style.display = 'none';
+    }
+
+    async function showMentionDropdown(input, searchStr) {
+      const dropdown = document.getElementById('mentionDropdown');
+      const rect = input.getBoundingClientRect();
+      dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+      dropdown.style.left = rect.left + 'px';
+      
+      try {
+        const res = await fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=ilike.${searchStr}%&select=username,avatar_url&limit=5`, {
+          headers: { 'apikey': SUPA_KEY_IDX }
+        });
+        const users = await res.json();
+        
+        if (users.length > 0) {
+          let html = '';
+          users.forEach(u => {
+            const avatar = u.avatar_url || 'https://i.pravatar.cc/150?u=' + u.username;
+            html += `<div class="mention-item" onclick="insertMention('${u.username}')">
+                       <img src="${avatar}">
+                       <span>@${u.username}</span>
+                     </div>`;
+          });
+          dropdown.innerHTML = html;
+          dropdown.style.display = 'block';
+        } else {
+          dropdown.style.display = 'none';
+        }
+      } catch(e) {
+        dropdown.style.display = 'none';
+      }
+    }
+
+    function insertMention(username) {
+      if (!mentionTargetInput) return;
+      const val = mentionTargetInput.value;
+      const before = val.substring(0, mentionStartIndex);
+      const after = val.substring(mentionTargetInput.selectionStart);
+      
+      mentionTargetInput.value = before + '@' + username + ' ' + after;
+      mentionTargetInput.focus();
+      mentionTargetInput.selectionStart = mentionTargetInput.selectionEnd = before.length + username.length + 2;
+      
+      document.getElementById('mentionDropdown').style.display = 'none';
+    }
+
     function formatPostContent(text) {
         if (!text) return '';
         let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -4614,14 +4750,9 @@ function doSiteLogout() {
     }
 
     function searchHashtag(hashtag) {
-        showToast('بحث عن الهاشتاغ: ' + hashtag);
-        const feed = document.getElementById('postsFeed');
-        if (!feed) return;
-        const cards = feed.querySelectorAll('.post-card');
-        cards.forEach(card => {
-            if (card.querySelector('.post-body').innerText.includes('#' + hashtag)) card.style.display = 'block';
-            else card.style.display = 'none';
-        });
+        showToast('جاري البحث عن: #' + hashtag);
+        loadPosts(hashtag);
+    });
         // We could also implement a real backend query here if needed
     }
     function executePostsSearch() {
@@ -4800,6 +4931,7 @@ function doSiteLogout() {
     </div>
   </div>
 
+  <div id="mentionDropdown" class="mention-dropdown"></div>
 </body>
 
 </html>
