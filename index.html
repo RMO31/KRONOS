@@ -3302,12 +3302,19 @@
     }
 
     function sharePost(postId) {
-      const url = window.location.origin + window.location.pathname + '?post=' + postId;
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('تم نسخ رابط المنشور بنجاح!');
-      }).catch(() => {
-        showToast('فشل في نسخ الرابط');
-      });
+      let url = window.location.origin + window.location.pathname + '?post=' + postId;
+      if (window.location.protocol === 'file:') {
+         url = window.location.href.split('?')[0] + '?post=' + postId;
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('تم نسخ رابط المنشور بنجاح!');
+        }).catch(() => {
+          prompt('انسخ هذا الرابط:', url);
+        });
+      } else {
+        prompt('انسخ هذا الرابط:', url);
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
