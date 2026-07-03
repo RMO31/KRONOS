@@ -3212,6 +3212,12 @@
             'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
           }
         });
+        if (r.status === 401) {
+          clearSession();
+          feed.innerHTML = '<div style="text-align:center;padding:2rem;">انتهت الجلسة، يرجى تسجيل الدخول مجدداً</div>';
+          refreshAuthUI();
+          return;
+        }
         if (!r.ok) {
           feed.innerHTML = '<div style="text-align:center;padding:2rem;">حدث خطأ في تحميل المنشورات</div>';
           return;
@@ -3238,24 +3244,26 @@
           
           let mediaHtml = '';
           if (p.media_type === 'image' && p.media_url) {
-            mediaHtml = `<img src="${p.media_url}" style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:400px;object-fit:cover;">`;
+            mediaHtml = `<img src="${p.media_url}" style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:450px;object-fit:contain;background:#111;">`;
           } else if (p.media_type === 'video' && p.media_url) {
-            mediaHtml = `<video src="${p.media_url}" controls style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:400px;"></video>`;
+            mediaHtml = `<video src="${p.media_url}" controls style="width:100%;border-radius:var(--radius-sm);margin-top:1rem;max-height:450px;object-fit:contain;background:#111;"></video>`;
           }
 
-          const date = new Date(p.created_at).toLocaleDateString('en-GB');
+          const date = new Date(p.created_at).toLocaleDateString('ar-SA', { numberingSystem: 'latn', year: 'numeric', month: 'short', day: 'numeric' });
+          const isOwner = getSession() && getSession().user.id === p.user_id;
 
           div.innerHTML = `
             <div class="post-user" style="cursor:pointer" onclick="openUserProfile('${p.user_id}', '${username.replace(/'/g, "\\'")}', '${avatar.replace(/'/g, "\\'")}')">
               ${avatarHtml}
               <div><div class="post-username">${username}</div><div class="post-date">${date}</div></div>
+              ${isOwner ? `<button onclick="event.stopPropagation(); editPost('${p.id}')" style="margin-right:auto; background:none; border:none; color:var(--gold-dim); cursor:pointer; font-size:14px;">تعديل ✏️</button>` : ''}
             </div>
-            <div class="post-body" style="direction:rtl;text-align:right;">${formatPostContent(p.content)}</div>
+            <div class="post-body" id="postBody_${p.id}" style="direction:rtl;text-align:right;">${formatPostContent(p.content)}</div>
             ${mediaHtml}
             <div class="post-actions">
               <button class="post-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(this, '${p.id}')">❤️ <span>${likeCount}</span></button>
               <button class="post-action-btn" onclick="toggleComments(this, '${p.id}')">💬 <span>${commentCount}</span> تعليق</button>
-              <button class="post-action-btn" onclick="showToast('تم نسخ الرابط')">🔁 مشاركة</button>
+              <button class="post-action-btn" onclick="sharePost('${p.id}')">🔁 مشاركة</button>
             </div>
             <div class="comments-section" id="cs_${p.id}">
               <div class="comments-list" style="margin-bottom:1rem;max-height:300px;overflow-y:auto;display:none;"></div>
@@ -3318,6 +3326,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      startTokenBot();
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('post')) {
         setTimeout(() => {
@@ -3627,6 +3636,37 @@
       catch (e) { return null; }
     }
     function clearSession() { try { localStorage.removeItem('kronos_session'); } catch (e) { } }
+
+    async function botRefreshToken() {
+      const session = getSession();
+      if (!session || !session.refreshToken) return;
+      try {
+        const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+        const exp = payload.exp * 1000;
+        if ((exp - Date.now()) > (1000 * 60 * 15)) return; 
+      } catch(e) {}
+      
+      try {
+        const res = await fetch(${AUTH_URL}/auth/v1/token?grant_type=refresh_token, {
+          method: 'POST',
+          headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: session.refreshToken })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          session.token = data.access_token;
+          session.refreshToken = data.refresh_token;
+          saveSession(session);
+          console.log('Session bot refreshed token');
+        }
+      } catch (e) {}
+    }
+    
+    function startTokenBot() {
+      botRefreshToken();
+      setInterval(botRefreshToken, 1000 * 60 * 5); 
+    }
+
 
     // ── PROFILE: fetch / save ─────────────────────────────────────────────────────
     async function fetchProfile(userId, token) {
