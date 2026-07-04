@@ -2143,7 +2143,35 @@
     .mention-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
     .mention-item span { font-weight: 500; font-size: 14px; }
 
-</style>
+
+    .edit-post-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      z-index: 1100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .edit-post-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+    .edit-post-box {
+      background: var(--dark2);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--gold-dim);
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 20px rgba(201,168,76,0.15);
+      position: relative;
+    }
+
+  </style>
 </head>
 
 <body>
@@ -3326,15 +3354,15 @@
 
     let currentHashtagFilter = null;
 
-    async function loadPosts(filterHashtag = null) {
+    async function loadPosts(filterHashtag = null, searchQuery = null) {
       currentHashtagFilter = filterHashtag;
       const feed = document.getElementById('postsFeed');
       if (!feed) return;
       
       let loadingHtml = '<div style="text-align:center;padding:2rem;">جاري تحميل المنشورات...</div>';
-      if (filterHashtag) {
+      if (filterHashtag || searchQuery) {
          loadingHtml = `<div style="text-align:center;padding:1rem;background:rgba(201,168,76,0.1);border-radius:var(--radius);margin-bottom:1rem;">
-           تصفية بالهاشتاغ: <span class="hashtag-link">#${filterHashtag}</span>
+           تصفية بالهاشتاغ: <span class="hashtag-link">${filterHashtag ? "#" + filterHashtag : searchQuery}</span>
            <button onclick="loadPosts()" style="margin-right:10px;background:var(--red-accent);color:white;border:none;padding:5px 10px;border-radius:var(--radius-sm);cursor:pointer;">إلغاء الفلتر ✖</button>
          </div>` + loadingHtml;
       }
@@ -3344,6 +3372,8 @@
         let queryUrl = `${SUPA_URL_IDX}/rest/v1/posts?select=*,profiles(username,avatar_url),post_likes(user_id),post_comments(id)&order=created_at.desc`;
         if (filterHashtag) {
            queryUrl += `&content=ilike.%25%23${filterHashtag}%25`;
+        } else if (searchQuery) {
+           queryUrl += `&content=ilike.%25${encodeURIComponent(searchQuery)}%25`;
         }
         
         const r = await fetch(queryUrl, {
@@ -4676,18 +4706,12 @@ function doSiteLogout() {
         const filter = document.getElementById('postsSearchFilter').value;
         
         if(!val) {
-            // Show all posts if search is empty
-            const feed = document.getElementById('postsFeed');
-            if (feed) {
-                const cards = feed.querySelectorAll('.post-card');
-                cards.forEach(card => card.style.display = 'block');
-            }
-            return;
+            return loadPosts();
         }
 
         if (filter === 'users') {
-            showToast('جاري البحث عن حساب...');
-            fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=ilike.*${encodeURIComponent(val)}*&select=*`, {
+            showToast('جاري البحث عن مستخدمين...');
+            fetch(`${SUPA_URL_IDX}/rest/v1/profiles?username=ilike.%25${encodeURIComponent(val)}%25&select=*`, {
                 headers: {
                     'apikey': SUPA_KEY_IDX,
                     'Authorization': getSession() ? `Bearer ${getSession().access_token}` : `Bearer ${SUPA_KEY_IDX}`
@@ -4696,34 +4720,27 @@ function doSiteLogout() {
                 if(r.ok) {
                     const data = await r.json();
                     if(data.length > 0) {
-                        const u = data[0];
-                        openUserProfile(u.id, u.username, u.avatar_url || '👤');
+                        const feed = document.getElementById('postsFeed');
+                        feed.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--gold);">نتائج البحث عن المستخدمين:</div>';
+                        data.forEach(u => {
+                            const escapedUsername = u.username ? u.username.replace(/'/g, "\'") : '';
+                            feed.innerHTML += `<div class="post-card" style="cursor:pointer" onclick="openUserProfile('${u.id}', '${escapedUsername}', '${u.avatar_url || ''}')">
+                                <div class="post-header">
+                                    <img src="${u.avatar_url || 'images/default-avatar.png'}" class="post-avatar" onerror="this.src='images/default-avatar.png'">
+                                    <div class="post-username">${u.username}</div>
+                                </div>
+                            </div>`;
+                        });
                     } else {
-                        showToast('لا يوجد حساب بهذا الاسم');
+                        showToast('لا توجد نتائج للمستخدمين.');
                     }
                 } else {
                     showToast('خطأ في البحث');
                 }
             });
         } else {
-            const feed = document.getElementById('postsFeed');
-            if (!feed) return;
-            const cards = feed.querySelectorAll('.post-card');
-            let count = 0;
-            cards.forEach(card => {
-                const bodyText = card.querySelector('.post-body') ? card.querySelector('.post-body').innerText : '';
-                if (bodyText.includes(val)) {
-                    card.style.display = 'block';
-                    count++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            if(count === 0) {
-                showToast('لا توجد منشورات مطابقة');
-            } else {
-                showToast(`تم العثور على ${count} منشور`);
-            }
+            showToast('جاري البحث في المنشورات...');
+            loadPosts(null, val);
         }
     }
 
