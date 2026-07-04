@@ -749,25 +749,25 @@ textarea.form-control { resize: vertical; min-height: 90px; }
       <div class="stat-card s-gold">
         <div class="stat-icon">👥</div>
         <div class="stat-label">إجمالي الأعضاء</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="adminStatUsers">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-green">
         <div class="stat-icon">📢</div>
         <div class="stat-label">المنشورات</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="adminStatPosts">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-blue">
         <div class="stat-icon">▶️</div>
         <div class="stat-label">الفيديوهات</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="adminStatVideos">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-teal">
         <div class="stat-icon">👁️</div>
         <div class="stat-label">المشاهدات اليوم</div>
-        <div class="stat-value">0</div>
+        <div class="stat-value" id="adminStatViews">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-amber">
@@ -1733,9 +1733,37 @@ function renderCountries() {
 
 // Initialize countries on page load (called after login)
 const _origShowPage = showPage;
+
+    async function updateDashboardStats() {
+      try {
+        const uRes = await fetch(`${SUPA_URL}/rest/v1/profiles?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
+        if(uRes.ok) {
+           const count = uRes.headers.get('content-range').split('/')[1];
+           const el = document.getElementById('adminStatUsers');
+           if (el) el.textContent = count || 0;
+        }
+
+        const pRes = await fetch(`${SUPA_URL}/rest/v1/posts?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
+        if(pRes.ok) {
+           const count = pRes.headers.get('content-range').split('/')[1];
+           const el = document.getElementById('adminStatPosts');
+           if (el) el.textContent = count || 0;
+        }
+
+        const vRes = await fetch(`${SUPA_URL}/rest/v1/videos?select=youtube_id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
+        if(vRes.ok) {
+           const count = vRes.headers.get('content-range').split('/')[1];
+           const el = document.getElementById('adminStatVideos');
+           if (el) el.textContent = count || 0;
+        }
+      } catch(e) {
+        console.error('Error fetching dashboard stats', e);
+      }
+    }
+
 function showPage(id) {
   _origShowPage(id);
-  if (id === 'dashboard') setTimeout(renderCountries, 100);
+  if (id === 'dashboard') { setTimeout(renderCountries, 100); updateDashboardStats(); }
 }
 </script>
 
@@ -1757,6 +1785,34 @@ const PAGE_TITLES = {
   archive:'إدارة الأرشيف', posts:'إدارة المنشورات', users:'إدارة الأعضاء',
   reports:'التبليغات', settings:'الإعدادات',
 };
+
+    async function updateDashboardStats() {
+      try {
+        const uRes = await fetch(`${SUPA_URL}/rest/v1/profiles?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
+        if(uRes.ok) {
+           const count = uRes.headers.get('content-range').split('/')[1];
+           const el = document.getElementById('adminStatUsers');
+           if (el) el.textContent = count || 0;
+        }
+
+        const pRes = await fetch(`${SUPA_URL}/rest/v1/posts?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
+        if(pRes.ok) {
+           const count = pRes.headers.get('content-range').split('/')[1];
+           const el = document.getElementById('adminStatPosts');
+           if (el) el.textContent = count || 0;
+        }
+
+        const vRes = await fetch(`${SUPA_URL}/rest/v1/videos?select=youtube_id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
+        if(vRes.ok) {
+           const count = vRes.headers.get('content-range').split('/')[1];
+           const el = document.getElementById('adminStatVideos');
+           if (el) el.textContent = count || 0;
+        }
+      } catch(e) {
+        console.error('Error fetching dashboard stats', e);
+      }
+    }
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
