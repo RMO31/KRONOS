@@ -1705,6 +1705,175 @@
       border-color: var(--gold-dim);
     }
 
+    /* Auth: email traffic light + hint */
+    .email-light {
+      position: absolute;
+      inset-inline-end: .7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #555;
+      transition: background .25s, box-shadow .25s;
+    }
+
+    .email-light.red {
+      background: #e0504f;
+      box-shadow: 0 0 8px rgba(224, 80, 79, .6);
+    }
+
+    .email-light.orange {
+      background: #e0a23f;
+      box-shadow: 0 0 8px rgba(224, 162, 63, .6);
+      animation: pulse-light 1s infinite;
+    }
+
+    .email-light.green {
+      background: #3d9e6e;
+      box-shadow: 0 0 8px rgba(61, 158, 110, .6);
+    }
+
+    @keyframes pulse-light {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .auth-hint {
+      font-size: 11px;
+      color: var(--text-dimmer);
+      margin-top: .35rem;
+      min-height: 14px;
+    }
+
+    .auth-msg {
+      font-size: 12px;
+      padding: .55rem .8rem;
+      border-radius: 5px;
+      margin-bottom: .8rem;
+      line-height: 1.5;
+    }
+
+    .auth-msg.err {
+      background: rgba(224, 80, 79, .1);
+      border: 1px solid rgba(224, 80, 79, .35);
+      color: #e0807f;
+    }
+
+    .auth-msg.ok {
+      background: rgba(61, 158, 110, .1);
+      border: 1px solid rgba(61, 158, 110, .35);
+      color: #6fc99a;
+    }
+
+    .auth-msg a {
+      color: var(--gold);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Profile completion card */
+    .profile-box {
+      max-width: 460px;
+    }
+
+    .profile-box h3 {
+      text-align: center;
+    }
+
+    .profile-box>p {
+      text-align: center;
+    }
+
+    .avatar-upload-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.3rem;
+    }
+
+    .avatar-circle {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: var(--dark3);
+      border: 2px dashed rgba(201, 168, 76, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: border-color .2s;
+    }
+
+    .avatar-circle:hover {
+      border-color: var(--gold);
+    }
+
+    .avatar-circle #avatarPlaceholder {
+      font-size: 2rem;
+      opacity: .5;
+    }
+
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 .8rem;
+    }
+
+    .form-control-auth {
+      width: 100%;
+      background: var(--dark3);
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--font-ar);
+      font-size: 13px;
+      padding: .55rem .7rem;
+      outline: none;
+    }
+
+    .form-control-auth:focus {
+      border-color: var(--gold-dim);
+    }
+
+    .btn-skip {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-dimmer);
+      font-family: var(--font-ar);
+      font-size: 12px;
+      padding: .6rem;
+      cursor: pointer;
+      margin-top: .3rem;
+      text-decoration: underline;
+    }
+
+    .btn-skip:hover {
+      color: var(--text-dim);
+    }
+
+    .btn-gold:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
     .auth-close {
       float: inline-end;
       background: transparent;
@@ -1807,7 +1976,7 @@
         <option value="fr">Français</option>
         <option value="es">Español</option>
       </select>
-      <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login">دخول</a>
+      <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login" data-nav-login>دخول</a>
     </div>
   </nav>
 
@@ -2238,53 +2407,100 @@
 
   <!-- ══════════════════════════════ AUTH MODAL ══════════════════════════════ -->
   <div class="auth-overlay" id="authOverlay">
-    <div class="auth-box" style="text-align: center; max-width: 420px; padding: 2.5rem 2rem;">
+    <div class="auth-box" id="authBoxMain">
       <button class="auth-close" onclick="closeAuth()">✕</button>
-      <div style="font-size: 3rem; margin-bottom: 0.8rem;">👑</div>
-      <h3 data-i18n="auth.welcome"
-        style="margin-bottom: 0.5rem; font-family: var(--font-title); font-size: 1.8rem; color: var(--parchment);">
-        مرحباً بك في كرونوس</h3>
-      <p data-i18n="auth.sub" style="margin-bottom: 2rem; color: var(--text-dim); line-height: 1.6; font-size: 14px;">
-        سجّل دخولك للمشاركة في المنشورات والنقاشات التفاعلية</p>
+      <h3 data-i18n="auth.welcome">مرحباً بك</h3>
+      <p style="color:var(--text-dim);font-size:14px;margin-bottom:1.5rem" data-i18n="auth.sub">سجّل دخولك أو أنشئ حساباً جديداً</p>
 
-      <button onclick="signInWithGoogle()" class="btn-google-auth" style="
-      width: 100%;
-      background: #ffffff;
-      color: #1f1f1f;
-      border: 1px solid #dadce0;
-      border-radius: 6px;
-      padding: 0.8rem 1rem;
-      font-family: var(--font-ar);
-      font-size: 15px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    " onmouseover="this.style.background='#f8f9fa'; this.style.boxShadow='0 4px 12px rgba(201,168,76,0.25)';"
-        onmouseout="this.style.background='#ffffff'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)';">
-        <svg width="20" height="20" viewBox="0 0 24 24">
-          <path fill="#4285F4"
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-          <path fill="#34A853"
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-          <path fill="#FBBC05"
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-          <path fill="#EA4335"
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+      <div id="googleAuthMsg" class="auth-msg" style="display:none"></div>
+
+      <button id="googleLoginBtn" onclick="loginWithGoogle()" style="
+        display:flex;align-items:center;justify-content:center;gap:.75rem;
+        width:100%;padding:.85rem 1.2rem;border-radius:12px;
+        background:#fff;color:#1a1a1a;font-size:15px;font-weight:600;
+        border:none;cursor:pointer;transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.15);
+        font-family:inherit;
+      " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,.2)'"
+         onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,0,.15)'">
+        <svg width="22" height="22" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
+          <path fill="#4CAF50" d="M24 44c5.3 0 10.1-2 13.7-5.3l-6.3-5.3C29.5 35.1 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.4C9.7 35.6 16.3 44 24 44z"/>
+          <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.3C37 36.5 44 31 44 24c0-1.3-.1-2.6-.4-3.9z"/>
         </svg>
-        <span data-i18n="auth.googleBtn">المتابعة باستخدام حساب Google</span>
+        <span id="googleLoginBtnText">متابعة مع Google</span>
       </button>
+
+      <p style="margin-top:1.2rem;font-size:12px;color:var(--text-dimmer);text-align:center;line-height:1.6">
+        بالمتابعة توافق على شروط الاستخدام وسياسة الخصوصية
+      </p>
+    </div>
+
+    <!-- PROFILE COMPLETION CARD (shown after first registration) -->
+    <div class="auth-box profile-box" id="profileBox" style="display:none">
+      <h3>🎉 أكمل ملفك الشخصي</h3>
+      <p>أضف بعض المعلومات لتخصيص حسابك على كرونوس</p>
+
+      <div class="avatar-upload-wrap">
+        <label for="avatarInput" class="avatar-circle" id="avatarPreview">
+          <span id="avatarPlaceholder">📷</span>
+          <img id="avatarImg" style="display:none">
+        </label>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
+        <div class="auth-hint" style="text-align:center;margin-top:.5rem">اضغط لرفع صورة شخصية (أي صيغة)</div>
+      </div>
+
+      <div class="form-group">
+        <label>اسم المستخدم</label>
+        <input type="text" id="pUsername" placeholder="اختر اسم مستخدم فريد">
+      </div>
+      <div class="profile-grid">
+        <div class="form-group">
+          <label>البلد</label>
+          <select id="pCountry" class="form-control-auth">
+            <option value="">اختر البلد</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>تاريخ الميلاد</label>
+          <input type="date" id="pBirthDate" class="form-control-auth">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>مكان الميلاد <span style="color:var(--text-dimmer);font-size:11px">(مدينة - بلد)</span></label>
+        <input type="text" id="pBirthPlace" class="form-control-auth" placeholder="وهران - الجزائر" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>الهواية <span style="color:var(--text-dimmer);font-weight:400">(اختياري — اكتب أو اختر)</span></label>
+        <div style="display:flex;gap:.4rem">
+          <input type="text" id="pHobbyText" class="form-control-auth" placeholder="اكتب هوايتك..." list="hobbyList"
+            style="flex:1">
+          <datalist id="hobbyList">
+            <option>القراءة</option>
+            <option>التاريخ والآثار</option>
+            <option>السفر</option>
+            <option>التصوير</option>
+            <option>الرياضة</option>
+            <option>الرسم والفنون</option>
+            <option>الموسيقى</option>
+            <option>الكتابة</option>
+            <option>الألعاب الإلكترونية</option>
+            <option>الطبخ</option>
+            <option>البرمجة</option>
+            <option>الأفلام والمسلسلات</option>
+          </datalist>
+        </div>
+      </div>
+      <div id="profileMsg" class="auth-msg" style="display:none"></div>
+      <button class="btn-gold" id="profileSaveBtn" style="width:100%;margin-top:.5rem" onclick="saveProfile()">💾 حفظ
+        الملف الشخصي</button>
+      <button class="btn-skip" onclick="skipProfile()">تخطّي الآن</button>
     </div>
   </div>
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ─── TRANSLATIONS ───────────────────────────────────────────────────────────
     const T = {
@@ -2848,44 +3064,28 @@
       if (cs) cs.classList.toggle('open');
     }
     function addComment(btn, csId) {
-      if (!currentUser) {
-        openAuth();
-        showToast('يرجى تسجيل الدخول بواسطة Google للمشاركة');
-        return;
-      }
       const cs = document.getElementById(csId);
       const input = cs.querySelector('.comment-input');
       const val = input.value.trim();
       if (!val) return;
-      const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email || 'أنت';
-      const avatar = currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '';
-      const avatarHtml = avatar ? `<img src="${avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤';
       const div = document.createElement('div');
       div.className = 'comment';
-      div.innerHTML = `<div class="post-avatar" style="width:28px;height:28px;font-size:12px;overflow:hidden">${avatarHtml}</div><div><div class="comment-author">${name}</div><div class="comment-body">${val}</div></div>`;
+      div.innerHTML = `<div class="post-avatar" style="width:28px;height:28px;font-size:12px">👤</div><div><div class="comment-author">أنت</div><div class="comment-body">${val}</div></div>`;
       cs.insertBefore(div, btn.closest('.comment-input-row').nextSibling);
       input.value = '';
     }
     function submitPost() {
-      if (!currentUser) {
-        openAuth();
-        showToast('يرجى تسجيل الدخول بواسطة Google لنشر مشاركتك');
-        return;
-      }
       const input = document.getElementById('postInput');
       const val = input.value.trim();
       if (!val) return;
-      const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email || 'أنت';
-      const avatar = currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture || '';
-      const avatarHtml = avatar ? `<img src="${avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤';
       const feed = document.getElementById('postsFeed');
       const div = document.createElement('div');
       div.className = 'post-card';
       const csId = 'cs_' + Date.now();
       div.innerHTML = `
     <div class="post-user">
-      <div class="post-avatar" style="overflow:hidden">${avatarHtml}</div>
-      <div><div class="post-username">${name}</div><div class="post-date">الآن</div></div>
+      <div class="post-avatar">👤</div>
+      <div><div class="post-username">أنت</div><div class="post-date">الآن</div></div>
     </div>
     <div class="post-body">${val}</div>
     <div class="post-actions">
@@ -2917,76 +3117,273 @@
       document.getElementById('ytModalIframe').src = '';
     }
 
-    // ─── AUTH & SUPABASE CLIENT ──────────────────────────────────────────────────
-    let supabaseClient = null;
-    let currentUser = null;
+    // ─── AUTH ───────────────────────────────────────────────────────────────────
+    // ════════════════════════════════════════════════════════════════════════════
+    // REAL AUTHENTICATION SYSTEM — Supabase Auth
+    // ════════════════════════════════════════════════════════════════════════════
+    const AUTH_URL = 'https://hlknmtrnlixmctvewobw.supabase.co';
+    const AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg';
 
-    function initSupabaseAuth() {
-      if (typeof window.supabase !== 'undefined') {
-        supabaseClient = window.supabase.createClient(SUPA_URL_IDX, SUPA_KEY_IDX);
-
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-          handleAuthState(session?.user || null);
-        });
-
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-          handleAuthState(session?.user || null);
-        });
-      }
+    function openAuth() {
+      document.getElementById('authOverlay').classList.add('open');
+      document.getElementById('authBoxMain').style.display = 'block';
+      document.getElementById('profileBox').style.display = 'none';
+      return false;
+    }
+    function closeAuth() { document.getElementById('authOverlay').classList.remove('open'); }
+    function switchAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+      document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+      document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+      hideAuthMsg('loginMsg'); hideAuthMsg('registerMsg');
     }
 
-    function handleAuthState(user) {
-      currentUser = user;
-      const loginBtn = document.querySelector('.btn-login');
-      if (!loginBtn) return;
+    function showAuthMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'auth-msg ' + type;
+      el.style.display = 'block';
+    }
+    function showAuthMsgHTML(id, html, type) {
+      const el = document.getElementById(id);
+      el.innerHTML = html;
+      el.className = 'auth-msg ' + type;
+      el.style.display = 'block';
+    }
+    function hideAuthMsg(id) { const el = document.getElementById(id); if (el) { el.style.display = 'none'; } }
 
-      if (user) {
-        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || 'مستخدم';
+    // ── GOOGLE OAUTH LOGIN ─────────────────────────────────────────────────────
+    function loginWithGoogle() {
+      const btn = document.getElementById('googleLoginBtn');
+      const btnText = document.getElementById('googleLoginBtnText');
+      btn.disabled = true;
+      btnText.textContent = '⏳ جاري التوجيه...';
+      document.getElementById('googleAuthMsg').style.display = 'none';
+      // Navigate directly to Supabase OAuth — no fetch needed
+      const redirectTo = encodeURIComponent(location.origin + location.pathname);
+      window.location.href = `${AUTH_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
+    }
+
+    // ── HANDLE OAUTH CALLBACK (on page load) ────────────────────────────────────
+    async function handleOAuthCallback() {
+      // Supabase puts the token in the URL hash after OAuth redirect
+      const hash = window.location.hash;
+      if (!hash.includes('access_token')) return;
+
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      const token = params.get('access_token');
+      const userId = params.get('user_id') || null;
+
+      if (!token) return;
+
+      // Clean URL
+      history.replaceState(null, '', location.pathname + location.search);
+
+      try {
+        // Get user info from Supabase
+        const res = await fetch(`${AUTH_URL}/auth/v1/user`, {
+          headers: { apikey: AUTH_KEY, Authorization: `Bearer ${token}` }
+        });
+        const user = await res.json();
+
+        if (!user?.id) return;
+
+        const uid = user.id;
+        const email = user.email || '';
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
         const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
 
-        loginBtn.innerHTML = avatar
-          ? `<img src="${avatar}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:6px;border:1px solid var(--gold)"> ${name.split(' ')[0]}`
-          : `👤 ${name.split(' ')[0]}`;
-        loginBtn.onclick = () => {
-          if (confirm('هل ترغب في تسجيل الخروج من حساب Google؟')) {
-            signOut();
-          }
-          return false;
-        };
-        loginBtn.title = 'انقر لتسجيل الخروج';
-      } else {
-        const t = T[currentLang] || T.ar;
-        loginBtn.innerHTML = t['nav.login'] || 'دخول';
-        loginBtn.onclick = openAuth;
-        loginBtn.title = '';
-      }
-    }
+        saveSession({ token, userId: uid, email, name: fullName });
 
-    async function signInWithGoogle() {
-      if (!supabaseClient) {
-        showToast('خطأ: مكتبة Supabase غير محملة');
-        return;
-      }
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + window.location.pathname
+        // Check if profile exists
+        const profile = await fetchProfile(uid, token);
+        if (profile) {
+          showToast(`👋 مرحباً ${profile.username || fullName || ''}!`, 't-success');
+          refreshAuthUI();
+        } else {
+          // First time — auto-fill avatar from Google if available
+          openProfileCompletion(fullName, avatar);
         }
+      } catch (e) {
+        showToast('❌ حدث خطأ أثناء تسجيل الدخول: ' + e.message, 't-error');
+      }
+    }
+
+
+    // ── SESSION ──────────────────────────────────────────────────────────────────
+    function saveSession({ token, userId, email, name }) {
+      try {
+        localStorage.setItem('kronos_session', JSON.stringify({ token, userId, email, name }));
+      } catch (e) { }
+    }
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem('kronos_session') || 'null'); }
+      catch (e) { return null; }
+    }
+    function clearSession() { try { localStorage.removeItem('kronos_session'); } catch (e) { } }
+
+    // ── PROFILE: fetch / save ─────────────────────────────────────────────────────
+    async function fetchProfile(userId, token) {
+      try {
+        const res = await fetch(`${AUTH_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
+          headers: { apikey: AUTH_KEY, Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) return null;
+        const rows = await res.json();
+        return rows[0] || null;
+      } catch (e) { return null; }
+    }
+
+    let avatarBase64 = '';
+    function onAvatarSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resize to 200x200 circular-cropped square for reasonable storage size
+          const canvas = document.createElement('canvas');
+          canvas.width = 200; canvas.height = 200;
+          const ctx = canvas.getContext('2d');
+          const size = Math.min(img.width, img.height);
+          const sx = (img.width - size) / 2, sy = (img.height - size) / 2;
+          ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
+          avatarBase64 = canvas.toDataURL('image/jpeg', 0.75);  // balanced quality + size
+          document.getElementById('avatarImg').src = avatarBase64;
+          document.getElementById('avatarImg').style.display = 'block';
+          document.getElementById('avatarPlaceholder').style.display = 'none';
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openProfileCompletion(name, avatar) {
+      document.getElementById('authBoxMain').style.display = 'none';
+      document.getElementById('profileBox').style.display = 'block';
+      document.getElementById('authOverlay').classList.add('open');
+      if (name) document.getElementById('pUsername').value = name.split(' ')[0] + Math.floor(Math.random() * 900 + 100);
+      // Pre-fill avatar from Google if available
+      if (avatar) {
+        avatarBase64 = avatar; // store the URL as the avatar value
+        document.getElementById('avatarImg').src = avatar;
+        document.getElementById('avatarImg').style.display = 'block';
+        document.getElementById('avatarPlaceholder').style.display = 'none';
+      }
+      populateCountries();
+    }
+
+    function populateCountries() {
+      const sel = document.getElementById('pCountry');
+      if (sel.options.length > 1) return; // already populated
+      const countries = ['الجزائر', 'السعودية', 'مصر', 'المغرب', 'تونس', 'الإمارات', 'العراق', 'الأردن', 'الكويت', 'قطر', 'عُمان', 'البحرين', 'لبنان', 'سوريا', 'فلسطين', 'ليبيا', 'السودان', 'اليمن', 'موريتانيا', 'الصومال', 'جزر القمر', 'جيبوتي', 'فرنسا', 'الولايات المتحدة', 'المملكة المتحدة', 'ألمانيا', 'إسبانيا', 'إيطاليا', 'كندا', 'تركيا', 'أخرى'];
+      countries.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        sel.appendChild(opt);
       });
-      if (error) {
-        showToast('حدث خطأ أثناء الاتصال بـ Google: ' + error.message);
+    }
+
+    async function saveProfile() {
+      const session = getSession();
+      if (!session) return showAuthMsg('profileMsg', '❌ انتهت الجلسة — سجّل دخولك مجدداً', 'err');
+
+      const username = document.getElementById('pUsername').value.trim();
+      const country = document.getElementById('pCountry').value;
+      const birthDate = document.getElementById('pBirthDate').value;
+      const rawPlace = document.getElementById('pBirthPlace').value.trim();
+      // Format: "مدينة - بلد"
+      const birthPlace = rawPlace && country && !rawPlace.includes(' - ')
+        ? `${rawPlace} - ${country}`
+        : rawPlace;
+      const hobby = document.getElementById('pHobbyText')?.value.trim() || '';
+
+      if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
+
+      const btn = document.getElementById('profileSaveBtn');
+      btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+
+      try {
+        const res = await fetch(`${AUTH_URL}/rest/v1/profiles`, {
+          method: 'POST',
+          headers: {
+            apikey: AUTH_KEY,
+            Authorization: `Bearer ${session.token}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=representation'
+          },
+          body: JSON.stringify({
+            id: session.userId,
+            username, country,
+            birth_place: birthPlace || null,
+            birth_date_text: birthDate || null,
+            hobby: hobby || null,
+            avatar_url: avatarBase64 || null,
+            email: session.email
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || err.hint || 'فشل حفظ الملف الشخصي');
+        }
+        showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
+        setTimeout(() => {
+          closeAuth();
+          showToast(`🎉 مرحباً بك ${username} في كرونوس!`, 't-success');
+          refreshAuthUI();
+        }, 900);
+      } catch (e) {
+        showAuthMsg('profileMsg', '❌ ' + e.message, 'err');
+        btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي';
       }
     }
 
-    async function signOut() {
-      if (supabaseClient) {
-        await supabaseClient.auth.signOut();
-        showToast('تم تسجيل الخروج بنجاح');
-      }
+    function skipProfile() {
+      closeAuth();
+      showToast('يمكنك إكمال ملفك الشخصي لاحقاً من إعدادات الحساب');
+      refreshAuthUI();
     }
 
-    function openAuth() { document.getElementById('authOverlay').classList.add('open'); return false; }
-    function closeAuth() { document.getElementById('authOverlay').classList.remove('open'); }
+    // ── UI refresh after login (update nav button to show user) ────────────────────
+    function refreshAuthUI() {
+      const session = getSession();
+      const navBtn = document.querySelector('[data-nav-login]') || document.getElementById('navLoginBtn');
+      if (!navBtn) return;
+
+      if (session) {
+        const displayName = session.name ? session.name.split(' ')[0] : 'حسابي';
+        navBtn.textContent = '👤 ' + displayName;
+        navBtn.title = session.email || '';
+        navBtn.onclick = (e) => {
+          e.preventDefault();
+          if (confirm('مرحباً ' + displayName + '!\nهل تريد تسجيل الخروج؟')) {
+            doSiteLogout();
+          }
+        };
+      } else {
+        // المستخدم غير مسجّل — استرجاع زر الدخول الأصلي
+        const lang = typeof currentLang !== 'undefined' ? currentLang : 'ar';
+        navBtn.textContent = (T[lang] || T.ar)['nav.login'] || 'دخول';
+        navBtn.title = '';
+        navBtn.onclick = (e) => {
+          e.preventDefault();
+          openAuth();
+        };
+      }
+    }
+    function doSiteLogout() {
+      clearSession();
+      showToast('تم تسجيل الخروج');
+      location.reload();
+    }
+
+    // Restore session on page load
+    (function restoreSession() {
+      const s = getSession();
+      if (s) refreshAuthUI();
+      handleOAuthCallback(); // handle Google OAuth redirect token in URL hash
+    })();
 
     // ─── TOAST ──────────────────────────────────────────────────────────────────
     let toastTimer;
@@ -3038,8 +3435,17 @@
     }
 
     // ─── INIT ────────────────────────────────────────────────────────────────────
-    setLang('ar');
-    initSupabaseAuth();
+    // Default language: read from admin settings if set, else Arabic
+    (function initLang() {
+      let defaultLang = 'ar';
+      try {
+        const s = JSON.parse(localStorage.getItem('kronos_admin_settings') || 'null');
+        if (s?.lang) defaultLang = s.lang;
+      } catch (e) { }
+      const sel = document.getElementById('langSelect');
+      if (sel) sel.value = defaultLang;
+      setLang(defaultLang);
+    })();
     // Clear stale deleted-videos cache on every load
     try { localStorage.removeItem('kronos_deleted_vids'); } catch (e) { }
     loadYtFromSupabase();
@@ -3196,10 +3602,39 @@
       if (empty) empty.style.display = 'block';
     }
 
-    // Listen for storage changes from admin panel (same browser)
+
+    // ─── SITE THEME — set by admin panel ─────────────────────────────────────────
+    function applySiteTheme(t) {
+      if (!t?.gold) return;
+      const root = document.documentElement;
+      root.style.setProperty('--gold', t.gold);
+      root.style.setProperty('--gold-dim', t.goldDim || t.gold);
+      root.style.setProperty('--gold-light', t.goldLight || t.gold);
+    }
+    (function loadSiteTheme() {
+      try {
+        const t = JSON.parse(localStorage.getItem('kronos_site_theme') || 'null');
+        applySiteTheme(t);
+      } catch (e) { }
+    })();
+    // Live update when admin changes theme (same browser)
     window.addEventListener('storage', e => {
-      if (e.key === 'kronos_channels' || e.key === 'kronos_videos' || e.key === 'kronos_deleted_vids') loadYtFromSupabase();
+      if (e.key === 'kronos_site_theme') {
+        try { applySiteTheme(JSON.parse(e.newValue || 'null')); } catch (err) { }
+      }
+      if (e.key === 'kronos_channels' || e.key === 'kronos_videos') loadYtFromSupabase();
+      if (e.key === 'kronos_admin_settings') {
+        try {
+          const s = JSON.parse(e.newValue || 'null');
+          if (s?.lang) {
+            const sel = document.getElementById('langSelect');
+            if (sel) sel.value = s.lang;
+            setLang(s.lang);
+          }
+        } catch (err) { }
+      }
     });
+
   </script>
 </body>
 
