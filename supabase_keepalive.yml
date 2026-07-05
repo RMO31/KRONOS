@@ -2,17 +2,24 @@ name: Supabase Keep-Alive
 
 on:
   schedule:
-    # يعمل كل يوم في منتصف الليل (بتوقيت UTC) لتجنب توقف قاعدة البيانات
-    - cron: '0 0 * * *'
+    # يعمل كل 6 ساعات لتجنب توقف قاعدة البيانات وحفظ نشاط خادم المصادقة (Auth)
+    - cron: '0 */6 * * *'
   workflow_dispatch: # يسمح بتشغيل السكريبت يدوياً من GitHub
 
 jobs:
   ping_supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase Database
+      - name: Ping Supabase Database & Auth Service
         run: |
+          echo "🏓 Pinging Supabase Database (site_settings)..."
           curl -s -X GET "https://hlknmtrnlixmctvewobw.supabase.co/rest/v1/site_settings?select=*&limit=1" \
           -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg" \
           -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg"
-          echo "✅ تم إرسال نبضة التنبيه لقاعدة بيانات Supabase بنجاح!"
+          
+          echo "🏓 Pinging Supabase Database (youtube_channels)..."
+          curl -s -X GET "https://hlknmtrnlixmctvewobw.supabase.co/rest/v1/youtube_channels?select=channel_id&limit=1" \
+          -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg" \
+          -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsa25tdHJubGl4bWN0dmV3b2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDUwODAsImV4cCI6MjA5NjU4MTA4MH0.22ZQTQD3ZukP7Qr2gRlCATmQmkWxC_A8dkwPuqcvbOg"
+          
+          echo "✅ تم إرسال نبضة التنبيه لقاعدة بيانات وخوادم Supabase بنجاح للحفاظ على استمرار الجلسات!"
