@@ -710,7 +710,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <div class="admin-role">Super Admin</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="doLogout()">🚪 تسجيل الخروج</button>
+    <button class="btn-logout" onclick="showToast('👋 تم تسجيل الخروج','t-error')">تسجيل الخروج</button>
   </div>
 </aside>
 
@@ -749,25 +749,25 @@ textarea.form-control { resize: vertical; min-height: 90px; }
       <div class="stat-card s-gold">
         <div class="stat-icon">👥</div>
         <div class="stat-label">إجمالي الأعضاء</div>
-        <div class="stat-value" id="adminStatUsers">0</div>
+        <div class="stat-value">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-green">
         <div class="stat-icon">📢</div>
         <div class="stat-label">المنشورات</div>
-        <div class="stat-value" id="adminStatPosts">0</div>
+        <div class="stat-value">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-blue">
         <div class="stat-icon">▶️</div>
         <div class="stat-label">الفيديوهات</div>
-        <div class="stat-value" id="adminStatVideos">0</div>
+        <div class="stat-value">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-teal">
         <div class="stat-icon">👁️</div>
         <div class="stat-label">المشاهدات اليوم</div>
-        <div class="stat-value" id="adminStatViews">0</div>
+        <div class="stat-value">0</div>
         <div class="stat-change up">—</div>
       </div>
       <div class="stat-card s-amber">
@@ -1353,15 +1353,11 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <div class="form-group"><label>اسم الموقع</label><input class="form-control" value="كرونوس — التاريخ والجغرافيا"></div>
             <div class="form-group"><label>الوصف القصير</label><input class="form-control" value="منصة للتاريخ والجغرافيا"></div>
             <div class="form-group"><label>اللغة الافتراضية</label>
-              <select class="form-control" id="settingLang">
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
-                <option value="fr">Français</option>
-                <option value="es">Español</option>
+              <select class="form-control">
+                <option>العربية</option><option>English</option><option>Français</option><option>Español</option>
               </select>
-              <div class="form-hint">هذا الإعداد يحدد لغة الموقع العام للزوار — لوحة التحكم تبقى بالعربية دائماً</div>
             </div>
-            <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 حفظ</button>
+            <button class="btn btn-primary" onclick="showToast('✅ تم حفظ الإعدادات','t-success')">💾 حفظ</button>
           </div>
         </div>
         <div class="card-box">
@@ -1408,18 +1404,11 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <div class="card-box-title">🎨 مظهر الموقع</div>
           <div style="display:flex;flex-direction:column;gap:.8rem">
             <div class="form-group"><label>اللون الرئيسي</label>
-              <div style="display:flex;gap:.5rem;flex-wrap:wrap" id="themeButtons">
-                <button class="btn btn-sm" data-gold="#c9a84c" style="background:#c9a84c;border-color:#c9a84c;color:#0a0908;font-weight:700" onclick="applyTheme('#c9a84c','#9e7d35',this)">🟡 ذهبي</button>
-                <button class="btn btn-outline btn-sm" data-gold="#aaaaaa" onclick="applyTheme('#aaaaaa','#777777',this)">⬜ فضي</button>
-                <button class="btn btn-outline btn-sm" data-gold="#c0392b" onclick="applyTheme('#c0392b','#922b21',this)">🔴 أحمر</button>
-                <button class="btn btn-outline btn-sm" data-gold="#2980b9" onclick="applyTheme('#2980b9','#1f618d',this)">🔵 أزرق</button>
-                <button class="btn btn-outline btn-sm" data-gold="#27ae60" onclick="applyTheme('#27ae60','#1e8449',this)">🟢 أخضر</button>
-              </div>
-            </div>
-            <div class="form-group"><label>لون مخصص</label>
-              <div style="display:flex;gap:.6rem;align-items:center">
-                <input type="color" id="customThemeColor" value="#c9a84c" style="width:44px;height:34px;border-radius:4px;border:1px solid rgba(201,168,76,0.3);background:transparent;cursor:pointer">
-                <button class="btn btn-outline btn-sm" onclick="applyTheme(document.getElementById('customThemeColor').value,'',null)">تطبيق</button>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <button class="btn btn-sm" style="background:#c9a84c;border-color:#c9a84c;color:#0a0908;font-weight:700" onclick="showToast('تم اختيار الذهبي')">ذهبي</button>
+                <button class="btn btn-outline btn-sm" onclick="showToast('تم اختيار الفضي')">فضي</button>
+                <button class="btn btn-outline btn-sm" onclick="showToast('تم اختيار الأحمر')">أحمر</button>
+                <button class="btn btn-outline btn-sm" onclick="showToast('تم اختيار الأزرق')">أزرق</button>
               </div>
             </div>
           </div>
@@ -1635,19 +1624,6 @@ function doLogin() {
   }
 }
 
-function doLogout() {
-  // Hide main panel
-  document.getElementById('sidebar').style.display = 'none';
-  document.getElementById('main').style.display    = 'none';
-  // Clear password field for security
-  const passEl = document.getElementById('loginPass');
-  if (passEl) passEl.value = '';
-  // Show login screen
-  document.getElementById('loginScreen').style.display = 'flex';
-  // Clear session flag if any
-  try { sessionStorage.removeItem('kronos_admin_logged'); } catch(e){}
-}
-
 function togglePassVis(inputId, btn) {
   const inp = document.getElementById(inputId);
   inp.type = inp.type === 'password' ? 'text' : 'password';
@@ -1733,37 +1709,9 @@ function renderCountries() {
 
 // Initialize countries on page load (called after login)
 const _origShowPage = showPage;
-
-    async function updateDashboardStats() {
-      try {
-        const uRes = await fetch(`${SUPA_URL}/rest/v1/profiles?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
-        if(uRes.ok) {
-           const count = uRes.headers.get('content-range').split('/')[1];
-           const el = document.getElementById('adminStatUsers');
-           if (el) el.textContent = count || 0;
-        }
-
-        const pRes = await fetch(`${SUPA_URL}/rest/v1/posts?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
-        if(pRes.ok) {
-           const count = pRes.headers.get('content-range').split('/')[1];
-           const el = document.getElementById('adminStatPosts');
-           if (el) el.textContent = count || 0;
-        }
-
-        const vRes = await fetch(`${SUPA_URL}/rest/v1/videos?select=youtube_id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
-        if(vRes.ok) {
-           const count = vRes.headers.get('content-range').split('/')[1];
-           const el = document.getElementById('adminStatVideos');
-           if (el) el.textContent = count || 0;
-        }
-      } catch(e) {
-        console.error('Error fetching dashboard stats', e);
-      }
-    }
-
 function showPage(id) {
   _origShowPage(id);
-  if (id === 'dashboard') { setTimeout(renderCountries, 100); updateDashboardStats(); }
+  if (id === 'dashboard') setTimeout(renderCountries, 100);
 }
 </script>
 
@@ -1785,34 +1733,6 @@ const PAGE_TITLES = {
   archive:'إدارة الأرشيف', posts:'إدارة المنشورات', users:'إدارة الأعضاء',
   reports:'التبليغات', settings:'الإعدادات',
 };
-
-    async function updateDashboardStats() {
-      try {
-        const uRes = await fetch(`${SUPA_URL}/rest/v1/profiles?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
-        if(uRes.ok) {
-           const count = uRes.headers.get('content-range').split('/')[1];
-           const el = document.getElementById('adminStatUsers');
-           if (el) el.textContent = count || 0;
-        }
-
-        const pRes = await fetch(`${SUPA_URL}/rest/v1/posts?select=id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
-        if(pRes.ok) {
-           const count = pRes.headers.get('content-range').split('/')[1];
-           const el = document.getElementById('adminStatPosts');
-           if (el) el.textContent = count || 0;
-        }
-
-        const vRes = await fetch(`${SUPA_URL}/rest/v1/videos?select=youtube_id`, { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range-Unit': 'items', 'Range': '0-0', 'Prefer': 'count=exact' }});
-        if(vRes.ok) {
-           const count = vRes.headers.get('content-range').split('/')[1];
-           const el = document.getElementById('adminStatVideos');
-           if (el) el.textContent = count || 0;
-        }
-      } catch(e) {
-        console.error('Error fetching dashboard stats', e);
-      }
-    }
-
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -2780,128 +2700,6 @@ function renderVidPagination(pages) {
 }
 
 
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// THEME — applies to admin + syncs to index.html via localStorage
-// ═══════════════════════════════════════════════════════════════════════════
-function shadeColor(hex, pct) {
-  hex = hex.replace('#','');
-  if (hex.length===3) hex=hex.split('').map(h=>h+h).join('');
-  const num=parseInt(hex,16);
-  const clamp=(v)=>Math.min(255,Math.max(0,v));
-  const r=clamp((num>>16)+Math.round(2.55*pct));
-  const g=clamp((num>>8&0xff)+Math.round(2.55*pct));
-  const b=clamp((num&0xff)+Math.round(2.55*pct));
-  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-
-function applyTheme(gold, goldDim, btn) {
-  if (!gold) gold = document.getElementById('customThemeColor')?.value || '#c9a84c';
-  goldDim = goldDim || shadeColor(gold, -20);
-  const goldLight = shadeColor(gold, 15);
-
-  // Apply to admin CSS variables immediately
-  const root = document.documentElement;
-  root.style.setProperty('--gold',       gold);
-  root.style.setProperty('--gold-dim',   goldDim);
-  root.style.setProperty('--gold-light', goldLight);
-
-  // Update active button highlight
-  document.querySelectorAll('#themeButtons .btn').forEach(b => {
-    b.classList.remove('btn-primary'); b.classList.add('btn-outline');
-    b.style.background=''; b.style.borderColor=''; b.style.color=''; b.style.fontWeight='';
-  });
-  if (btn) {
-    btn.classList.remove('btn-outline'); btn.classList.add('btn-primary');
-    btn.style.cssText=`background:${gold};border-color:${gold};color:#0a0908;font-weight:700`;
-  }
-
-  // Save to localStorage — index.html listens via storage event and applies immediately
-  const theme = { gold, goldDim, goldLight };
-  try {
-    localStorage.setItem('kronos_site_theme',  JSON.stringify(theme));
-    localStorage.setItem('kronos_admin_theme', JSON.stringify(theme));
-  } catch(e){}
-
-  showToast('✅ تم تطبيق اللون على الموقع ولوحة التحكم', 't-success');
-}
-
-// Load saved theme when admin opens
-(function loadSavedTheme() {
-  try {
-    const t = JSON.parse(localStorage.getItem('kronos_admin_theme')
-               || localStorage.getItem('kronos_site_theme') || 'null');
-    if (!t?.gold) return;
-    const root = document.documentElement;
-    root.style.setProperty('--gold',       t.gold);
-    root.style.setProperty('--gold-dim',   t.goldDim   || t.gold);
-    root.style.setProperty('--gold-light', t.goldLight || t.gold);
-    // Highlight the matching preset button
-    document.querySelectorAll('#themeButtons .btn[data-gold]').forEach(b => {
-      if (b.getAttribute('data-gold') === t.gold) {
-        b.classList.remove('btn-outline'); b.classList.add('btn-primary');
-        b.style.cssText=`background:${t.gold};border-color:${t.gold};color:#0a0908;font-weight:700`;
-      }
-    });
-    const cp = document.getElementById('customThemeColor');
-    if (cp) cp.value = t.gold;
-  } catch(e){}
-})();
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SETTINGS: Save general settings (language)
-// ═══════════════════════════════════════════════════════════════════════════
-function saveGeneralSettings() {
-  const lang = document.getElementById('settingLang')?.value || 'ar';
-  try { localStorage.setItem('kronos_admin_settings', JSON.stringify({lang})); } catch(e){}
-  // ملاحظة: هذا الإعداد يحدد لغة الموقع العام (index.html) فقط.
-  // لوحة التحكم نفسها تبقى بالعربية دائماً ولا تُترجم.
-  showToast('✅ تم حفظ اللغة الافتراضية للموقع', 't-success');
-}
-(function loadSavedSettings() {
-  try {
-    const s = JSON.parse(localStorage.getItem('kronos_admin_settings')||'null');
-    if (!s) return;
-    const sel = document.getElementById('settingLang');
-    if (sel && s.lang) sel.value = s.lang;
-  } catch(e){}
-})();
-
-// ═══════════════════════════════════════════════════════════════════════════
-// NEWS / POSTS / ARCHIVE real action functions
-// ═══════════════════════════════════════════════════════════════════════════
-function editNewsRow(btn) {
-  const td = btn.closest('tr')?.querySelector('td:nth-child(2)');
-  if (!td) return;
-  const v = prompt('تعديل نص الخبر:', td.textContent.trim());
-  if (v !== null && v.trim()) { td.textContent = v.trim(); showToast('✅ تم تعديل الخبر','t-success'); }
-}
-function togglePostVisibility(btn) {
-  const tr = btn.closest('tr');
-  const badge = tr?.querySelector('.badge-green, .badge-red');
-  if (!badge) return;
-  const vis = badge.classList.contains('badge-green');
-  badge.className = vis ? 'badge badge-red' : 'badge badge-green';
-  badge.textContent = vis ? '● مخفي' : '● منشور';
-  btn.textContent = vis ? '👁 إظهار' : '🙈 إخفاء';
-  showToast(vis ? '🙈 تم الإخفاء' : '👁 تم الإظهار');
-}
-function togglePostStatus(btn) {
-  const badge = btn.closest('tr')?.querySelector('.badge-green,.badge-amber');
-  if (!badge) return;
-  const pinned = badge.classList.contains('badge-amber');
-  badge.className = pinned ? 'badge badge-green' : 'badge badge-amber';
-  badge.textContent = pinned ? '● منشور' : '📌 مثبّت';
-  showToast(pinned ? 'تم إلغاء التثبيت' : '📌 تم تثبيت المنشور');
-}
-function toggleArchiveVisibility(btn) {
-  const tr = btn.closest('tr');
-  const hidden = btn.textContent.includes('إظهار');
-  tr.style.opacity = hidden ? '1' : '0.4';
-  btn.textContent = hidden ? '🙈 إخفاء' : '👁 إظهار';
-  showToast(hidden ? '👁 تم الإظهار' : '🙈 تم الإخفاء');
-}
 
 document.addEventListener('DOMContentLoaded', loadChannelsFromDB);
 
