@@ -4089,7 +4089,39 @@
     function openProfileEdit() {
       const dd = document.getElementById('profileDropdown');
       if (dd) dd.classList.remove('open');
-      openAuth();
+      
+      const session = getSession();
+      if (!session) return openAuth();
+
+      const prof = JSON.parse(localStorage.getItem('kronos_profile') || 'null');
+      
+      document.getElementById('authBoxMain').style.display = 'none';
+      document.getElementById('profileBox').style.display = 'block';
+      document.getElementById('authOverlay').classList.add('open');
+      
+      populateCountries();
+
+      // Pre-fill fields from saved profile or session
+      if (prof) {
+        if (prof.username) document.getElementById('pUsername').value = prof.username;
+        if (prof.birth_place && prof.birth_place.includes(' - ')) {
+          const parts = prof.birth_place.split(' - ');
+          if (document.getElementById('pState')) document.getElementById('pState').value = parts[0].trim();
+          if (document.getElementById('pCountry')) document.getElementById('pCountry').value = parts[1].trim();
+        } else if (prof.country && document.getElementById('pCountry')) {
+          document.getElementById('pCountry').value = prof.country;
+        }
+        if (prof.birth_date && document.getElementById('pBirthDate')) document.getElementById('pBirthDate').value = prof.birth_date;
+        if (prof.hobby && document.getElementById('pHobbyText')) document.getElementById('pHobbyText').value = prof.hobby;
+        if (prof.avatar_url && document.getElementById('avatarImg')) {
+          avatarBase64 = prof.avatar_url;
+          document.getElementById('avatarImg').src = prof.avatar_url;
+          document.getElementById('avatarImg').style.display = 'block';
+          document.getElementById('avatarPlaceholder').style.display = 'none';
+        }
+      } else if (session.name) {
+        document.getElementById('pUsername').value = session.name.split(' ')[0];
+      }
     }
 
     // Close profile dropdown when clicking outside
