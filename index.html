@@ -2001,26 +2001,28 @@
 
     /* Profile completion card — WIDE landscape layout */
     .profile-box {
-      max-width: 820px;
-      width: 95vw;
+      max-width: 760px;
+      width: 90vw;
       background: linear-gradient(160deg, var(--dark2) 0%, var(--dark3) 100%);
       border: 1px solid rgba(201, 168, 76, 0.2);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(201, 168, 76, 0.08);
-      padding: 1.6rem 2rem;
+      padding: 1.5rem 1.8rem;
+      margin: auto;
     }
 
     .profile-box-inner {
       display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 2rem;
+      grid-template-columns: 240px 1fr;
+      gap: 1.8rem;
       align-items: start;
     }
 
-    @media(max-width:640px) {
+    @media(max-width:768px) {
       .profile-box-inner {
         grid-template-columns: 1fr;
+        gap: 1rem;
       }
-      .profile-box { width: 96vw; padding: 1.2rem; }
+      .profile-box { width: 95vw; padding: 1.2rem; }
     }
 
     .profile-box-header {
@@ -2064,8 +2066,8 @@
     }
 
     .avatar-circle {
-      width: 100px;
-      height: 100px;
+      width: 86px;
+      height: 86px;
       border-radius: 50%;
       background: var(--dark3);
       border: 2px dashed rgba(201, 168, 76, 0.35);
@@ -2879,111 +2881,120 @@
         <p>أضف معلوماتك لتخصيص تجربتك على كرونوس</p>
       </div>
 
-      <!-- Avatar Upload -->
-      <div class="avatar-upload-wrap">
-        <label for="avatarInput" class="avatar-circle" id="avatarPreview" title="انقر لرفع الصورة">
-          <span id="avatarPlaceholder">📷</span>
-          <img id="avatarImg" style="display:none">
-        </label>
-        <input type="file" id="avatarInput" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.ico,.tiff,.avif"
-          style="display:none" onchange="onAvatarSelected(event)">
-        <div class="avatar-upload-hint">📁 اضغط لرفع لوجو أو صورة — جميع الصيغ مدعومة</div>
-      </div>
+      <div class="profile-box-inner">
+        <!-- Column 1 (Right in RTL): Avatar & Languages -->
+        <div class="profile-col-side">
+          <!-- Avatar Upload -->
+          <div class="avatar-upload-wrap" style="margin-bottom:1rem;">
+            <label for="avatarInput" class="avatar-circle" id="avatarPreview" title="انقر لرفع الصورة">
+              <span id="avatarPlaceholder">📷</span>
+              <img id="avatarImg" style="display:none">
+            </label>
+            <input type="file" id="avatarInput" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.ico,.tiff,.avif"
+              style="display:none" onchange="onAvatarSelected(event)">
+            <div class="avatar-upload-hint" style="text-align:center;justify-content:center;">📁 اضغط لرفع لوجو أو صورة — جميع الصيغ مدعومة</div>
+          </div>
 
-      <!-- Section: معلومات الهوية -->
-      <div class="profile-section-label">👤 معلومات الهوية</div>
+          <!-- Section: التفضيلات اللغوية -->
+          <div class="profile-section-label" style="margin-top:.6rem">🌐 التفضيلات اللغوية</div>
 
-      <div class="form-group">
-        <label>اسم المستخدم <span style="color:var(--gold);font-size:11px">*</span></label>
-        <input type="text" id="pUsername" class="form-control-auth" placeholder="اختر اسم مستخدم فريداً">
-      </div>
+          <div class="form-group" style="margin-bottom:.8rem;">
+            <label style="font-size:12px;">لغة الموقع المفضلة</label>
+            <div class="lang-pref-grid" id="siteLangPrefGrid" style="gap:.4rem;">
+              <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)">🇩🇿 العربية</button>
+              <button class="lang-pref-btn" data-lang="en" onclick="selectSiteLang('en',this)">🇬🇧 English</button>
+              <button class="lang-pref-btn" data-lang="fr" onclick="selectSiteLang('fr',this)">🇫🇷 Français</button>
+              <button class="lang-pref-btn" data-lang="es" onclick="selectSiteLang('es',this)">🇪🇸 Español</button>
+            </div>
+          </div>
 
-      <div class="form-group">
-        <label>تاريخ الميلاد</label>
-        <input type="date" id="pBirthDate" class="form-control-auth">
-      </div>
-
-      <!-- Section: الموقع -->
-      <div class="profile-section-label" style="margin-top:.2rem">📍 الموقع الجغرافي</div>
-
-      <div class="profile-grid">
-        <div class="form-group">
-          <label>الولاية / المنطقة <span style="color:var(--gold);font-size:11px">*</span></label>
-          <input type="text" id="pState" class="form-control-auth" placeholder="وهران" autocomplete="off"
-            oninput="validateStateCountry()">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:12px;">ترجمة المنشورات تلقائياً إلى</label>
+            <div class="lang-pref-grid" id="translateLangGrid" style="gap:.4rem;">
+              <button class="translate-pref-btn" data-lang="ar" onclick="selectTranslateLang('ar',this)">🇩🇿
+                العربية</button>
+              <button class="translate-pref-btn" data-lang="en" onclick="selectTranslateLang('en',this)">🇬🇧
+                English</button>
+              <button class="translate-pref-btn" data-lang="fr" onclick="selectTranslateLang('fr',this)">🇫🇷
+                Français</button>
+              <button class="translate-pref-btn" data-lang="es" onclick="selectTranslateLang('es',this)">🇪🇸
+                Español</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.3rem">💡 اختر لغة لترجمة المنشورات تلقائياً</div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>البلد <span style="color:var(--gold);font-size:11px">*</span></label>
-          <select id="pCountry" class="form-control-auth" onchange="validateStateCountry()">
-            <option value="">اختر البلد</option>
-          </select>
+
+        <!-- Column 2 (Left in RTL): Personal & Location Info -->
+        <div class="profile-col-main">
+          <!-- Section: معلومات الهوية -->
+          <div class="profile-section-label" style="margin-top:0;">👤 معلومات الهوية</div>
+
+          <div class="profile-grid">
+            <div class="form-group">
+              <label>اسم المستخدم <span style="color:var(--gold);font-size:11px">*</span></label>
+              <input type="text" id="pUsername" class="form-control-auth" placeholder="اختر اسم مستخدم فريداً">
+            </div>
+            <div class="form-group">
+              <label>تاريخ الميلاد</label>
+              <input type="date" id="pBirthDate" class="form-control-auth">
+            </div>
+          </div>
+
+          <!-- Section: الموقع -->
+          <div class="profile-section-label" style="margin-top:.4rem">📍 الموقع الجغرافي</div>
+
+          <div class="profile-grid">
+            <div class="form-group">
+              <label>الولاية / المنطقة <span style="color:var(--gold);font-size:11px">*</span></label>
+              <input type="text" id="pState" class="form-control-auth" placeholder="وهران" autocomplete="off"
+                oninput="validateStateCountry()">
+            </div>
+            <div class="form-group">
+              <label>البلد <span style="color:var(--gold);font-size:11px">*</span></label>
+              <select id="pCountry" class="form-control-auth" onchange="validateStateCountry()">
+                <option value="">اختر البلد</option>
+              </select>
+            </div>
+          </div>
+          <div class="state-country-wrap" style="margin-bottom:.6rem;">
+            <div class="state-country-hint" id="stateCountryHint"></div>
+            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">⚠️ يجب تعبئة الولاية والبلد معاً — سيُحفظ بصيغة: <span style="color:var(--gold-dim)">ولاية - بلد</span></div>
+          </div>
+
+          <!-- Section: الهوية الشخصية -->
+          <div class="profile-section-label" style="margin-top:.4rem">🎯 الهوية الشخصية</div>
+
+          <div class="form-group" style="margin-bottom:.8rem;">
+            <label>الهواية <span style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
+            <input type="text" id="pHobbyText" class="form-control-auth" placeholder="القراءة، التاريخ، السفر..."
+              list="hobbyList">
+            <datalist id="hobbyList">
+              <option>القراءة</option>
+              <option>التاريخ والآثار</option>
+              <option>السفر</option>
+              <option>التصوير</option>
+              <option>الرياضة</option>
+              <option>الرسم والفنون</option>
+              <option>الموسيقى</option>
+              <option>الكتابة</option>
+              <option>الألعاب الإلكترونية</option>
+              <option>الطبخ</option>
+              <option>البرمجة</option>
+              <option>الأفلام والمسلسلات</option>
+            </datalist>
+          </div>
+
+          <div id="profileMsg" class="auth-msg" style="display:none"></div>
+
+          <div style="display:flex;gap:.8rem;margin-top:1.2rem;align-items:center;">
+            <button class="btn-gold" id="profileSaveBtn" style="flex:2;margin:0;padding:.8rem;font-size:15px"
+              onclick="saveProfile()">
+              💾 حفظ الملف الشخصي
+            </button>
+            <button class="btn-skip" style="flex:1;margin:0;padding:.8rem;" onclick="skipProfile()">تخطّي الآن</button>
+          </div>
         </div>
       </div>
-      <div class="state-country-wrap">
-        <div class="state-country-hint" id="stateCountryHint"></div>
-        <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">⚠️ يجب تعبئة الولاية والبلد معاً — سيُحفظ
-          بصيغة: <span style="color:var(--gold-dim)">ولاية - بلد</span></div>
-      </div>
-
-      <!-- Section: الهوية الشخصية -->
-      <div class="profile-section-label" style="margin-top:.8rem">🎯 الهوية الشخصية</div>
-
-      <div class="form-group">
-        <label>الهواية <span style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
-        <input type="text" id="pHobbyText" class="form-control-auth" placeholder="القراءة، التاريخ، السفر..."
-          list="hobbyList">
-        <datalist id="hobbyList">
-          <option>القراءة</option>
-          <option>التاريخ والآثار</option>
-          <option>السفر</option>
-          <option>التصوير</option>
-          <option>الرياضة</option>
-          <option>الرسم والفنون</option>
-          <option>الموسيقى</option>
-          <option>الكتابة</option>
-          <option>الألعاب الإلكترونية</option>
-          <option>الطبخ</option>
-          <option>البرمجة</option>
-          <option>الأفلام والمسلسلات</option>
-        </datalist>
-      </div>
-
-      <!-- Section: التفضيلات اللغوية -->
-      <div class="profile-section-label" style="margin-top:.2rem">🌐 التفضيلات اللغوية</div>
-
-      <div class="form-group">
-        <label>لغة الموقع المفضلة</label>
-        <div class="lang-pref-grid" id="siteLangPrefGrid">
-          <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)">🇩🇿 العربية</button>
-          <button class="lang-pref-btn" data-lang="en" onclick="selectSiteLang('en',this)">🇬🇧 English</button>
-          <button class="lang-pref-btn" data-lang="fr" onclick="selectSiteLang('fr',this)">🇫🇷 Français</button>
-          <button class="lang-pref-btn" data-lang="es" onclick="selectSiteLang('es',this)">🇪🇸 Español</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>ترجمة المنشورات تلقائياً إلى</label>
-        <div class="lang-pref-grid" id="translateLangGrid">
-          <button class="translate-pref-btn" data-lang="ar" onclick="selectTranslateLang('ar',this)">🇩🇿
-            العربية</button>
-          <button class="translate-pref-btn" data-lang="en" onclick="selectTranslateLang('en',this)">🇬🇧
-            English</button>
-          <button class="translate-pref-btn" data-lang="fr" onclick="selectTranslateLang('fr',this)">🇫🇷
-            Français</button>
-          <button class="translate-pref-btn" data-lang="es" onclick="selectTranslateLang('es',this)">🇪🇸
-            Español</button>
-        </div>
-        <div style="font-size:11px;color:var(--text-dimmer);margin-top:.4rem">💡 اختر لغة لترجمة المنشورات تلقائياً عند
-          عرضها</div>
-      </div>
-
-      <div id="profileMsg" class="auth-msg" style="display:none"></div>
-
-      <button class="btn-gold" id="profileSaveBtn" style="width:100%;margin-top:.8rem;padding:.85rem;font-size:15px"
-        onclick="saveProfile()">
-        💾 حفظ الملف الشخصي
-      </button>
-      <button class="btn-skip" onclick="skipProfile()">تخطّي الآن — أكمل لاحقاً</button>
     </div>
   </div>
 
