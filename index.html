@@ -2163,6 +2163,22 @@
       box-shadow: 0 0 0 3px rgba(224, 80, 79, 0.08);
     }
 
+    select.form-control-auth,
+    .auth-box select {
+      background-color: #1a1a1a !important;
+      color: var(--gold) !important;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    select.form-control-auth option,
+    .auth-box select option {
+      background-color: #1a1a1a !important;
+      color: var(--gold) !important;
+      font-weight: 600;
+      padding: 10px;
+    }
+
     .state-country-wrap {
       position: relative;
     }
@@ -2873,6 +2889,7 @@
 
     <!-- PROFILE COMPLETION CARD (shown after first registration) -->
     <div class="auth-box profile-box" id="profileBox" style="display:none">
+      <button class="auth-close" onclick="closeAuth()" title="إغلاق">✕</button>
 
       <!-- Header -->
       <div class="profile-box-header">
@@ -3889,6 +3906,10 @@
     }
 
     function openProfileCompletion(name, avatar) {
+      const msg = document.getElementById('profileMsg');
+      if (msg) { msg.style.display = 'none'; msg.textContent = ''; msg.className = 'auth-msg'; }
+      const btn = document.getElementById('profileSaveBtn');
+      if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي'; }
       document.getElementById('authBoxMain').style.display = 'none';
       document.getElementById('profileBox').style.display = 'block';
       document.getElementById('authOverlay').classList.add('open');
@@ -4021,14 +4042,17 @@
           if (sel) sel.value = _selectedSiteLang;
         }
         showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
+        if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي'; }
         setTimeout(() => {
           closeAuth();
+          const dd = document.getElementById('profileDropdown');
+          if (dd) dd.classList.remove('open');
           showToast(`🎉 مرحباً بك ${username} في كرونوس!`, 't-success');
           refreshAuthUI();
-        }, 900);
+        }, 800);
       } catch (e) {
         showAuthMsg('profileMsg', '❌ ' + e.message, 'err');
-        btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي';
+        if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي'; }
       }
     }
 
@@ -4147,6 +4171,11 @@
 
       const prof = JSON.parse(localStorage.getItem('kronos_profile') || 'null');
       
+      const msg = document.getElementById('profileMsg');
+      if (msg) { msg.style.display = 'none'; msg.textContent = ''; msg.className = 'auth-msg'; }
+      const btn = document.getElementById('profileSaveBtn');
+      if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ الملف الشخصي'; }
+
       document.getElementById('authBoxMain').style.display = 'none';
       document.getElementById('profileBox').style.display = 'block';
       document.getElementById('authOverlay').classList.add('open');
@@ -4224,7 +4253,13 @@
     // ─── CLOSE MODALS ON OUTSIDE CLICK ─────────────────────────────────────────
 
     document.getElementById('ytModal').addEventListener('click', e => { if (e.target === document.getElementById('ytModal')) closeYT(); });
-    document.getElementById('authOverlay').addEventListener('click', e => { if (e.target === document.getElementById('authOverlay')) closeAuth(); });
+    document.getElementById('authOverlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('authOverlay')) {
+        const pBox = document.getElementById('profileBox');
+        if (pBox && pBox.style.display !== 'none') return;
+        closeAuth();
+      }
+    });
 
     // ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
     const SUPA_URL_IDX = 'https://hlknmtrnlixmctvewobw.supabase.co';
