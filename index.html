@@ -3672,6 +3672,7 @@
 
       const params = new URLSearchParams(hash.replace(/^#/, ''));
       const token = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
       const userId = params.get('user_id') || null;
 
       if (!token) return;
@@ -3693,7 +3694,7 @@
         const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
         const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
 
-        saveSession({ token, userId: uid, email, name: fullName });
+        saveSession({ token, refreshToken, userId: uid, email, name: fullName });
 
         // Check if profile exists
         const profile = await fetchProfile(uid, token);
@@ -3711,9 +3712,17 @@
 
 
     // ── SESSION ──────────────────────────────────────────────────────────────────
-    function saveSession({ token, userId, email, name }) {
+    function saveSession({ token, refreshToken, userId, email, name }) {
       try {
-        localStorage.setItem('kronos_session', JSON.stringify({ token, userId, email, name }));
+        const existing = getSession() || {};
+        localStorage.setItem('kronos_session', JSON.stringify({
+          ...existing,
+          token,
+          refreshToken: refreshToken || existing.refreshToken || null,
+          userId,
+          email,
+          name
+        }));
       } catch (e) { }
     }
     function getSession() {
@@ -3722,11 +3731,38 @@
     }
     function clearSession() { try { localStorage.removeItem('kronos_session'); } catch (e) { } }
 
+    async function ensureValidToken() {
+      const session = getSession();
+      if (!session) return null;
+      if (!session.refreshToken) return session.token;
+
+      try {
+        const res = await fetch(`${AUTH_URL}/auth/v1/token?grant_type=refresh_token`, {
+          method: 'POST',
+          headers: { apikey: AUTH_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: session.refreshToken })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.access_token) {
+            session.token = data.access_token;
+            if (data.refresh_token) session.refreshToken = data.refresh_token;
+            localStorage.setItem('kronos_session', JSON.stringify(session));
+            return data.access_token;
+          }
+        }
+      } catch (e) {
+        console.warn('[Token Refresh Error]', e);
+      }
+      return session.token;
+    }
+
     // ── PROFILE: fetch / save ─────────────────────────────────────────────────────
     async function fetchProfile(userId, token) {
       try {
+        const validToken = await ensureValidToken() || token;
         const res = await fetch(`${AUTH_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, {
-          headers: { apikey: AUTH_KEY, Authorization: `Bearer ${token}` }
+          headers: { apikey: AUTH_KEY, Authorization: `Bearer ${validToken}` }
         });
         if (!res.ok) return null;
         const rows = await res.json();
@@ -3864,6 +3900,7 @@
     }
 
     async function saveProfile() {
+      await ensureValidToken();
       const session = getSession();
       if (!session) return showAuthMsg('profileMsg', '❌ انتهت الجلسة — سجّل دخولك مجدداً', 'err');
 
@@ -4069,7 +4106,10 @@
     // Restore session on page load
     (function restoreSession() {
       const s = getSession();
-      if (s) refreshAuthUI();
+      if (s) {
+        refreshAuthUI();
+        ensureValidToken().then(valid => { if (valid) refreshAuthUI(); });
+      }
       handleOAuthCallback(); // handle Google OAuth redirect token in URL hash
     })();
 
