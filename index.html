@@ -3878,6 +3878,13 @@
       document.querySelectorAll('#siteLangPrefGrid .lang-pref-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.lang === curLang);
       });
+      // Sync translate lang button with saved preference
+      const savedProf = JSON.parse(localStorage.getItem('kronos_profile') || 'null') || {};
+      const transLang = savedProf.pref_translate_lang || localStorage.getItem('kronos_translate_lang') || '';
+      _selectedTranslateLang = transLang;
+      document.querySelectorAll('#translateLangGrid .translate-pref-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === transLang);
+      });
       populateCountries();
     }
 
@@ -3955,8 +3962,16 @@
         const savedRows = await res.json().catch(() => []);
         const savedProf = Array.isArray(savedRows) ? savedRows[0] : (savedRows || {});
         const existingProf = JSON.parse(localStorage.getItem('kronos_profile') || 'null') || {};
-        const mergedProf = { ...existingProf, ...savedProf, display_name: username, avatar_url: avatarBase64 || existingProf.avatar_url };
+        const mergedProf = {
+          ...existingProf,
+          ...savedProf,
+          display_name: username,
+          avatar_url: avatarBase64 || existingProf.avatar_url,
+          pref_lang: _selectedSiteLang || existingProf.pref_lang || 'ar',
+          pref_translate_lang: _selectedTranslateLang || existingProf.pref_translate_lang || ''
+        };
         localStorage.setItem('kronos_profile', JSON.stringify(mergedProf));
+        if (_selectedTranslateLang) localStorage.setItem('kronos_translate_lang', _selectedTranslateLang);
         if (session) {
           session.name = username;
           if (avatarBase64) session.avatar = avatarBase64;
@@ -4100,6 +4115,20 @@
       document.getElementById('authOverlay').classList.add('open');
       
       populateCountries();
+
+      // Sync site lang button
+      const curLang = typeof currentLang !== 'undefined' ? currentLang : (_selectedSiteLang || 'ar');
+      _selectedSiteLang = curLang;
+      document.querySelectorAll('#siteLangPrefGrid .lang-pref-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === curLang);
+      });
+
+      // Sync translate lang button
+      const transLang = prof?.pref_translate_lang || localStorage.getItem('kronos_translate_lang') || '';
+      _selectedTranslateLang = transLang;
+      document.querySelectorAll('#translateLangGrid .translate-pref-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === transLang);
+      });
 
       // Pre-fill fields from saved profile or session
       if (prof) {
