@@ -311,6 +311,88 @@
       border-color: var(--gold);
     }
 
+    /* ── NAV USER WIDGET (right side when logged in) ── */
+    .nav-user-widget {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      cursor: pointer;
+      padding: .25rem .6rem .25rem .25rem;
+      border-radius: 30px;
+      border: 1px solid rgba(201, 168, 76, 0.18);
+      background: rgba(201, 168, 76, 0.05);
+      transition: all .25s;
+      text-decoration: none;
+      max-width: 180px;
+    }
+
+    .nav-user-widget:hover {
+      border-color: rgba(201, 168, 76, 0.45);
+      background: rgba(201, 168, 76, 0.1);
+      box-shadow: 0 0 14px rgba(201, 168, 76, 0.08);
+    }
+
+    .nav-user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid rgba(201, 168, 76, 0.4);
+      flex-shrink: 0;
+      background: var(--dark3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      overflow: hidden;
+    }
+
+    .nav-user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .nav-user-name {
+      font-family: var(--font-ar);
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    }
+
+    /* ── NAV LOGOUT BUTTON (left side) ── */
+    .btn-nav-logout {
+      display: none;
+      align-items: center;
+      gap: .4rem;
+      background: transparent;
+      border: 1px solid rgba(224, 80, 79, 0.3);
+      color: rgba(224, 80, 79, 0.8);
+      font-family: var(--font-ar);
+      font-size: 12px;
+      padding: .3rem .75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .btn-nav-logout:hover {
+      background: rgba(224, 80, 79, 0.08);
+      border-color: rgba(224, 80, 79, 0.6);
+      color: #e0504f;
+    }
+
+    .btn-nav-logout.visible {
+      display: flex;
+    }
+
     .btn-gold {
       background: var(--gold);
       border: none;
@@ -1781,27 +1863,55 @@
 
     /* Profile completion card */
     .profile-box {
-      max-width: 460px;
+      max-width: 520px;
+      background: linear-gradient(160deg, var(--dark2) 0%, var(--dark3) 100%);
+      border: 1px solid rgba(201,168,76,0.2);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.08);
     }
 
-    .profile-box h3 {
+    .profile-box-header {
       text-align: center;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      margin-bottom: 1.4rem;
     }
 
-    .profile-box>p {
-      text-align: center;
+    .profile-box-header .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.25);
+      color: var(--gold);
+      font-size: 11px;
+      padding: .3rem .8rem;
+      border-radius: 20px;
+      letter-spacing: .05em;
+      margin-bottom: .8rem;
+    }
+
+    .profile-box-header h3 {
+      font-family: var(--font-title);
+      font-size: 1.5rem;
+      color: var(--parchment);
+      margin-bottom: .3rem;
+    }
+
+    .profile-box-header p {
+      color: var(--text-dim);
+      font-size: 13px;
     }
 
     .avatar-upload-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 1.3rem;
+      margin-bottom: 1.4rem;
     }
 
     .avatar-circle {
-      width: 96px;
-      height: 96px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       background: var(--dark3);
       border: 2px dashed rgba(201, 168, 76, 0.35);
@@ -1811,15 +1921,19 @@
       cursor: pointer;
       overflow: hidden;
       flex-shrink: 0;
-      transition: border-color .2s;
+      transition: all .3s;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
     }
 
     .avatar-circle:hover {
       border-color: var(--gold);
+      transform: scale(1.05);
+      box-shadow: 0 0 0 4px rgba(201,168,76,0.12), 0 8px 24px rgba(0,0,0,0.5);
     }
 
     .avatar-circle #avatarPlaceholder {
-      font-size: 2rem;
+      font-size: 2.2rem;
       opacity: .5;
     }
 
@@ -1830,26 +1944,149 @@
       border-radius: 50%;
     }
 
+    .avatar-upload-hint {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: 12px;
+      color: var(--text-dimmer);
+      margin-top: .6rem;
+    }
+
+    .profile-section-label {
+      font-size: 10px;
+      letter-spacing: .1em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      margin-bottom: .7rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .profile-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(201,168,76,0.12);
+    }
+
     .profile-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0 .8rem;
     }
 
+    .profile-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0 .6rem;
+    }
+
     .form-control-auth {
       width: 100%;
-      background: var(--dark3);
+      background: rgba(255,255,255,0.04);
       border: 1px solid rgba(201, 168, 76, 0.15);
-      border-radius: 4px;
+      border-radius: 6px;
       color: var(--text);
       font-family: var(--font-ar);
       font-size: 13px;
-      padding: .55rem .7rem;
+      padding: .6rem .8rem;
       outline: none;
+      transition: all .2s;
     }
 
     .form-control-auth:focus {
       border-color: var(--gold-dim);
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+    }
+
+    .form-control-auth.invalid {
+      border-color: rgba(224,80,79,0.5);
+      box-shadow: 0 0 0 3px rgba(224,80,79,0.08);
+    }
+
+    .state-country-wrap {
+      position: relative;
+    }
+
+    .state-country-hint {
+      font-size: 11px;
+      margin-top: .3rem;
+      padding: .25rem .5rem;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .state-country-hint.show {
+      display: block;
+    }
+
+    .state-country-hint.valid {
+      color: #6fc99a;
+      background: rgba(61,158,110,0.08);
+    }
+
+    .state-country-hint.invalid {
+      color: #e0807f;
+      background: rgba(224,80,79,0.08);
+    }
+
+    .lang-pref-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .4rem;
+    }
+
+    .lang-pref-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-family: var(--font-ar);
+      font-size: 12px;
+      padding: .5rem .4rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s;
+    }
+
+    .lang-pref-btn:hover {
+      border-color: rgba(201,168,76,0.35);
+      color: var(--text);
+    }
+
+    .lang-pref-btn.active {
+      background: rgba(201,168,76,0.12);
+      border-color: var(--gold);
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .translate-pref-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-family: var(--font-ar);
+      font-size: 12px;
+      padding: .5rem .4rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s;
+    }
+
+    .translate-pref-btn:hover {
+      border-color: rgba(201,168,76,0.35);
+      color: var(--text);
+    }
+
+    .translate-pref-btn.active {
+      background: rgba(26,95,90,0.15);
+      border-color: #6ecfc9;
+      color: #6ecfc9;
+      font-weight: 600;
     }
 
     .btn-skip {
@@ -1958,10 +2195,16 @@
 
   <!-- NAV -->
   <nav id="nav">
-    <a class="nav-logo" href="#" onclick="showRoom('home')">
-      KRONOS
-      <span data-i18n="nav.tagline">التاريخ والجغرافيا</span>
-    </a>
+    <!-- Left side: logo + logout button when logged in -->
+    <div style="display:flex;align-items:center;gap:.8rem;flex-shrink:0">
+      <a class="nav-logo" href="#" onclick="showRoom('home')">
+        KRONOS
+        <span data-i18n="nav.tagline">التاريخ والجغرافيا</span>
+      </a>
+      <button class="btn-nav-logout" id="navLogoutBtn" onclick="doSiteLogout()" title="تسجيل الخروج">
+        ⬡ خروج
+      </button>
+    </div>
     <ul class="nav-links">
       <li><a href="#" onclick="showRoom('home')" data-nav="home" class="active" data-i18n="nav.home">الرئيسية</a></li>
       <li><a href="#" onclick="showRoom('archive')" data-nav="archive" data-i18n="nav.archive">المكتب</a></li>
@@ -1969,6 +2212,7 @@
       <li><a href="#" onclick="showRoom('youtube')" data-nav="youtube" data-i18n="nav.youtube">الفيديوهات</a></li>
       <li><a href="#" onclick="showRoom('about')" data-nav="about" data-i18n="nav.about">من نحن</a></li>
     </ul>
+    <!-- Right side: lang selector + login/user widget -->
     <div class="nav-right">
       <select class="lang-select" id="langSelect" onchange="setLang(this.value)">
         <option value="ar">العربية</option>
@@ -1976,7 +2220,13 @@
         <option value="fr">Français</option>
         <option value="es">Español</option>
       </select>
-      <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login" data-nav-login>دخول</a>
+      <!-- Shown when NOT logged in -->
+      <a class="btn-login" href="#" onclick="openAuth()" data-i18n="nav.login" data-nav-login id="navLoginBtn">دخول</a>
+      <!-- Shown when logged in: avatar + name on far right -->
+      <a class="nav-user-widget" id="navUserWidget" href="#" style="display:none" onclick="event.preventDefault()">
+        <div class="nav-user-avatar" id="navUserAvatarWrap">👤</div>
+        <span class="nav-user-name" id="navUserName"></span>
+      </a>
     </div>
   </nav>
 
@@ -2438,63 +2688,109 @@
 
     <!-- PROFILE COMPLETION CARD (shown after first registration) -->
     <div class="auth-box profile-box" id="profileBox" style="display:none">
-      <h3>🎉 أكمل ملفك الشخصي</h3>
-      <p>أضف بعض المعلومات لتخصيص حسابك على كرونوس</p>
 
+      <!-- Header -->
+      <div class="profile-box-header">
+        <div class="profile-badge">✨ تسجيل أول مرة</div>
+        <h3>أكمل ملفك الشخصي</h3>
+        <p>أضف معلوماتك لتخصيص تجربتك على كرونوس</p>
+      </div>
+
+      <!-- Avatar Upload -->
       <div class="avatar-upload-wrap">
-        <label for="avatarInput" class="avatar-circle" id="avatarPreview">
+        <label for="avatarInput" class="avatar-circle" id="avatarPreview" title="انقر لرفع الصورة">
           <span id="avatarPlaceholder">📷</span>
           <img id="avatarImg" style="display:none">
         </label>
-        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="onAvatarSelected(event)">
-        <div class="auth-hint" style="text-align:center;margin-top:.5rem">اضغط لرفع صورة شخصية (أي صيغة)</div>
+        <input type="file" id="avatarInput" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.ico,.tiff,.avif" style="display:none" onchange="onAvatarSelected(event)">
+        <div class="avatar-upload-hint">📁 اضغط لرفع لوجو أو صورة — جميع الصيغ مدعومة</div>
+      </div>
+
+      <!-- Section: معلومات الهوية -->
+      <div class="profile-section-label">👤 معلومات الهوية</div>
+
+      <div class="form-group">
+        <label>اسم المستخدم <span style="color:var(--gold);font-size:11px">*</span></label>
+        <input type="text" id="pUsername" class="form-control-auth" placeholder="اختر اسم مستخدم فريداً">
       </div>
 
       <div class="form-group">
-        <label>اسم المستخدم</label>
-        <input type="text" id="pUsername" placeholder="اختر اسم مستخدم فريد">
+        <label>تاريخ الميلاد</label>
+        <input type="date" id="pBirthDate" class="form-control-auth">
       </div>
+
+      <!-- Section: الموقع -->
+      <div class="profile-section-label" style="margin-top:.2rem">📍 الموقع الجغرافي</div>
+
       <div class="profile-grid">
         <div class="form-group">
-          <label>البلد</label>
-          <select id="pCountry" class="form-control-auth">
+          <label>الولاية / المنطقة <span style="color:var(--gold);font-size:11px">*</span></label>
+          <input type="text" id="pState" class="form-control-auth" placeholder="وهران" autocomplete="off" oninput="validateStateCountry()">
+        </div>
+        <div class="form-group">
+          <label>البلد <span style="color:var(--gold);font-size:11px">*</span></label>
+          <select id="pCountry" class="form-control-auth" onchange="validateStateCountry()">
             <option value="">اختر البلد</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>تاريخ الميلاد</label>
-          <input type="date" id="pBirthDate" class="form-control-auth">
+      </div>
+      <div class="state-country-wrap">
+        <div class="state-country-hint" id="stateCountryHint"></div>
+        <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">⚠️ يجب تعبئة الولاية والبلد معاً — سيُحفظ بصيغة: <span style="color:var(--gold-dim)">ولاية - بلد</span></div>
+      </div>
+
+      <!-- Section: الهوية الشخصية -->
+      <div class="profile-section-label" style="margin-top:.8rem">🎯 الهوية الشخصية</div>
+
+      <div class="form-group">
+        <label>الهواية <span style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
+        <input type="text" id="pHobbyText" class="form-control-auth" placeholder="القراءة، التاريخ، السفر..." list="hobbyList">
+        <datalist id="hobbyList">
+          <option>القراءة</option>
+          <option>التاريخ والآثار</option>
+          <option>السفر</option>
+          <option>التصوير</option>
+          <option>الرياضة</option>
+          <option>الرسم والفنون</option>
+          <option>الموسيقى</option>
+          <option>الكتابة</option>
+          <option>الألعاب الإلكترونية</option>
+          <option>الطبخ</option>
+          <option>البرمجة</option>
+          <option>الأفلام والمسلسلات</option>
+        </datalist>
+      </div>
+
+      <!-- Section: التفضيلات اللغوية -->
+      <div class="profile-section-label" style="margin-top:.2rem">🌐 التفضيلات اللغوية</div>
+
+      <div class="form-group">
+        <label>لغة الموقع المفضلة</label>
+        <div class="lang-pref-grid" id="siteLangPrefGrid">
+          <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)">🇩🇿 العربية</button>
+          <button class="lang-pref-btn" data-lang="en" onclick="selectSiteLang('en',this)">🇬🇧 English</button>
+          <button class="lang-pref-btn" data-lang="fr" onclick="selectSiteLang('fr',this)">🇫🇷 Français</button>
+          <button class="lang-pref-btn" data-lang="es" onclick="selectSiteLang('es',this)">🇪🇸 Español</button>
         </div>
       </div>
+
       <div class="form-group">
-        <label>مكان الميلاد <span style="color:var(--text-dimmer);font-size:11px">(مدينة - بلد)</span></label>
-        <input type="text" id="pBirthPlace" class="form-control-auth" placeholder="وهران - الجزائر" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>الهواية <span style="color:var(--text-dimmer);font-weight:400">(اختياري — اكتب أو اختر)</span></label>
-        <div style="display:flex;gap:.4rem">
-          <input type="text" id="pHobbyText" class="form-control-auth" placeholder="اكتب هوايتك..." list="hobbyList"
-            style="flex:1">
-          <datalist id="hobbyList">
-            <option>القراءة</option>
-            <option>التاريخ والآثار</option>
-            <option>السفر</option>
-            <option>التصوير</option>
-            <option>الرياضة</option>
-            <option>الرسم والفنون</option>
-            <option>الموسيقى</option>
-            <option>الكتابة</option>
-            <option>الألعاب الإلكترونية</option>
-            <option>الطبخ</option>
-            <option>البرمجة</option>
-            <option>الأفلام والمسلسلات</option>
-          </datalist>
+        <label>ترجمة المنشورات تلقائياً إلى</label>
+        <div class="lang-pref-grid" id="translateLangGrid">
+          <button class="translate-pref-btn" data-lang="ar" onclick="selectTranslateLang('ar',this)">🇩🇿 العربية</button>
+          <button class="translate-pref-btn" data-lang="en" onclick="selectTranslateLang('en',this)">🇬🇧 English</button>
+          <button class="translate-pref-btn" data-lang="fr" onclick="selectTranslateLang('fr',this)">🇫🇷 Français</button>
+          <button class="translate-pref-btn" data-lang="es" onclick="selectTranslateLang('es',this)">🇪🇸 Español</button>
         </div>
+        <div style="font-size:11px;color:var(--text-dimmer);margin-top:.4rem">💡 اختر لغة لترجمة المنشورات تلقائياً عند عرضها</div>
       </div>
+
       <div id="profileMsg" class="auth-msg" style="display:none"></div>
-      <button class="btn-gold" id="profileSaveBtn" style="width:100%;margin-top:.5rem" onclick="saveProfile()">💾 حفظ
-        الملف الشخصي</button>
-      <button class="btn-skip" onclick="skipProfile()">تخطّي الآن</button>
+
+      <button class="btn-gold" id="profileSaveBtn" style="width:100%;margin-top:.8rem;padding:.85rem;font-size:15px" onclick="saveProfile()">
+        💾 حفظ الملف الشخصي
+      </button>
+      <button class="btn-skip" onclick="skipProfile()">تخطّي الآن — أكمل لاحقاً</button>
     </div>
   </div>
 
@@ -3235,21 +3531,81 @@
     }
 
     let avatarBase64 = '';
+    let _selectedSiteLang = 'ar';
+    let _selectedTranslateLang = '';
+
+    function selectSiteLang(lang, el) {
+      _selectedSiteLang = lang;
+      document.querySelectorAll('#siteLangPrefGrid .lang-pref-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function selectTranslateLang(lang, el) {
+      if (el.classList.contains('active')) {
+        // Toggle off if already selected
+        el.classList.remove('active');
+        _selectedTranslateLang = '';
+      } else {
+        _selectedTranslateLang = lang;
+        document.querySelectorAll('#translateLangGrid .translate-pref-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+      }
+    }
+
+    function validateStateCountry() {
+      const state = (document.getElementById('pState')?.value || '').trim();
+      const country = (document.getElementById('pCountry')?.value || '').trim();
+      const hint = document.getElementById('stateCountryHint');
+      const stateInput = document.getElementById('pState');
+      const countryInput = document.getElementById('pCountry');
+      if (!hint) return false;
+      if (state && country) {
+        hint.textContent = '✅ سيُحفظ كـ: ' + state + ' - ' + country;
+        hint.className = 'state-country-hint show valid';
+        stateInput?.classList.remove('invalid');
+        countryInput?.classList.remove('invalid');
+        return true;
+      } else if (state && !country) {
+        hint.textContent = '⚠️ اختر البلد لإكمال الصيغة المطلوبة';
+        hint.className = 'state-country-hint show invalid';
+        countryInput?.classList.add('invalid');
+        return false;
+      } else if (!state && country) {
+        hint.textContent = '⚠️ أدخل اسم الولاية أو المنطقة';
+        hint.className = 'state-country-hint show invalid';
+        stateInput?.classList.add('invalid');
+        return false;
+      } else {
+        hint.className = 'state-country-hint';
+        stateInput?.classList.remove('invalid');
+        countryInput?.classList.remove('invalid');
+        return false; // both empty = not filled (required)
+      }
+    }
+
     function onAvatarSelected(e) {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
+        // SVG and non-raster images: use directly without canvas
+        if (file.type === 'image/svg+xml' || file.type === 'image/gif') {
+          avatarBase64 = ev.target.result;
+          document.getElementById('avatarImg').src = avatarBase64;
+          document.getElementById('avatarImg').style.display = 'block';
+          document.getElementById('avatarPlaceholder').style.display = 'none';
+          return;
+        }
         const img = new Image();
         img.onload = () => {
-          // Resize to 200x200 circular-cropped square for reasonable storage size
+          // Resize to 200x200 for reasonable storage size
           const canvas = document.createElement('canvas');
           canvas.width = 200; canvas.height = 200;
           const ctx = canvas.getContext('2d');
           const size = Math.min(img.width, img.height);
           const sx = (img.width - size) / 2, sy = (img.height - size) / 2;
           ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
-          avatarBase64 = canvas.toDataURL('image/jpeg', 0.75);  // balanced quality + size
+          avatarBase64 = canvas.toDataURL('image/jpeg', 0.78);
           document.getElementById('avatarImg').src = avatarBase64;
           document.getElementById('avatarImg').style.display = 'block';
           document.getElementById('avatarPlaceholder').style.display = 'none';
@@ -3263,21 +3619,35 @@
       document.getElementById('authBoxMain').style.display = 'none';
       document.getElementById('profileBox').style.display = 'block';
       document.getElementById('authOverlay').classList.add('open');
+      // Pre-fill username suggestion
       if (name) document.getElementById('pUsername').value = name.split(' ')[0] + Math.floor(Math.random() * 900 + 100);
       // Pre-fill avatar from Google if available
       if (avatar) {
-        avatarBase64 = avatar; // store the URL as the avatar value
+        avatarBase64 = avatar;
         document.getElementById('avatarImg').src = avatar;
         document.getElementById('avatarImg').style.display = 'block';
         document.getElementById('avatarPlaceholder').style.display = 'none';
       }
+      // Sync site lang button with current site language
+      const curLang = typeof currentLang !== 'undefined' ? currentLang : 'ar';
+      _selectedSiteLang = curLang;
+      document.querySelectorAll('#siteLangPrefGrid .lang-pref-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === curLang);
+      });
       populateCountries();
     }
 
     function populateCountries() {
       const sel = document.getElementById('pCountry');
       if (sel.options.length > 1) return; // already populated
-      const countries = ['الجزائر', 'السعودية', 'مصر', 'المغرب', 'تونس', 'الإمارات', 'العراق', 'الأردن', 'الكويت', 'قطر', 'عُمان', 'البحرين', 'لبنان', 'سوريا', 'فلسطين', 'ليبيا', 'السودان', 'اليمن', 'موريتانيا', 'الصومال', 'جزر القمر', 'جيبوتي', 'فرنسا', 'الولايات المتحدة', 'المملكة المتحدة', 'ألمانيا', 'إسبانيا', 'إيطاليا', 'كندا', 'تركيا', 'أخرى'];
+      const countries = [
+        'الجزائر', 'المغرب', 'تونس', 'ليبيا', 'موريتانيا', 'مصر', 'السودان',
+        'السعودية', 'الإمارات', 'الكويت', 'قطر', 'البحرين', 'عُمان', 'اليمن',
+        'العراق', 'الأردن', 'سوريا', 'لبنان', 'فلسطين', 'الصومال',
+        'جزر القمر', 'جيبوتي', 'فرنسا', 'إسبانيا', 'إيطاليا',
+        'ألمانيا', 'المملكة المتحدة', 'الولايات المتحدة', 'كندا',
+        'تركيا', 'إيران', 'باكستان', 'الهند', 'نيجيريا', 'السنغال', 'أخرى'
+      ];
       countries.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c; opt.textContent = c;
@@ -3290,16 +3660,22 @@
       if (!session) return showAuthMsg('profileMsg', '❌ انتهت الجلسة — سجّل دخولك مجدداً', 'err');
 
       const username = document.getElementById('pUsername').value.trim();
-      const country = document.getElementById('pCountry').value;
+      const state = (document.getElementById('pState')?.value || '').trim();
+      const country = (document.getElementById('pCountry')?.value || '').trim();
       const birthDate = document.getElementById('pBirthDate').value;
-      const rawPlace = document.getElementById('pBirthPlace').value.trim();
-      // Format: "مدينة - بلد"
-      const birthPlace = rawPlace && country && !rawPlace.includes(' - ')
-        ? `${rawPlace} - ${country}`
-        : rawPlace;
       const hobby = document.getElementById('pHobbyText')?.value.trim() || '';
 
+      // Validate required fields
       if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
+
+      // Validate state-country: BOTH must be filled or BOTH empty
+      if ((state && !country) || (!state && country)) {
+        validateStateCountry();
+        return showAuthMsg('profileMsg', '⚠️ يجب تعبئة الولاية والبلد معاً بصيغة: ولاية - بلد', 'err');
+      }
+
+      // Build location string in required format
+      const location = (state && country) ? `${state} - ${country}` : null;
 
       const btn = document.getElementById('profileSaveBtn');
       btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
@@ -3315,17 +3691,26 @@
           },
           body: JSON.stringify({
             id: session.userId,
-            username, country,
-            birth_place: birthPlace || null,
+            username,
+            country: country || null,
+            birth_place: location,
             birth_date_text: birthDate || null,
             hobby: hobby || null,
             avatar_url: avatarBase64 || null,
-            email: session.email
+            email: session.email,
+            pref_lang: _selectedSiteLang || 'ar',
+            pref_translate_lang: _selectedTranslateLang || null
           })
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.message || err.hint || 'فشل حفظ الملف الشخصي');
+        }
+        // Apply site language preference immediately
+        if (_selectedSiteLang && typeof setLang === 'function') {
+          setLang(_selectedSiteLang);
+          const sel = document.getElementById('langSelect');
+          if (sel) sel.value = _selectedSiteLang;
         }
         showAuthMsg('profileMsg', '✅ تم حفظ ملفك الشخصي بنجاح!', 'ok');
         setTimeout(() => {
@@ -3345,31 +3730,57 @@
       refreshAuthUI();
     }
 
-    // ── UI refresh after login (update nav button to show user) ────────────────────
+    // ── UI refresh after login (update nav to show avatar+name on right, logout on left) ──
     function refreshAuthUI() {
       const session = getSession();
-      const navBtn = document.querySelector('[data-nav-login]') || document.getElementById('navLoginBtn');
-      if (!navBtn) return;
+      const loginBtn  = document.getElementById('navLoginBtn');
+      const userWidget = document.getElementById('navUserWidget');
+      const logoutBtn  = document.getElementById('navLogoutBtn');
+      const nameEl     = document.getElementById('navUserName');
+      const avatarWrap = document.getElementById('navUserAvatarWrap');
 
       if (session) {
         const displayName = session.name ? session.name.split(' ')[0] : 'حسابي';
-        navBtn.textContent = '👤 ' + displayName;
-        navBtn.title = session.email || '';
-        navBtn.onclick = (e) => {
-          e.preventDefault();
-          if (confirm('مرحباً ' + displayName + '!\nهل تريد تسجيل الخروج؟')) {
-            doSiteLogout();
+
+        // Hide login button, show user widget on the RIGHT
+        if (loginBtn)  loginBtn.style.display  = 'none';
+        if (userWidget) userWidget.style.display = 'flex';
+        if (nameEl)    nameEl.textContent = displayName;
+        if (userWidget) userWidget.title = session.email || '';
+
+        // Try to load avatar from saved profile
+        if (avatarWrap) {
+          try {
+            const prof = JSON.parse(localStorage.getItem('kronos_profile') || 'null');
+            const avatarSrc = prof?.avatar_url || session.avatar || '';
+            if (avatarSrc) {
+              avatarWrap.innerHTML = `<img src="${avatarSrc}" alt="${displayName}" onerror="this.parentElement.textContent='👤'">`;
+            } else {
+              avatarWrap.textContent = displayName.charAt(0).toUpperCase();
+              avatarWrap.style.cssText += ';background:rgba(201,168,76,0.2);color:var(--gold);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center';
+            }
+          } catch(e) {
+            avatarWrap.textContent = '👤';
           }
-        };
+        }
+
+        // Show logout button on the LEFT
+        if (logoutBtn) logoutBtn.classList.add('visible');
+
       } else {
-        // المستخدم غير مسجّل — استرجاع زر الدخول الأصلي
-        const lang = typeof currentLang !== 'undefined' ? currentLang : 'ar';
-        navBtn.textContent = (T[lang] || T.ar)['nav.login'] || 'دخول';
-        navBtn.title = '';
-        navBtn.onclick = (e) => {
-          e.preventDefault();
-          openAuth();
-        };
+        // Not logged in — show login button, hide user widget & logout
+        if (loginBtn)   loginBtn.style.display   = '';
+        if (userWidget) userWidget.style.display  = 'none';
+        if (logoutBtn)  logoutBtn.classList.remove('visible');
+        if (nameEl)     nameEl.textContent = '';
+        if (avatarWrap) avatarWrap.textContent = '👤';
+
+        // Restore login button text based on current language
+        if (loginBtn) {
+          const lang = typeof currentLang !== 'undefined' ? currentLang : 'ar';
+          loginBtn.textContent = (T[lang] || T.ar)['nav.login'] || 'دخول';
+          loginBtn.onclick = (e) => { e.preventDefault(); openAuth(); };
+        }
       }
     }
     function doSiteLogout() {
