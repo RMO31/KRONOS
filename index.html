@@ -3290,11 +3290,17 @@
         style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)"
         onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
       <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)" title="السابق (يمين)">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
       </button>
       <div class="media-viewer-stage" id="mediaViewerStage"></div>
       <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)" title="التالي (يسار)">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
       </button>
       <div class="media-viewer-counter" id="mediaViewerCounter"></div>
     </div>
@@ -4108,6 +4114,46 @@
       input.value = '';
     }
     // ─── WORLD-CLASS POSTS & MEDIA SYSTEM ───
+    const idbMedia = {
+      db: null,
+      init() {
+        return new Promise((resolve) => {
+          if (this.db) return resolve(this.db);
+          const req = indexedDB.open('KronosMediaDB', 1);
+          req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('media')) db.createObjectStore('media');
+          };
+          req.onsuccess = e => { this.db = e.target.result; resolve(this.db); };
+          req.onerror = () => resolve(null);
+        });
+      },
+      async save(key, data) {
+        await this.init();
+        if (!this.db) return false;
+        return new Promise((resolve) => {
+          try {
+            const tx = this.db.transaction('media', 'readwrite');
+            tx.objectStore('media').put(data, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+          } catch (e) { resolve(false); }
+        });
+      },
+      async get(key) {
+        await this.init();
+        if (!this.db) return null;
+        return new Promise((resolve) => {
+          try {
+            const tx = this.db.transaction('media', 'readonly');
+            const req = tx.objectStore('media').get(key);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          } catch (e) { resolve(null); }
+        });
+      }
+    };
+
     let composeMediaList = [];
     let currentViewerMedia = [];
     let currentViewerIndex = 0;
@@ -4150,6 +4196,25 @@
         ];
         localStorage.setItem('kronos_posts', JSON.stringify(initialPosts));
       }
+      try {
+        let existingPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+        let modified = false;
+        for (let p of existingPosts) {
+          if (p.media && Array.isArray(p.media)) {
+            for (let m of p.media) {
+              if (m.src && m.src.length > 50000 && !m.idbKey) {
+                const newKey = 'media_migrated_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                idbMedia.save(newKey, m.src);
+                m.idbKey = newKey;
+                m.src = '';
+                modified = true;
+              }
+            }
+          }
+        }
+        if (modified) localStorage.setItem('kronos_posts', JSON.stringify(existingPosts));
+      } catch (e) { console.warn('Migration error', e); }
+
       renderPostsFeed();
     }
 
@@ -4163,12 +4228,14 @@
       fileList.forEach(file => {
         const isVideo = file.type.startsWith('video/');
         const blobUrl = URL.createObjectURL(file);
+        const idbKey = 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
 
         composeMediaList.push({
           tempId: 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
           uploading: false,
           type: isVideo ? 'video' : 'image',
           src: blobUrl,
+          idbKey: idbKey,
           name: file.name,
           fileObj: file
         });
@@ -4177,7 +4244,7 @@
 
       function processThumbnails(idx) {
         if (idx >= fileList.length) {
-          setTimeout(() => processBase64Queue(0), 100);
+          setTimeout(() => processMediaStoreQueue(0), 50);
           return;
         }
         const mediaItem = composeMediaList[startIndex + idx];
@@ -4220,7 +4287,7 @@
               canvas.height = vidTmp.videoHeight || 400;
               const ctx = canvas.getContext('2d');
               ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
-              mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
+              mediaItem.poster = canvas.toDataURL('image/jpeg', 0.7);
             } catch (err) { console.warn('Thumbnail err', err); }
             vidTmp.src = '';
             renderComposeMediaPreview();
@@ -4242,25 +4309,17 @@
         }
       }
 
-      function processBase64Queue(idx) {
+      function processMediaStoreQueue(idx) {
         if (idx >= fileList.length) return;
         const mediaItem = composeMediaList[startIndex + idx];
         if (!mediaItem || !mediaItem.fileObj) {
-          processBase64Queue(idx + 1);
+          processMediaStoreQueue(idx + 1);
           return;
         }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          mediaItem.src = e.target.result;
+        idbMedia.save(mediaItem.idbKey, mediaItem.fileObj).then(() => {
           delete mediaItem.fileObj;
-          processBase64Queue(idx + 1);
-        };
-        reader.onerror = () => {
-          delete mediaItem.fileObj;
-          processBase64Queue(idx + 1);
-        };
-        reader.readAsDataURL(mediaItem.fileObj);
+          processMediaStoreQueue(idx + 1);
+        });
       }
 
       processThumbnails(0);
@@ -4504,6 +4563,22 @@
           </div>
         `;
       }).join('');
+      setTimeout(hydrateIndexedDBMedia, 30);
+    }
+
+    async function hydrateIndexedDBMedia() {
+      const elements = document.querySelectorAll('[data-idb]:not([data-hydrated])');
+      for (const el of elements) {
+        el.setAttribute('data-hydrated', 'true');
+        const key = el.getAttribute('data-idb');
+        if (key) {
+          const data = await idbMedia.get(key);
+          if (data) {
+            const url = (data instanceof Blob || data instanceof File) ? URL.createObjectURL(data) : data;
+            el.src = url;
+          }
+        }
+      }
     }
 
     function submitPost() {
@@ -4518,11 +4593,19 @@
       const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       const session = getSession();
 
+      const cleanMedia = composeMediaList.map(m => ({
+        type: m.type,
+        src: m.src && m.src.length < 50000 ? m.src : '',
+        idbKey: m.idbKey || null,
+        poster: m.poster || null,
+        name: m.name || ''
+      }));
+
       if (editingPostId) {
         const idx = posts.findIndex(p => p.id === editingPostId);
         if (idx !== -1) {
           posts[idx].text = val;
-          posts[idx].media = [...composeMediaList];
+          posts[idx].media = cleanMedia;
           posts[idx].date = 'تم التعديل الآن';
           showToast('✅ تم تعديل المنشور بنجاح!');
         }
@@ -4536,19 +4619,24 @@
           avatar: session?.avatar ? `<img src="${session.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤',
           date: 'الآن',
           text: val,
-          media: [...composeMediaList],
+          media: cleanMedia,
           likes: 0,
           comments: []
         };
         posts.unshift(newPost);
-        showToast('🎉 تم نشر منشورك بنجاح!');
       }
 
-      localStorage.setItem('kronos_posts', JSON.stringify(posts));
-      input.value = '';
-      composeMediaList = [];
-      renderComposeMediaPreview();
-      renderPostsFeed();
+      try {
+        localStorage.setItem('kronos_posts', JSON.stringify(posts));
+        if (!editingPostId) showToast('🎉 تم نشر منشورك بنجاح!');
+        input.value = '';
+        composeMediaList = [];
+        renderComposeMediaPreview();
+        renderPostsFeed();
+      } catch (err) {
+        console.error('Storage quota error:', err);
+        showToast('⚠️ مساحة التخزين ممتلئة! حاول حذف بعض المنشورات القديمة أولاً.', 't-error');
+      }
     }
 
     function editPost(postId) {
@@ -5493,5 +5581,4 @@
 
   </script>
 </body>
-
 </html>
