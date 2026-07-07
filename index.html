@@ -1828,27 +1828,36 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(201,168,76,0.2);
-      border: 1px solid var(--gold);
+      background: rgba(0,0,0,0.65);
+      border: 2px solid var(--gold);
       color: var(--gold);
-      width: 48px;
-      height: 48px;
+      width: 54px;
+      height: 54px;
       border-radius: 50%;
-      font-size: 20px;
+      font-size: 22px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all .2s;
+      transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 10;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.3);
     }
     .media-nav-btn:hover {
       background: var(--gold);
       color: #000;
-      transform: translateY(-50%) scale(1.1);
+      transform: translateY(-50%) scale(1.15);
+      box-shadow: 0 6px 25px rgba(201,168,76,0.6);
     }
-    .media-nav-btn.prev { left: 10px; }
-    .media-nav-btn.next { right: 10px; }
+    .media-nav-btn.prev { right: 35px; left: auto; }
+    .media-nav-btn.next { left: 35px; right: auto; }
+    @keyframes stageFadeIn {
+      0% { opacity: 0; transform: scale(0.96); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .media-viewer-stage > * {
+      animation: stageFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
     .media-viewer-counter {
       position: absolute;
       bottom: -35px;
@@ -3190,9 +3199,9 @@
   <div class="yt-modal-overlay" id="mediaViewerModal" style="z-index:6000">
     <div class="media-lightbox-content">
       <button class="yt-modal-close" style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)" onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
-      <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)">❮</button>
+      <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)" title="السابق (يمين)">❯</button>
       <div class="media-viewer-stage" id="mediaViewerStage"></div>
-      <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)">❯</button>
+      <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)" title="التالي (يسار)">❮</button>
       <div class="media-viewer-counter" id="mediaViewerCounter"></div>
     </div>
   </div>
@@ -4196,6 +4205,7 @@
     }
 
     function openComposeMediaViewer(idx) {
+      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch(e){} });
       if (!composeMediaList || !composeMediaList.length) return;
       currentViewerMedia = composeMediaList;
       currentViewerIndex = idx;
@@ -4289,6 +4299,7 @@
     }
 
     function openMediaViewer(postId, idx) {
+      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch(e){} });
       const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       const post = posts.find(p => p.id === postId);
       if (!post || !post.media || !post.media.length) return;
@@ -4322,7 +4333,16 @@
       if (!stage || !currentViewerMedia.length) return;
       
       const m = currentViewerMedia[currentViewerIndex];
-      stage.innerHTML = m.type === 'video' ? `<video src="${m.src}" controls autoplay style="max-height:80vh;max-width:85vw;border-radius:8px"></video>` : `<img src="${m.src}" style="max-height:80vh;max-width:85vw;border-radius:8px;object-fit:contain">`;
+      
+      if (m.type === 'video') {
+        stage.innerHTML = `<div style="width:70vw;height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold);font-size:18px;gap:15px;"><div class="spinner"></div><span>🎬 جاري تشغيل الفيديو بسلاسة...</span></div>`;
+        setTimeout(() => {
+          if (!document.getElementById('mediaViewerModal').classList.contains('open')) return;
+          stage.innerHTML = `<video src="${m.src}" controls autoplay style="max-height:80vh;max-width:85vw;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.8)"></video>`;
+        }, 40);
+      } else {
+        stage.innerHTML = `<img src="${m.src}" style="max-height:80vh;max-width:85vw;border-radius:8px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.8)">`;
+      }
       
       if (counter) counter.textContent = `${currentViewerIndex + 1} / ${currentViewerMedia.length}`;
       if (prevBtn) prevBtn.style.display = currentViewerMedia.length > 1 ? 'flex' : 'none';
