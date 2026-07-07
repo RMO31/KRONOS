@@ -4062,8 +4062,40 @@
         composeMediaList.push(mediaItem);
         renderComposeMediaPreview();
 
+        if (isVideo) {
+          try {
+            const blobUrl = URL.createObjectURL(file);
+            const vidTmp = document.createElement('video');
+            vidTmp.muted = true;
+            vidTmp.playsInline = true;
+            vidTmp.preload = 'metadata';
+            vidTmp.onloadedmetadata = () => {
+              try {
+                vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
+              } catch(err) { console.warn('Seek err', err); }
+            };
+            vidTmp.onseeked = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                canvas.width = vidTmp.videoWidth || 400;
+                canvas.height = vidTmp.videoHeight || 400;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
+                mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
+                URL.revokeObjectURL(blobUrl);
+                vidTmp.src = '';
+                if (!mediaItem.uploading) renderComposeMediaPreview();
+              } catch(err) { console.warn('Thumbnail err', err); }
+            };
+            vidTmp.onerror = () => { URL.revokeObjectURL(blobUrl); };
+            vidTmp.src = blobUrl;
+          } catch (err) {
+            console.warn('Video thumbnail creation error:', err);
+          }
+        }
+
         const reader = new FileReader();
-        let targetProgress = 0;
+        let targetProgress = 10;
         let currentProgress = 0;
 
         const progressInterval = setInterval(() => {
@@ -4085,36 +4117,6 @@
 
         reader.onload = (e) => {
           mediaItem.loadedResult = e.target.result;
-          if (isVideo) {
-            try {
-              const vidTmp = document.createElement('video');
-              vidTmp.muted = true;
-              vidTmp.playsInline = true;
-              vidTmp.preload = 'metadata';
-              vidTmp.onloadedmetadata = () => {
-                try {
-                  vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
-                } catch(err) { console.warn('Seek err', err); }
-              };
-              vidTmp.onseeked = () => {
-                try {
-                  const canvas = document.createElement('canvas');
-                  canvas.width = vidTmp.videoWidth || 400;
-                  canvas.height = vidTmp.videoHeight || 400;
-                  const ctx = canvas.getContext('2d');
-                  ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
-                  mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
-                  vidTmp.src = '';
-                  renderComposeMediaPreview();
-                } catch(err) { console.warn('Thumbnail err', err); }
-              };
-              vidTmp.onerror = () => { console.warn('Vid tmp error'); };
-              vidTmp.src = e.target.result;
-            } catch (err) {
-              console.warn('Video thumbnail creation error:', err);
-            }
-          }
-
           clearInterval(progressInterval);
           mediaItem.progress = 100;
           const progEl = document.getElementById('prog-text-' + tempId);
@@ -4127,7 +4129,7 @@
             delete mediaItem.tempId;
             delete mediaItem.progress;
             renderComposeMediaPreview();
-          }, 450);
+          }, 300);
         };
 
         reader.readAsDataURL(file);
@@ -4162,7 +4164,7 @@
         return `
           <div class="post-media-preview-item" style="cursor:pointer;" onclick="openComposeMediaViewer(${idx})" title="انقر للمعاينة والتشغيل">
             ${m.type === 'video' ? `
-              <video src="${m.src}#t=0.5" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
+              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
               <div class="media-video-play-icon">▶</div>
             ` : `<img src="${m.src}">`}
             <button class="remove-media-btn" onclick="event.stopPropagation(); removeComposeMedia(${idx})" title="حذف">✕</button>
@@ -4260,7 +4262,7 @@
         ${visibleMedia.map((m, idx) => `
           <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
             ${m.type === 'video' ? `
-              <video src="${m.src}#t=0.5" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
+              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
               <div class="media-video-play-icon">▶</div>
             ` : `<img src="${m.src}" loading="lazy">`}
             ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
