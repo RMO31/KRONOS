@@ -1772,6 +1772,34 @@
     .media-grid-item:hover .media-more-overlay {
       background: rgba(0,0,0,0.5);
     }
+    .media-video-play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 2px solid var(--gold, #c9a84c);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      padding-left: 3px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 14px rgba(201, 168, 76, 0.45);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 5;
+    }
+    .post-media-preview-item:hover .media-video-play-icon,
+    .media-grid-item:hover .media-video-play-icon {
+      transform: translate(-50%, -50%) scale(1.18);
+      background: var(--gold, #c9a84c);
+      color: #000;
+      box-shadow: 0 6px 20px rgba(201, 168, 76, 0.8);
+    }
 
     .media-lightbox-content {
       position: relative;
@@ -4057,6 +4085,24 @@
 
         reader.onload = (e) => {
           mediaItem.loadedResult = e.target.result;
+          if (isVideo) {
+            const vidTmp = document.createElement('video');
+            vidTmp.src = e.target.result;
+            vidTmp.muted = true;
+            vidTmp.playsInline = true;
+            vidTmp.currentTime = 0.5;
+            vidTmp.onloadeddata = () => { if (vidTmp.currentTime === 0) vidTmp.currentTime = 0.5; };
+            vidTmp.onseeked = () => {
+              try {
+                const canvas = document.createElement('canvas');
+                canvas.width = vidTmp.videoWidth || 400;
+                canvas.height = vidTmp.videoHeight || 400;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
+                mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
+              } catch(err) { console.warn('Thumbnail err', err); }
+            };
+          }
           targetProgress = 100;
           const checkDone = setInterval(() => {
             if (currentProgress >= 100 || targetProgress === 100) {
@@ -4108,9 +4154,12 @@
           `;
         }
         return `
-          <div class="post-media-preview-item">
-            ${m.type === 'video' ? `<video src="${m.src}" muted controls></video>` : `<img src="${m.src}">`}
-            <button class="remove-media-btn" onclick="removeComposeMedia(${idx})" title="حذف">✕</button>
+          <div class="post-media-preview-item" style="cursor:pointer;" onclick="openComposeMediaViewer(${idx})" title="انقر للمعاينة والتشغيل">
+            ${m.type === 'video' ? `
+              <video src="${m.src}#t=0.5" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
+              <div class="media-video-play-icon">▶</div>
+            ` : `<img src="${m.src}">`}
+            <button class="remove-media-btn" onclick="event.stopPropagation(); removeComposeMedia(${idx})" title="حذف">✕</button>
           </div>
         `;
       }).join('');
@@ -4119,6 +4168,17 @@
     function removeComposeMedia(idx) {
       composeMediaList.splice(idx, 1);
       renderComposeMediaPreview();
+    }
+
+    function openComposeMediaViewer(idx) {
+      if (!composeMediaList || !composeMediaList.length) return;
+      currentViewerMedia = composeMediaList;
+      currentViewerIndex = idx;
+      const modal = document.getElementById('mediaViewerModal');
+      if (modal) {
+        modal.classList.add('open');
+        renderMediaViewerStage();
+      }
     }
 
     function handlePostInputMention(event) {
@@ -4193,7 +4253,10 @@
       return `<div class="post-media-grid ${gridClass}">
         ${visibleMedia.map((m, idx) => `
           <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
-            ${m.type === 'video' ? `<video src="${m.src}#t=0.1" muted></video>` : `<img src="${m.src}" loading="lazy">`}
+            ${m.type === 'video' ? `
+              <video src="${m.src}#t=0.5" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
+              <div class="media-video-play-icon">▶</div>
+            ` : `<img src="${m.src}" loading="lazy">`}
             ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
           </div>
         `).join('')}
