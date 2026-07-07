@@ -3289,9 +3289,13 @@
       <button class="yt-modal-close"
         style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)"
         onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
-      <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)" title="السابق (يمين)">❯</button>
+      <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)" title="السابق (يمين)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
       <div class="media-viewer-stage" id="mediaViewerStage"></div>
-      <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)" title="التالي (يسار)">❮</button>
+      <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)" title="التالي (يسار)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
       <div class="media-viewer-counter" id="mediaViewerCounter"></div>
     </div>
   </div>
