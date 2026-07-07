@@ -4086,42 +4086,48 @@
         reader.onload = (e) => {
           mediaItem.loadedResult = e.target.result;
           if (isVideo) {
-            const vidTmp = document.createElement('video');
-            vidTmp.src = e.target.result;
-            vidTmp.muted = true;
-            vidTmp.playsInline = true;
-            vidTmp.currentTime = 0.5;
-            vidTmp.onloadeddata = () => { if (vidTmp.currentTime === 0) vidTmp.currentTime = 0.5; };
-            vidTmp.onseeked = () => {
-              try {
-                const canvas = document.createElement('canvas');
-                canvas.width = vidTmp.videoWidth || 400;
-                canvas.height = vidTmp.videoHeight || 400;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
-                mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
-              } catch(err) { console.warn('Thumbnail err', err); }
-            };
-          }
-          targetProgress = 100;
-          const checkDone = setInterval(() => {
-            if (currentProgress >= 100 || targetProgress === 100) {
-              clearInterval(checkDone);
-              clearInterval(progressInterval);
-              mediaItem.progress = 100;
-              const progEl = document.getElementById('prog-text-' + tempId);
-              if (progEl) progEl.textContent = '100%';
-              
-              setTimeout(() => {
-                mediaItem.uploading = false;
-                mediaItem.src = mediaItem.loadedResult;
-                delete mediaItem.loadedResult;
-                delete mediaItem.tempId;
-                delete mediaItem.progress;
-                renderComposeMediaPreview();
-              }, 450);
+            try {
+              const vidTmp = document.createElement('video');
+              vidTmp.muted = true;
+              vidTmp.playsInline = true;
+              vidTmp.preload = 'metadata';
+              vidTmp.onloadedmetadata = () => {
+                try {
+                  vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
+                } catch(err) { console.warn('Seek err', err); }
+              };
+              vidTmp.onseeked = () => {
+                try {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = vidTmp.videoWidth || 400;
+                  canvas.height = vidTmp.videoHeight || 400;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
+                  mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
+                  vidTmp.src = '';
+                  renderComposeMediaPreview();
+                } catch(err) { console.warn('Thumbnail err', err); }
+              };
+              vidTmp.onerror = () => { console.warn('Vid tmp error'); };
+              vidTmp.src = e.target.result;
+            } catch (err) {
+              console.warn('Video thumbnail creation error:', err);
             }
-          }, 30);
+          }
+
+          clearInterval(progressInterval);
+          mediaItem.progress = 100;
+          const progEl = document.getElementById('prog-text-' + tempId);
+          if (progEl) progEl.textContent = '100%';
+          
+          setTimeout(() => {
+            mediaItem.uploading = false;
+            mediaItem.src = mediaItem.loadedResult;
+            delete mediaItem.loadedResult;
+            delete mediaItem.tempId;
+            delete mediaItem.progress;
+            renderComposeMediaPreview();
+          }, 450);
         };
 
         reader.readAsDataURL(file);
