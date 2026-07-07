@@ -285,9 +285,9 @@
       inset-inline-start: 1.5rem;
       width: 250px;
       background: var(--dark2);
-      border: 1px solid rgba(201,168,76,0.25);
+      border: 1px solid rgba(201, 168, 76, 0.25);
       border-radius: 12px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(201,168,76,0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(201, 168, 76, 0.08);
       z-index: 2000;
       padding: 1rem;
       display: none;
@@ -297,8 +297,15 @@
     }
 
     @keyframes ddFadeIn {
-      from { opacity:0; transform:translateY(-8px) }
-      to   { opacity:1; transform:translateY(0) }
+      from {
+        opacity: 0;
+        transform: translateY(-8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
     }
 
     .profile-dropdown.open {
@@ -315,7 +322,7 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      border: 2px solid rgba(201,168,76,0.4);
+      border: 2px solid rgba(201, 168, 76, 0.4);
       background: var(--dark3);
       overflow: hidden;
       display: flex;
@@ -326,7 +333,8 @@
     }
 
     .profile-dd-avatar img {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       border-radius: 50%;
     }
@@ -352,8 +360,8 @@
       align-items: center;
       justify-content: center;
       gap: 0;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(201,168,76,0.1);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(201, 168, 76, 0.1);
       border-radius: 8px;
       overflow: hidden;
     }
@@ -367,7 +375,7 @@
     .profile-dd-stat-divider {
       width: 1px;
       height: 30px;
-      background: rgba(201,168,76,0.12);
+      background: rgba(201, 168, 76, 0.12);
       flex-shrink: 0;
     }
 
@@ -386,13 +394,13 @@
 
     .profile-dd-divider {
       height: 1px;
-      background: rgba(201,168,76,0.1);
+      background: rgba(201, 168, 76, 0.1);
     }
 
     .profile-dd-edit-btn {
       width: 100%;
-      background: rgba(201,168,76,0.08);
-      border: 1px solid rgba(201,168,76,0.25);
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid rgba(201, 168, 76, 0.25);
       color: var(--gold);
       font-family: var(--font-ar);
       font-size: 13px;
@@ -404,7 +412,7 @@
     }
 
     .profile-dd-edit-btn:hover {
-      background: rgba(201,168,76,0.15);
+      background: rgba(201, 168, 76, 0.15);
       border-color: var(--gold);
     }
 
@@ -1504,32 +1512,36 @@
       margin-top: 10px;
       margin-bottom: 10px;
       padding: 12px;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.3);
       border-radius: 10px;
-      border: 1px dashed rgba(201,168,76,0.35);
+      border: 1px dashed rgba(201, 168, 76, 0.35);
     }
+
     .post-media-preview-item {
       position: relative;
       aspect-ratio: 1;
       border-radius: 8px;
       overflow: hidden;
       background: #111;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .post-media-preview-item.uploading-card {
       background: #0a0a0a;
       border: 1px dashed var(--gold, #c9a84c);
       box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
     }
+
     .post-media-preview-item img,
     .post-media-preview-item video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+
     .upload-progress-container {
       display: flex;
       flex-direction: column;
@@ -1539,6 +1551,7 @@
       height: 100%;
       padding: 6px;
     }
+
     .circular-dots-loader {
       position: relative;
       width: 58px;
@@ -1548,6 +1561,7 @@
       justify-content: center;
       margin-bottom: 6px;
     }
+
     .spinning-dots-ring {
       position: absolute;
       inset: 0;
@@ -1557,6 +1571,7 @@
       border-bottom-color: #e0504f;
       animation: spinCircularDots 1.8s linear infinite;
     }
+
     .spinning-dots-ring::after {
       content: '';
       position: absolute;
@@ -1567,6 +1582,7 @@
       border-top-color: var(--gold, #c9a84c);
       animation: spinCircularDotsReverse 2.5s linear infinite;
     }
+
     .progress-percent-text {
       font-size: 0.95rem;
       font-weight: 800;
@@ -1575,6 +1591,7 @@
       z-index: 2;
       font-family: 'Outfit', sans-serif;
     }
+
     .upload-status-label {
       font-size: 0.72rem;
       color: #ddd;
@@ -1582,14 +1599,27 @@
       text-align: center;
       line-height: 1.2;
     }
+
     @keyframes spinCircularDots {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
+
     @keyframes spinCircularDotsReverse {
-      0% { transform: rotate(360deg); }
-      100% { transform: rotate(0deg); }
+      0% {
+        transform: rotate(360deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
     }
+
     .post-media-preview-item .remove-media-btn {
       position: absolute;
       top: 4px;
@@ -1608,6 +1638,7 @@
       transition: all .2s;
       z-index: 10;
     }
+
     .post-media-preview-item .remove-media-btn:hover {
       background: #e0504f;
       transform: scale(1.1);
@@ -1618,13 +1649,14 @@
       background: var(--dark3);
       border: 1px solid var(--gold);
       border-radius: 8px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
       max-height: 180px;
       overflow-y: auto;
       z-index: 1000;
       width: 240px;
       padding: 4px;
     }
+
     .mention-item {
       padding: 8px 12px;
       font-size: 13px;
@@ -1636,10 +1668,12 @@
       gap: 8px;
       transition: background .2s;
     }
+
     .mention-item:hover {
-      background: rgba(201,168,76,0.15);
+      background: rgba(201, 168, 76, 0.15);
       color: var(--gold);
     }
+
     .post-tag-badge {
       display: inline-block;
       padding: 2px 8px;
@@ -1651,23 +1685,28 @@
       cursor: pointer;
       transition: all .2s;
     }
+
     .post-tag-badge.everyone {
-      background: rgba(201,168,76,0.2);
+      background: rgba(201, 168, 76, 0.2);
       color: var(--gold);
-      border: 1px solid rgba(201,168,76,0.4);
+      border: 1px solid rgba(201, 168, 76, 0.4);
     }
+
     .post-tag-badge.user {
-      background: rgba(76,168,201,0.2);
+      background: rgba(76, 168, 201, 0.2);
       color: #58c5ee;
-      border: 1px solid rgba(76,168,201,0.4);
+      border: 1px solid rgba(76, 168, 201, 0.4);
     }
+
     .post-hashtag {
       color: var(--gold);
       font-weight: 600;
       cursor: pointer;
       margin: 0 2px;
     }
-    .post-hashtag:hover, .post-tag-badge:hover {
+
+    .post-hashtag:hover,
+    .post-tag-badge:hover {
       filter: brightness(1.2);
       text-decoration: underline;
     }
@@ -1680,8 +1719,9 @@
       border-radius: 10px;
       overflow: hidden;
       background: #0d0d0d;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
+
     .post-media-grid.count-1 {
       display: flex;
       align-items: center;
@@ -1696,6 +1736,7 @@
       margin-top: 10px;
       margin-bottom: 10px;
     }
+
     .post-media-grid.count-1 .media-grid-item {
       max-height: 450px;
       max-width: 100%;
@@ -1708,6 +1749,7 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       overflow: hidden;
     }
+
     .post-media-grid.count-1 img,
     .post-media-grid.count-1 video {
       max-height: 450px;
@@ -1718,24 +1760,29 @@
       border-radius: 12px;
       display: block;
     }
+
     .post-media-grid.count-2 {
       grid-template-columns: 1fr 1fr;
       height: 340px;
     }
+
     .post-media-grid.count-3 {
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
       height: 340px;
     }
+
     .post-media-grid.count-3 .media-grid-item:first-child {
       grid-row: span 2;
     }
+
     .post-media-grid.count-4,
     .post-media-grid.count-many {
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
       height: 340px;
     }
+
     .media-grid-item {
       position: relative;
       width: 100%;
@@ -1744,6 +1791,7 @@
       cursor: pointer;
       background: #111;
     }
+
     .post-media-grid:not(.count-1) .media-grid-item img,
     .post-media-grid:not(.count-1) .media-grid-item video {
       width: 100%;
@@ -1751,15 +1799,17 @@
       object-fit: cover;
       transition: transform .3s, filter .3s;
     }
+
     .media-grid-item:hover img,
     .media-grid-item:hover video {
       transform: scale(1.03);
       filter: brightness(1.08);
     }
+
     .media-more-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.65);
+      background: rgba(0, 0, 0, 0.65);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1769,9 +1819,11 @@
       backdrop-filter: blur(4px);
       transition: background .2s;
     }
+
     .media-grid-item:hover .media-more-overlay {
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
     }
+
     .media-video-play-icon {
       position: absolute;
       top: 50%;
@@ -1793,6 +1845,7 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 5;
     }
+
     .post-media-preview-item:hover .media-video-play-icon,
     .media-grid-item:hover .media-video-play-icon {
       transform: translate(-50%, -50%) scale(1.18);
@@ -1809,6 +1862,7 @@
       align-items: center;
       justify-content: center;
     }
+
     .media-viewer-stage {
       max-width: 80vw;
       max-height: 80vh;
@@ -1816,19 +1870,21 @@
       align-items: center;
       justify-content: center;
     }
+
     .media-viewer-stage img,
     .media-viewer-stage video {
       max-width: 100%;
       max-height: 80vh;
       border-radius: 6px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
       object-fit: contain;
     }
+
     .media-nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(0,0,0,0.65);
+      background: rgba(0, 0, 0, 0.65);
       border: 2px solid var(--gold);
       color: var(--gold);
       width: 54px;
@@ -1841,23 +1897,42 @@
       cursor: pointer;
       transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 10;
-      box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.3);
     }
+
     .media-nav-btn:hover {
       background: var(--gold);
       color: #000;
       transform: translateY(-50%) scale(1.15);
-      box-shadow: 0 6px 25px rgba(201,168,76,0.6);
+      box-shadow: 0 6px 25px rgba(201, 168, 76, 0.6);
     }
-    .media-nav-btn.prev { right: 35px; left: auto; }
-    .media-nav-btn.next { left: 35px; right: auto; }
+
+    .media-nav-btn.prev {
+      right: 35px;
+      left: auto;
+    }
+
+    .media-nav-btn.next {
+      left: 35px;
+      right: auto;
+    }
+
     @keyframes stageFadeIn {
-      0% { opacity: 0; transform: scale(0.96); }
-      100% { opacity: 1; transform: scale(1); }
+      0% {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
-    .media-viewer-stage > * {
+
+    .media-viewer-stage>* {
       animation: stageFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+
     .media-viewer-counter {
       position: absolute;
       bottom: -35px;
@@ -1866,19 +1941,21 @@
       color: var(--parchment);
       font-size: 14px;
       font-weight: 600;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       padding: 4px 14px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.15);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
+
     .post-author-actions {
       display: inline-flex;
       gap: 6px;
       margin-inline-start: auto;
     }
+
     .post-author-btn {
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: var(--text-dim);
       font-size: 11px;
       padding: 2px 8px;
@@ -1889,15 +1966,17 @@
       align-items: center;
       gap: 4px;
     }
+
     .post-author-btn:hover {
       border-color: var(--gold);
       color: var(--gold);
-      background: rgba(201,168,76,0.08);
+      background: rgba(201, 168, 76, 0.08);
     }
+
     .post-author-btn.del:hover {
       border-color: #e0504f;
       color: #e0504f;
-      background: rgba(224,80,79,0.08);
+      background: rgba(224, 80, 79, 0.08);
     }
 
     .comments-section {
@@ -2426,7 +2505,11 @@
         grid-template-columns: 1fr;
         gap: 1rem;
       }
-      .profile-box { width: 95vw; padding: 1.2rem; }
+
+      .profile-box {
+        width: 95vw;
+        padding: 1.2rem;
+      }
     }
 
     .profile-box-header {
@@ -2777,7 +2860,8 @@
         KRONOS
         <span data-i18n="nav.tagline">التاريخ والجغرافيا</span>
       </a>
-      <a class="nav-user-widget" id="navUserWidget" href="#" style="display:none" onclick="toggleProfileDropdown(event)">
+      <a class="nav-user-widget" id="navUserWidget" href="#" style="display:none"
+        onclick="toggleProfileDropdown(event)">
         <div class="nav-user-avatar" id="navUserAvatarWrap">👤</div>
         <span class="nav-user-name" id="navUserName"></span>
       </a>
@@ -3129,17 +3213,21 @@
           <!-- Compose -->
           <div class="post-compose" style="position:relative">
             <textarea id="postInput" placeholder="شارك فكرة أو بحثاً أو سؤالاً... اكتب @ للإشارة لمستخدم أو # لهاشتاغ"
-              data-i18n-placeholder="posts.compose.placeholder" oninput="handlePostInputMention(event)" style="min-height:90px"></textarea>
+              data-i18n-placeholder="posts.compose.placeholder" oninput="handlePostInputMention(event)"
+              style="min-height:90px"></textarea>
             <div id="mentionPopup" class="mention-popup" style="display:none"></div>
             <div id="postMediaPreview" class="post-media-preview-grid" style="display:none"></div>
             <div class="post-compose-actions">
               <div class="post-type-btns">
-                <label for="postMediaInput" class="post-type-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:.3rem">
+                <label for="postMediaInput" class="post-type-btn"
+                  style="cursor:pointer;display:inline-flex;align-items:center;gap:.3rem">
                   📷/🎥 <span data-i18n="posts.compose.media">صورة / فيديو</span>
                 </label>
-                <input type="file" id="postMediaInput" accept="image/*,video/*" multiple style="display:none" onchange="handlePostMediaSelect(event)">
+                <input type="file" id="postMediaInput" accept="image/*,video/*" multiple style="display:none"
+                  onchange="handlePostMediaSelect(event)">
               </div>
-              <button class="btn-gold" id="submitPostBtn" onclick="submitPost()" data-i18n="posts.compose.submit">نشر</button>
+              <button class="btn-gold" id="submitPostBtn" onclick="submitPost()"
+                data-i18n="posts.compose.submit">نشر</button>
             </div>
           </div>
 
@@ -3198,7 +3286,9 @@
   <!-- Media Viewer Modal (World-Class Lightbox) -->
   <div class="yt-modal-overlay" id="mediaViewerModal" style="z-index:6000">
     <div class="media-lightbox-content">
-      <button class="yt-modal-close" style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)" onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
+      <button class="yt-modal-close"
+        style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)"
+        onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
       <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)" title="السابق (يمين)">❯</button>
       <div class="media-viewer-stage" id="mediaViewerStage"></div>
       <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)" title="التالي (يسار)">❮</button>
@@ -3326,7 +3416,8 @@
             </label>
             <input type="file" id="avatarInput" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.ico,.tiff,.avif"
               style="display:none" onchange="onAvatarSelected(event)">
-            <div class="avatar-upload-hint" style="text-align:center;justify-content:center;">📁 اضغط لرفع لوجو أو صورة — جميع الصيغ مدعومة</div>
+            <div class="avatar-upload-hint" style="text-align:center;justify-content:center;">📁 اضغط لرفع لوجو أو صورة
+              — جميع الصيغ مدعومة</div>
           </div>
 
           <!-- Section: التفضيلات اللغوية -->
@@ -3335,7 +3426,8 @@
           <div class="form-group" style="margin-bottom:.8rem;">
             <label style="font-size:12px;">لغة الموقع المفضلة</label>
             <div class="lang-pref-grid" id="siteLangPrefGrid" style="gap:.4rem;">
-              <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)">🇩🇿 العربية</button>
+              <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)">🇩🇿
+                العربية</button>
               <button class="lang-pref-btn" data-lang="en" onclick="selectSiteLang('en',this)">🇬🇧 English</button>
               <button class="lang-pref-btn" data-lang="fr" onclick="selectSiteLang('fr',this)">🇫🇷 Français</button>
               <button class="lang-pref-btn" data-lang="es" onclick="selectSiteLang('es',this)">🇪🇸 Español</button>
@@ -3354,7 +3446,8 @@
               <button class="translate-pref-btn" data-lang="es" onclick="selectTranslateLang('es',this)">🇪🇸
                 Español</button>
             </div>
-            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.3rem">💡 اختر لغة لترجمة المنشورات تلقائياً</div>
+            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.3rem">💡 اختر لغة لترجمة المنشورات تلقائياً
+            </div>
           </div>
         </div>
 
@@ -3392,14 +3485,16 @@
           </div>
           <div class="state-country-wrap" style="margin-bottom:.6rem;">
             <div class="state-country-hint" id="stateCountryHint"></div>
-            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">⚠️ يجب تعبئة الولاية والبلد معاً — سيُحفظ بصيغة: <span style="color:var(--gold-dim)">ولاية - بلد</span></div>
+            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">⚠️ يجب تعبئة الولاية والبلد معاً —
+              سيُحفظ بصيغة: <span style="color:var(--gold-dim)">ولاية - بلد</span></div>
           </div>
 
           <!-- Section: الهوية الشخصية -->
           <div class="profile-section-label" style="margin-top:.4rem">🎯 الهوية الشخصية</div>
 
           <div class="form-group" style="margin-bottom:.8rem;">
-            <label>الهواية <span style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
+            <label>الهواية <span
+                style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
             <input type="text" id="pHobbyText" class="form-control-auth" placeholder="القراءة، التاريخ، السفر..."
               list="hobbyList">
             <datalist id="hobbyList">
@@ -4057,14 +4152,14 @@
     function handlePostMediaSelect(event) {
       const files = event.target.files;
       if (!files || !files.length) return;
-      
+
       const fileList = Array.from(files);
       const startIndex = composeMediaList.length;
-      
+
       fileList.forEach(file => {
         const isVideo = file.type.startsWith('video/');
         const blobUrl = URL.createObjectURL(file);
-        
+
         composeMediaList.push({
           tempId: 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
           uploading: false,
@@ -4094,17 +4189,22 @@
             renderComposeMediaPreview();
             processThumbnails(idx + 1);
           }
-        }, 800);
+        }, 4000);
 
         try {
           const vidTmp = document.createElement('video');
           vidTmp.muted = true;
           vidTmp.playsInline = true;
-          vidTmp.preload = 'metadata';
+          vidTmp.preload = 'auto';
           vidTmp.onloadedmetadata = () => {
             try {
-              vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
-            } catch(err) { console.warn('Seek err', err); }
+              vidTmp.currentTime = 0.1;
+            } catch (err) { console.warn('Seek err', err); }
+          };
+          vidTmp.onloadeddata = () => {
+            try {
+              if (vidTmp.currentTime === 0) vidTmp.currentTime = 0.1;
+            } catch (err) { }
           };
           vidTmp.onseeked = () => {
             if (finished) return;
@@ -4117,7 +4217,7 @@
               const ctx = canvas.getContext('2d');
               ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
               mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
-            } catch(err) { console.warn('Thumbnail err', err); }
+            } catch (err) { console.warn('Thumbnail err', err); }
             vidTmp.src = '';
             renderComposeMediaPreview();
             processThumbnails(idx + 1);
@@ -4205,7 +4305,7 @@
     }
 
     function openComposeMediaViewer(idx) {
-      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch(e){} });
+      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) { } });
       if (!composeMediaList || !composeMediaList.length) return;
       currentViewerMedia = composeMediaList;
       currentViewerIndex = idx;
@@ -4224,7 +4324,7 @@
       const cursorPos = input.selectionStart;
       const textBefore = val.slice(0, cursorPos);
       const lastAt = textBefore.lastIndexOf('@');
-      
+
       if (lastAt !== -1 && !/\s/.test(textBefore.slice(lastAt))) {
         const query = textBefore.slice(lastAt + 1).toLowerCase();
         const defaultMentions = [
@@ -4299,7 +4399,7 @@
     }
 
     function openMediaViewer(postId, idx) {
-      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch(e){} });
+      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch (e) { } });
       const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       const post = posts.find(p => p.id === postId);
       if (!post || !post.media || !post.media.length) return;
@@ -4331,9 +4431,9 @@
       const prevBtn = document.getElementById('mediaPrevBtn');
       const nextBtn = document.getElementById('mediaNextBtn');
       if (!stage || !currentViewerMedia.length) return;
-      
+
       const m = currentViewerMedia[currentViewerIndex];
-      
+
       if (m.type === 'video') {
         stage.innerHTML = `<div style="width:70vw;height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold);font-size:18px;gap:15px;"><div class="spinner"></div><span>🎬 جاري تشغيل الفيديو بسلاسة...</span></div>`;
         setTimeout(() => {
@@ -4343,7 +4443,7 @@
       } else {
         stage.innerHTML = `<img src="${m.src}" style="max-height:80vh;max-width:85vw;border-radius:8px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.8)">`;
       }
-      
+
       if (counter) counter.textContent = `${currentViewerIndex + 1} / ${currentViewerMedia.length}`;
       if (prevBtn) prevBtn.style.display = currentViewerMedia.length > 1 ? 'flex' : 'none';
       if (nextBtn) nextBtn.style.display = currentViewerMedia.length > 1 ? 'flex' : 'none';
@@ -5023,7 +5123,7 @@
       // Populate dropdown stats & info
       const session = getSession();
       if (!session) return;
-      
+
       const prof = JSON.parse(localStorage.getItem('kronos_profile') || 'null') || {};
       const name = prof.display_name || session.name || 'حسابي';
       const email = session.email || '';
@@ -5055,12 +5155,12 @@
     function openProfileEdit() {
       const dd = document.getElementById('profileDropdown');
       if (dd) dd.classList.remove('open');
-      
+
       const session = getSession();
       if (!session) return openAuth();
 
       const prof = JSON.parse(localStorage.getItem('kronos_profile') || 'null');
-      
+
       const msg = document.getElementById('profileMsg');
       if (msg) { msg.style.display = 'none'; msg.textContent = ''; msg.className = 'auth-msg'; }
       const btn = document.getElementById('profileSaveBtn');
@@ -5069,7 +5169,7 @@
       document.getElementById('authBoxMain').style.display = 'none';
       document.getElementById('profileBox').style.display = 'block';
       document.getElementById('authOverlay').classList.add('open');
-      
+
       populateCountries();
 
       // Sync site lang button
