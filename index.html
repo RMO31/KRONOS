@@ -1496,6 +1496,272 @@
       background: rgba(224, 85, 85, 0.07);
     }
 
+    /* ─── WORLD-CLASS POSTS & MEDIA SYSTEM ─── */
+    .post-media-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border: 1px dashed rgba(201,168,76,0.3);
+    }
+    .post-media-preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .post-media-preview-item img,
+    .post-media-preview-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .post-media-preview-item .remove-media-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(224, 80, 79, 0.85);
+      color: #fff;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .post-media-preview-item .remove-media-btn:hover {
+      background: #e0504f;
+      transform: scale(1.1);
+    }
+
+    .mention-popup {
+      position: absolute;
+      background: var(--dark3);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+      width: 240px;
+      padding: 4px;
+    }
+    .mention-item {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .2s;
+    }
+    .mention-item:hover {
+      background: rgba(201,168,76,0.15);
+      color: var(--gold);
+    }
+    .post-tag-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 2px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .post-tag-badge.everyone {
+      background: rgba(201,168,76,0.2);
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.4);
+    }
+    .post-tag-badge.user {
+      background: rgba(76,168,201,0.2);
+      color: #58c5ee;
+      border: 1px solid rgba(76,168,201,0.4);
+    }
+    .post-hashtag {
+      color: var(--gold);
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0 2px;
+    }
+    .post-hashtag:hover, .post-tag-badge:hover {
+      filter: brightness(1.2);
+      text-decoration: underline;
+    }
+
+    .post-media-grid {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #0d0d0d;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .post-media-grid.count-1 {
+      grid-template-columns: 1fr;
+      max-height: 480px;
+    }
+    .post-media-grid.count-2 {
+      grid-template-columns: 1fr 1fr;
+      height: 280px;
+    }
+    .post-media-grid.count-3 {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      height: 340px;
+    }
+    .post-media-grid.count-3 .media-grid-item:first-child {
+      grid-row: span 2;
+    }
+    .post-media-grid.count-4,
+    .post-media-grid.count-many {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      height: 320px;
+    }
+    .media-grid-item {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      cursor: pointer;
+      background: #151515;
+    }
+    .media-grid-item img,
+    .media-grid-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .3s, filter .3s;
+    }
+    .media-grid-item:hover img,
+    .media-grid-item:hover video {
+      transform: scale(1.03);
+      filter: brightness(1.08);
+    }
+    .media-more-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 26px;
+      font-weight: 700;
+      backdrop-filter: blur(4px);
+      transition: background .2s;
+    }
+    .media-grid-item:hover .media-more-overlay {
+      background: rgba(0,0,0,0.5);
+    }
+
+    .media-lightbox-content {
+      position: relative;
+      width: 90vw;
+      height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-viewer-stage {
+      max-width: 80vw;
+      max-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-viewer-stage img,
+    .media-viewer-stage video {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 6px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      object-fit: contain;
+    }
+    .media-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(201,168,76,0.2);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+      z-index: 10;
+    }
+    .media-nav-btn:hover {
+      background: var(--gold);
+      color: #000;
+      transform: translateY(-50%) scale(1.1);
+    }
+    .media-nav-btn.prev { left: 10px; }
+    .media-nav-btn.next { right: 10px; }
+    .media-viewer-counter {
+      position: absolute;
+      bottom: -35px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--parchment);
+      font-size: 14px;
+      font-weight: 600;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .post-author-actions {
+      display: inline-flex;
+      gap: 6px;
+      margin-inline-start: auto;
+    }
+    .post-author-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-dim);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .post-author-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+    .post-author-btn.del:hover {
+      border-color: #e0504f;
+      color: #e0504f;
+      background: rgba(224,80,79,0.08);
+    }
+
     .comments-section {
       margin-top: .8rem;
       display: none;
@@ -2723,16 +2989,19 @@
         <div class="posts-main">
 
           <!-- Compose -->
-          <div class="post-compose">
-            <textarea id="postInput" placeholder="شارك فكرة أو بحثاً أو سؤالاً..."
-              data-i18n-placeholder="posts.compose.placeholder"></textarea>
+          <div class="post-compose" style="position:relative">
+            <textarea id="postInput" placeholder="شارك فكرة أو بحثاً أو سؤالاً... اكتب @ للإشارة لمستخدم أو # لهاشتاغ"
+              data-i18n-placeholder="posts.compose.placeholder" oninput="handlePostInputMention(event)" style="min-height:90px"></textarea>
+            <div id="mentionPopup" class="mention-popup" style="display:none"></div>
+            <div id="postMediaPreview" class="post-media-preview-grid" style="display:none"></div>
             <div class="post-compose-actions">
               <div class="post-type-btns">
-                <button class="post-type-btn">🖼 صورة</button>
-                <button class="post-type-btn">🔗 رابط</button>
-                <button class="post-type-btn">📍 موقع</button>
+                <label for="postMediaInput" class="post-type-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:.3rem">
+                  📷/🎥 <span data-i18n="posts.compose.media">صورة / فيديو</span>
+                </label>
+                <input type="file" id="postMediaInput" accept="image/*,video/*" multiple style="display:none" onchange="handlePostMediaSelect(event)">
               </div>
-              <button class="btn-gold" onclick="submitPost()" data-i18n="posts.compose.submit">نشر</button>
+              <button class="btn-gold" id="submitPostBtn" onclick="submitPost()" data-i18n="posts.compose.submit">نشر</button>
             </div>
           </div>
 
@@ -2785,7 +3054,17 @@
         <div class="yt-modal-title" id="ytModalTitle"></div>
         <div class="yt-modal-desc" id="ytModalDesc"></div>
       </div>
-      <button class="yt-modal-close" onclick="closeYT()">✕ &nbsp;<span data-i18n="yt.close">إغلاق</span></button>
+    </div>
+  </div>
+
+  <!-- Media Viewer Modal (World-Class Lightbox) -->
+  <div class="yt-modal-overlay" id="mediaViewerModal" style="z-index:6000">
+    <div class="media-lightbox-content">
+      <button class="yt-modal-close" style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)" onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
+      <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)">❮</button>
+      <div class="media-viewer-stage" id="mediaViewerStage"></div>
+      <button class="media-nav-btn next" id="mediaNextBtn" onclick="navigateMedia(1)">❯</button>
+      <div class="media-viewer-counter" id="mediaViewerCounter"></div>
     </div>
   </div>
 
@@ -3591,35 +3870,374 @@
       cs.insertBefore(div, btn.closest('.comment-input-row').nextSibling);
       input.value = '';
     }
+    // ─── WORLD-CLASS POSTS & MEDIA SYSTEM ───
+    let composeMediaList = [];
+    let currentViewerMedia = [];
+    let currentViewerIndex = 0;
+    let editingPostId = null;
+
+    function initPostsSystem() {
+      if (!localStorage.getItem('kronos_posts')) {
+        const initialPosts = [
+          {
+            id: 'post_sample_1',
+            author: '👑 Kronos_Admin',
+            authorId: 'admin_01',
+            avatar: '👑',
+            date: 'منذ ساعتين',
+            text: 'مرحباً بكم في نظام المنشورات المطوّر لكرونوس! 🌟 يمكنكم الآن مشاركة الأبحاث والصور والفيديوهات المتعددة مع مجتمعنا. أهلاً بك @الجميع في عالم #التاريخ و #الجغرافيا و #تراث_إنساني !',
+            media: [
+              { type: 'image', src: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80' },
+              { type: 'image', src: 'https://images.unsplash.com/photo-1524654458049-e36be0721fa2?auto=format&fit=crop&w=800&q=80' },
+              { type: 'image', src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80' }
+            ],
+            likes: 18,
+            comments: [
+              { author: 'ZAMAKAN', text: 'تحديث أسطوري! نظام الوسائط المتعددة والإشارات رائع جداً 👏' }
+            ]
+          },
+          {
+            id: 'post_sample_2',
+            author: 'RMO',
+            authorId: 'rmo_01',
+            avatar: '👤',
+            date: 'منذ 5 ساعات',
+            text: 'بحث جديد حول تطور الخرائط في العصور الوسطى! قمت برفع بعض الخرائط التاريخية النادرة للمعاينة. ما رأيك @ZAMAKAN في هذه التحف؟ #خرائط #مخطوطات #تراث',
+            media: [
+              { type: 'image', src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80' },
+              { type: 'image', src: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80' }
+            ],
+            likes: 12,
+            comments: []
+          }
+        ];
+        localStorage.setItem('kronos_posts', JSON.stringify(initialPosts));
+      }
+      renderPostsFeed();
+    }
+
+    function handlePostMediaSelect(event) {
+      const files = event.target.files;
+      if (!files || !files.length) return;
+      Array.from(files).forEach(file => {
+        const isVideo = file.type.startsWith('video/');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          composeMediaList.push({
+            type: isVideo ? 'video' : 'image',
+            src: e.target.result,
+            name: file.name
+          });
+          renderComposeMediaPreview();
+        };
+        reader.readAsDataURL(file);
+      });
+      event.target.value = '';
+    }
+
+    function renderComposeMediaPreview() {
+      const preview = document.getElementById('postMediaPreview');
+      if (!preview) return;
+      if (!composeMediaList.length) {
+        preview.style.display = 'none';
+        preview.innerHTML = '';
+        return;
+      }
+      preview.style.display = 'grid';
+      preview.innerHTML = composeMediaList.map((m, idx) => `
+        <div class="post-media-preview-item">
+          ${m.type === 'video' ? `<video src="${m.src}" muted></video>` : `<img src="${m.src}">`}
+          <button class="remove-media-btn" onclick="removeComposeMedia(${idx})" title="حذف">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function removeComposeMedia(idx) {
+      composeMediaList.splice(idx, 1);
+      renderComposeMediaPreview();
+    }
+
+    function handlePostInputMention(event) {
+      const input = event.target;
+      const popup = document.getElementById('mentionPopup');
+      if (!popup) return;
+      const val = input.value;
+      const cursorPos = input.selectionStart;
+      const textBefore = val.slice(0, cursorPos);
+      const lastAt = textBefore.lastIndexOf('@');
+      
+      if (lastAt !== -1 && !/\s/.test(textBefore.slice(lastAt))) {
+        const query = textBefore.slice(lastAt + 1).toLowerCase();
+        const defaultMentions = [
+          { tag: 'الجميع', label: '👑 @الجميع (إشارة لجميع المتابعين)' },
+          { tag: 'RMO', label: '👤 @RMO (مشرف)' },
+          { tag: 'ZAMAKAN', label: '👤 @ZAMAKAN (عضو مبدع)' },
+          { tag: 'Kronos_Admin', label: '👑 @Kronos_Admin' }
+        ];
+        const filtered = defaultMentions.filter(m => m.tag.toLowerCase().includes(query) || m.label.toLowerCase().includes(query));
+        if (filtered.length) {
+          popup.innerHTML = filtered.map(m => `
+            <div class="mention-item" onclick="insertMention('${m.tag}')">${m.label}</div>
+          `).join('');
+          popup.style.display = 'block';
+          return;
+        }
+      }
+      popup.style.display = 'none';
+    }
+
+    function insertMention(tag) {
+      const input = document.getElementById('postInput');
+      const popup = document.getElementById('mentionPopup');
+      if (!input) return;
+      const val = input.value;
+      const cursorPos = input.selectionStart;
+      const textBefore = val.slice(0, cursorPos);
+      const textAfter = val.slice(cursorPos);
+      const lastAt = textBefore.lastIndexOf('@');
+      if (lastAt !== -1) {
+        input.value = textBefore.slice(0, lastAt) + '@' + tag + ' ' + textAfter;
+        input.focus();
+      }
+      if (popup) popup.style.display = 'none';
+    }
+
+    function parsePostTags(text) {
+      if (!text) return '';
+      let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      escaped = escaped.replace(/@(?:الجميع|everyone)/gi, `<span class="post-tag-badge everyone" onclick="showToast('👑 تم الإشارة لجميع المتابعين ومجتمع كرونوس!')">👑 @الجميع</span>`);
+      escaped = escaped.replace(/@([a-zA-Z0-9_ء-ي]+)/g, (m, u) => {
+        if (u === 'الجميع') return m;
+        return `<span class="post-tag-badge user" onclick="showToast('👤 الملف الشخصي لـ @${u}')">👤 @${u}</span>`;
+      });
+      escaped = escaped.replace(/#([a-zA-Z0-9_ء-ي]+)/g, `<span class="post-hashtag" onclick="showToast('🔍 عرض المنشورات بوسم #$1')">#$1</span>`);
+      return escaped;
+    }
+
+    function renderMediaGrid(mediaArray, postId) {
+      if (!mediaArray || !mediaArray.length) return '';
+      const count = mediaArray.length;
+      let gridClass = 'count-1';
+      if (count === 2) gridClass = 'count-2';
+      else if (count === 3) gridClass = 'count-3';
+      else if (count === 4) gridClass = 'count-4';
+      else if (count >= 5) gridClass = 'count-many';
+
+      const visibleMedia = mediaArray.slice(0, 4);
+      const moreCount = count - 3;
+
+      return `<div class="post-media-grid ${gridClass}">
+        ${visibleMedia.map((m, idx) => `
+          <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
+            ${m.type === 'video' ? `<video src="${m.src}#t=0.1" muted></video>` : `<img src="${m.src}" loading="lazy">`}
+            ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    function openMediaViewer(postId, idx) {
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post || !post.media || !post.media.length) return;
+      currentViewerMedia = post.media;
+      currentViewerIndex = idx;
+      const modal = document.getElementById('mediaViewerModal');
+      if (modal) {
+        modal.classList.add('open');
+        renderMediaViewerStage();
+      }
+    }
+
+    function closeMediaViewer() {
+      const modal = document.getElementById('mediaViewerModal');
+      if (modal) modal.classList.remove('open');
+      const stage = document.getElementById('mediaViewerStage');
+      if (stage) stage.innerHTML = '';
+    }
+
+    function navigateMedia(dir) {
+      if (!currentViewerMedia.length) return;
+      currentViewerIndex = (currentViewerIndex + dir + currentViewerMedia.length) % currentViewerMedia.length;
+      renderMediaViewerStage();
+    }
+
+    function renderMediaViewerStage() {
+      const stage = document.getElementById('mediaViewerStage');
+      const counter = document.getElementById('mediaViewerCounter');
+      const prevBtn = document.getElementById('mediaPrevBtn');
+      const nextBtn = document.getElementById('mediaNextBtn');
+      if (!stage || !currentViewerMedia.length) return;
+      
+      const m = currentViewerMedia[currentViewerIndex];
+      stage.innerHTML = m.type === 'video' ? `<video src="${m.src}" controls autoplay style="max-height:80vh;max-width:85vw;border-radius:8px"></video>` : `<img src="${m.src}" style="max-height:80vh;max-width:85vw;border-radius:8px;object-fit:contain">`;
+      
+      if (counter) counter.textContent = `${currentViewerIndex + 1} / ${currentViewerMedia.length}`;
+      if (prevBtn) prevBtn.style.display = currentViewerMedia.length > 1 ? 'flex' : 'none';
+      if (nextBtn) nextBtn.style.display = currentViewerMedia.length > 1 ? 'flex' : 'none';
+    }
+
+    function renderPostsFeed() {
+      const feed = document.getElementById('postsFeed');
+      if (!feed) return;
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      if (!posts.length) {
+        feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد — كن أول من ينشر!</div>`;
+        return;
+      }
+      const session = getSession();
+      const currentUserId = session?.userId || 'me';
+      const currentUserName = session?.name || 'أنت';
+
+      feed.innerHTML = posts.map(post => {
+        const isOwner = post.authorId === currentUserId || post.author === 'أنت' || post.author === currentUserName;
+        const csId = 'cs_' + post.id;
+        return `
+          <div class="post-card" id="card_${post.id}">
+            <div class="post-user" style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:.7rem">
+                <div class="post-avatar">${post.avatar || '👤'}</div>
+                <div><div class="post-username">${post.author}</div><div class="post-date">${post.date || 'الآن'}</div></div>
+              </div>
+              ${isOwner ? `
+                <div class="post-author-actions">
+                  <button class="post-author-btn" onclick="editPost('${post.id}')" title="تعديل المنشور">✏️ تعديل</button>
+                  <button class="post-author-btn del" onclick="deletePost('${post.id}')" title="حذف المنشور">🗑️ حذف</button>
+                </div>
+              ` : ''}
+            </div>
+            <div class="post-body" style="white-space:pre-wrap">${parsePostTags(post.text)}</div>
+            ${renderMediaGrid(post.media, post.id)}
+            <div class="post-actions">
+              <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">❤️ <span>${post.likes || 0}</span></button>
+              <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>${(post.comments || []).length}</span> تعليق</button>
+              <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
+              <button class="post-action-btn" onclick="showToast('تم حفظ المنشور في الإشارات المرجعية')">🔖 حفظ</button>
+            </div>
+            <div class="comments-section" id="${csId}">
+              ${(post.comments || []).map(c => `
+                <div class="comment" style="margin-bottom:.5rem;padding:.5rem;background:rgba(255,255,255,0.03);border-radius:6px;font-size:13px">
+                  <span style="font-weight:700;color:var(--gold)">${c.author}:</span> <span style="color:var(--parchment)">${c.text}</span>
+                </div>
+              `).join('')}
+              <div class="comment-input-row">
+                <input class="comment-input" placeholder="أضف تعليقاً...">
+                <button class="btn-gold" style="padding:.4rem .8rem;font-size:12px" onclick="addPostComment(this,'${post.id}')">إرسال</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     function submitPost() {
       const input = document.getElementById('postInput');
+      const btn = document.getElementById('submitPostBtn');
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val && !composeMediaList.length) {
+        showToast('⚠️ يرجى كتابة وصف أو رفع صورة/فيديو للنشر!');
+        return;
+      }
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const session = getSession();
+
+      if (editingPostId) {
+        const idx = posts.findIndex(p => p.id === editingPostId);
+        if (idx !== -1) {
+          posts[idx].text = val;
+          posts[idx].media = [...composeMediaList];
+          posts[idx].date = 'تم التعديل الآن';
+          showToast('✅ تم تعديل المنشور بنجاح!');
+        }
+        editingPostId = null;
+        if (btn) btn.textContent = 'نشر';
+      } else {
+        const newPost = {
+          id: 'post_' + Date.now(),
+          author: session?.name || 'أنت',
+          authorId: session?.userId || 'me',
+          avatar: session?.avatar ? `<img src="${session.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤',
+          date: 'الآن',
+          text: val,
+          media: [...composeMediaList],
+          likes: 0,
+          comments: []
+        };
+        posts.unshift(newPost);
+        showToast('🎉 تم نشر منشورك بنجاح!');
+      }
+
+      localStorage.setItem('kronos_posts', JSON.stringify(posts));
+      input.value = '';
+      composeMediaList = [];
+      renderComposeMediaPreview();
+      renderPostsFeed();
+    }
+
+    function editPost(postId) {
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+      editingPostId = postId;
+      const input = document.getElementById('postInput');
+      const btn = document.getElementById('submitPostBtn');
+      if (input) {
+        input.value = post.text || '';
+        input.focus();
+      }
+      composeMediaList = [...(post.media || [])];
+      renderComposeMediaPreview();
+      if (btn) btn.textContent = '💾 حفظ التعديلات';
+      document.querySelector('.post-compose')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showToast('✏️ أنت الآن في وضع تعديل المنشور...');
+    }
+
+    function deletePost(postId) {
+      if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المنشور نهائياً؟')) return;
+      let posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      posts = posts.filter(p => p.id !== postId);
+      localStorage.setItem('kronos_posts', JSON.stringify(posts));
+      if (editingPostId === postId) {
+        editingPostId = null;
+        document.getElementById('postInput').value = '';
+        composeMediaList = [];
+        renderComposeMediaPreview();
+        const btn = document.getElementById('submitPostBtn');
+        if (btn) btn.textContent = 'نشر';
+      }
+      renderPostsFeed();
+      showToast('🗑️ تم حذف المنشور بنجاح!');
+    }
+
+    function toggleLikePost(postId) {
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+      post.isLiked = !post.isLiked;
+      post.likes = (post.likes || 0) + (post.isLiked ? 1 : -1);
+      if (post.likes < 0) post.likes = 0;
+      localStorage.setItem('kronos_posts', JSON.stringify(posts));
+      renderPostsFeed();
+    }
+
+    function addPostComment(btn, postId) {
+      const input = btn.previousElementSibling;
+      if (!input) return;
       const val = input.value.trim();
       if (!val) return;
-      const feed = document.getElementById('postsFeed');
-      const div = document.createElement('div');
-      div.className = 'post-card';
-      const csId = 'cs_' + Date.now();
-      div.innerHTML = `
-    <div class="post-user">
-      <div class="post-avatar">👤</div>
-      <div><div class="post-username">أنت</div><div class="post-date">الآن</div></div>
-    </div>
-    <div class="post-body">${val}</div>
-    <div class="post-actions">
-      <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>0</span></button>
-      <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>0</span> تعليق</button>
-      <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
-      <button class="post-action-btn" onclick="showToast('تم الحفظ')">🔖 حفظ</button>
-    </div>
-    <div class="comments-section" id="${csId}">
-      <div class="comment-input-row">
-        <input class="comment-input" placeholder="أضف تعليقاً...">
-        <button class="btn-gold" style="padding:.4rem .8rem;font-size:12px" onclick="addComment(this,'${csId}')">إرسال</button>
-      </div>
-    </div>`;
-      feed.insertBefore(div, feed.firstChild);
-      input.value = '';
-      showToast('تم نشر منشورك بنجاح!');
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+      const session = getSession();
+      if (!post.comments) post.comments = [];
+      post.comments.push({
+        author: session?.name || 'أنت',
+        text: val
+      });
+      localStorage.setItem('kronos_posts', JSON.stringify(posts));
+      renderPostsFeed();
+      showToast('💬 تم إضافة تعليقك!');
     }
 
     // ─── YOUTUBE ────────────────────────────────────────────────────────────────
@@ -4238,6 +4856,7 @@
         ensureValidToken().then(valid => { if (valid) refreshAuthUI(); });
       }
       handleOAuthCallback(); // handle Google OAuth redirect token in URL hash
+      initPostsSystem(); // Initialize world-class posts feed & media system
     })();
 
     // ─── TOAST ──────────────────────────────────────────────────────────────────
