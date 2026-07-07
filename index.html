@@ -4289,16 +4289,18 @@
             processThumbnails(idx + 1);
           };
 
-          vidTmp.onloadedmetadata = () => {
-            try { vidTmp.currentTime = 0.5; } catch (err) {
+          const doSeek = () => {
+            try {
+              if (vidTmp.currentTime < 0.2) {
+                vidTmp.currentTime = 0.5;
+              }
+            } catch (err) {
               try { vidTmp.currentTime = 0.1; } catch (e) {}
             }
           };
-          vidTmp.onloadeddata = () => {
-            try {
-              if (vidTmp.currentTime === 0) vidTmp.currentTime = 0.5;
-            } catch (err) {}
-          };
+          vidTmp.onloadedmetadata = () => {};
+          vidTmp.onloadeddata = doSeek;
+          vidTmp.oncanplay = doSeek;
           vidTmp.onseeked = tryExtract;
           vidTmp.onerror = () => {
             if (finished) return;
@@ -4362,7 +4364,7 @@
         return `
           <div class="post-media-preview-item" style="cursor:pointer;" onclick="openComposeMediaViewer(${idx})" title="انقر للمعاينة والتشغيل">
             ${m.type === 'video' ? `
-              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{this.currentTime=0.001}catch(e){}" muted playsinline preload="metadata"></video>
+              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="metadata"></video>
               <div class="media-video-play-icon">▶</div>
             ` : `<img src="${m.src}">`}
             <button class="remove-media-btn" onclick="event.stopPropagation(); removeComposeMedia(${idx})" title="حذف">✕</button>
@@ -4455,13 +4457,13 @@
       else if (count >= 5) gridClass = 'count-many';
 
       const visibleMedia = mediaArray.slice(0, 4);
-      const moreCount = count - 3;
+      const moreCount = count - 4;
 
       return `<div class="post-media-grid ${gridClass}">
         ${visibleMedia.map((m, idx) => `
           <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
             ${m.type === 'video' ? `
-              <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{this.currentTime=0.001}catch(e){}" muted playsinline preload="metadata"></video>
+              <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="metadata"></video>
               <div class="media-video-play-icon">▶</div>
             ` : `<img ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" loading="lazy">`}
             ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
