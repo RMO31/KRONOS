@@ -4202,10 +4202,16 @@
         for (let p of existingPosts) {
           if (p.media && Array.isArray(p.media)) {
             for (let m of p.media) {
+              // Migrate large inline data to IDB
               if (m.src && m.src.length > 50000 && !m.idbKey) {
                 const newKey = 'media_migrated_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                 idbMedia.save(newKey, m.src);
                 m.idbKey = newKey;
+                m.src = '';
+                modified = true;
+              }
+              // Clean dead blob: URLs — they don't survive page reload
+              if (m.src && m.src.startsWith('blob:')) {
                 m.src = '';
                 modified = true;
               }
@@ -4225,10 +4231,10 @@
       const fileList = Array.from(files);
       const startIndex = composeMediaList.length;
 
-      fileList.forEach(file => {
+      fileList.forEach((file, idx) => {
         const isVideo = file.type.startsWith('video/');
         const blobUrl = URL.createObjectURL(file);
-        const idbKey = 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const idbKey = 'media_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substr(2, 6);
 
         composeMediaList.push({
           tempId: 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
@@ -4277,11 +4283,16 @@
             clearTimeout(safetyTimeout);
             try {
               const canvas = document.createElement('canvas');
-              canvas.width = vidTmp.videoWidth || 400;
-              canvas.height = vidTmp.videoHeight || 400;
+              const scale = Math.min(320 / vidTmp.videoWidth, 320 / vidTmp.videoHeight, 1);
+              canvas.width = Math.round(vidTmp.videoWidth * scale);
+              canvas.height = Math.round(vidTmp.videoHeight * scale);
               const ctx = canvas.getContext('2d');
               ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
-              mediaItem.poster = canvas.toDataURL('image/jpeg', 0.7);
+              const posterData = canvas.toDataURL('image/jpeg', 0.4);
+              const posterKey = 'poster_' + (mediaItem.idbKey || Date.now());
+              mediaItem.posterKey = posterKey;
+              mediaItem.poster = posterData;
+              idbMedia.save(posterKey, posterData);
             } catch (err) { console.warn('Thumbnail err', err); }
             try { if (vidTmp.parentNode) vidTmp.remove(); } catch(e){}
             vidTmp.src = '';
@@ -4364,13 +4375,15 @@
         return `
           <div class="post-media-preview-item" style="cursor:pointer;" onclick="openComposeMediaViewer(${idx})" title="انقر للمعاينة والتشغيل">
             ${m.type === 'video' ? `
-              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="metadata"></video>
+              <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} ${m.posterKey ? `data-poster-idb="${m.posterKey}"` : ''} ${m.src ? `src="${m.src}"` : ''} ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="auto"></video>
               <div class="media-video-play-icon">▶</div>
-            ` : `<img src="${m.src}">`}
+            ` : `<img ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} ${m.src ? `src="${m.src}"` : ''}>`}
+
             <button class="remove-media-btn" onclick="event.stopPropagation(); removeComposeMedia(${idx})" title="حذف">✕</button>
           </div>
         `;
       }).join('');
+      setTimeout(() => hydrateIndexedDBMedia(), 50);
     }
 
     function removeComposeMedia(idx) {
@@ -4463,9 +4476,9 @@
         ${visibleMedia.map((m, idx) => `
           <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
             ${m.type === 'video' ? `
-              <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="metadata"></video>
+              <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} ${m.posterKey ? `data-poster-idb="${m.posterKey}"` : ''} ${m.src ? `src="${m.src}"` : ''} ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="auto"></video>
               <div class="media-video-play-icon">▶</div>
-            ` : `<img ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" loading="lazy">`}
+            ` : `<img ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} ${m.src ? `src="${m.src}"` : ''} loading="lazy">`}
             ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
           </div>
         `).join('')}
@@ -4499,7 +4512,7 @@
       renderMediaViewerStage();
     }
 
-    function renderMediaViewerStage() {
+    async function renderMediaViewerStage() {
       const stage = document.getElementById('mediaViewerStage');
       const counter = document.getElementById('mediaViewerCounter');
       const prevBtn = document.getElementById('mediaPrevBtn');
@@ -4508,14 +4521,26 @@
 
       const m = currentViewerMedia[currentViewerIndex];
 
+      // Resolve actual src: if src is empty/missing but idbKey exists, load from IndexedDB
+      let mediaSrc = m.src || '';
+      if ((!mediaSrc || mediaSrc.length < 5) && m.idbKey) {
+        stage.innerHTML = `<div style="width:70vw;height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold);font-size:18px;gap:15px;"><div class="spinner"></div><span>⏳ جاري تحميل الوسائط...</span></div>`;
+        try {
+          const data = await idbMedia.get(m.idbKey);
+          if (data) {
+            mediaSrc = (data instanceof Blob || data instanceof File) ? URL.createObjectURL(data) : data;
+          }
+        } catch (e) { console.warn('IDB load error', e); }
+      }
+
       if (m.type === 'video') {
         stage.innerHTML = `<div style="width:70vw;height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold);font-size:18px;gap:15px;"><div class="spinner"></div><span>🎬 جاري تشغيل الفيديو بسلاسة...</span></div>`;
         setTimeout(() => {
           if (!document.getElementById('mediaViewerModal').classList.contains('open')) return;
-          stage.innerHTML = `<video src="${m.src}" controls autoplay style="max-height:80vh;max-width:85vw;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.8)"></video>`;
+          stage.innerHTML = `<video src="${mediaSrc}" controls autoplay style="max-height:80vh;max-width:85vw;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.8)"></video>`;
         }, 40);
       } else {
-        stage.innerHTML = `<img src="${m.src}" style="max-height:80vh;max-width:85vw;border-radius:8px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.8)">`;
+        stage.innerHTML = `<img src="${mediaSrc}" style="max-height:80vh;max-width:85vw;border-radius:8px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.8)">`;
       }
 
       if (counter) counter.textContent = `${currentViewerIndex + 1} / ${currentViewerMedia.length}`;
@@ -4578,27 +4603,46 @@
     }
 
     async function hydrateIndexedDBMedia() {
+      // Hydrate poster thumbnails from IndexedDB FIRST for instant display!
+      const posterEls = document.querySelectorAll('[data-poster-idb]:not([data-poster-hydrated])');
+      for (const el of posterEls) {
+        el.setAttribute('data-poster-hydrated', 'true');
+        const posterKey = el.getAttribute('data-poster-idb');
+        if (posterKey) {
+          try {
+            const posterData = await idbMedia.get(posterKey);
+            if (posterData) {
+              el.setAttribute('poster', posterData);
+            }
+          } catch (e) { console.warn('Poster IDB err', e); }
+        }
+      }
+
       const elements = document.querySelectorAll('[data-idb]:not([data-hydrated])');
       for (const el of elements) {
         el.setAttribute('data-hydrated', 'true');
         const key = el.getAttribute('data-idb');
         if (key) {
-          const data = await idbMedia.get(key);
-          if (data) {
-            const url = (data instanceof Blob || data instanceof File) ? URL.createObjectURL(data) : data;
-            el.src = url;
-            if (el.tagName.toLowerCase() === 'video') {
-              el.removeAttribute('poster');
-              el.load();
-              el.onloadeddata = () => {
-                try {
-                  el.currentTime = 0.5;
-                } catch (e) {
-                  try { el.currentTime = 0.1; } catch (e2) {}
+          try {
+            const data = await idbMedia.get(key);
+            if (data) {
+              const url = (data instanceof Blob || data instanceof File) ? URL.createObjectURL(data) : data;
+              el.src = url;
+              if (el.tagName.toLowerCase() === 'video') {
+                el.load();
+                // If no poster was hydrated or present, seek to 0.5s to display a frame
+                if (!el.getAttribute('poster') && !el.getAttribute('data-poster-idb')) {
+                  el.onloadeddata = () => {
+                    try {
+                      el.currentTime = 0.5;
+                    } catch (e) {
+                      try { el.currentTime = 0.1; } catch (e2) {}
+                    }
+                  };
                 }
-              };
+              }
             }
-          }
+          } catch (e) { console.warn('Media IDB err', e); }
         }
       }
     }
@@ -4615,13 +4659,17 @@
       const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       const session = getSession();
 
-      const cleanMedia = composeMediaList.map(m => ({
-        type: m.type,
-        src: m.src && m.src.length < 50000 ? m.src : '',
-        idbKey: m.idbKey || null,
-        poster: m.poster || null,
-        name: m.name || ''
-      }));
+      const cleanMedia = composeMediaList.map(m => {
+        const isSafeSrc = m.src && (m.src.startsWith('http') || m.src.startsWith('data:')) && m.src.length < 50000;
+        return {
+          type: m.type,
+          src: isSafeSrc ? m.src : '',
+          idbKey: m.idbKey || null,
+          posterKey: m.posterKey || null,
+          poster: null,
+          name: m.name || ''
+        };
+      });
 
       if (editingPostId) {
         const idx = posts.findIndex(p => p.id === editingPostId);
