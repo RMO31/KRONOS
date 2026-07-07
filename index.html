@@ -4048,92 +4048,142 @@
     function handlePostMediaSelect(event) {
       const files = event.target.files;
       if (!files || !files.length) return;
-      Array.from(files).forEach(file => {
+      
+      const fileList = Array.from(files);
+      const startIndex = composeMediaList.length;
+      
+      fileList.forEach(file => {
         const isVideo = file.type.startsWith('video/');
         const tempId = 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-        
-        const mediaItem = {
+        composeMediaList.push({
           tempId: tempId,
           uploading: true,
           progress: 0,
           type: isVideo ? 'video' : 'image',
-          name: file.name
-        };
-        composeMediaList.push(mediaItem);
-        renderComposeMediaPreview();
+          name: file.name,
+          fileObj: file
+        });
+      });
+      renderComposeMediaPreview();
 
-        if (isVideo) {
-          try {
-            const blobUrl = URL.createObjectURL(file);
-            const vidTmp = document.createElement('video');
-            vidTmp.muted = true;
-            vidTmp.playsInline = true;
-            vidTmp.preload = 'metadata';
-            vidTmp.onloadedmetadata = () => {
-              try {
-                vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
-              } catch(err) { console.warn('Seek err', err); }
-            };
-            vidTmp.onseeked = () => {
-              try {
-                const canvas = document.createElement('canvas');
-                canvas.width = vidTmp.videoWidth || 400;
-                canvas.height = vidTmp.videoHeight || 400;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
-                mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
-                URL.revokeObjectURL(blobUrl);
-                vidTmp.src = '';
-                if (!mediaItem.uploading) renderComposeMediaPreview();
-              } catch(err) { console.warn('Thumbnail err', err); }
-            };
-            vidTmp.onerror = () => { URL.revokeObjectURL(blobUrl); };
-            vidTmp.src = blobUrl;
-          } catch (err) {
-            console.warn('Video thumbnail creation error:', err);
-          }
+      function processQueue(idx) {
+        if (idx >= fileList.length) {
+          renderComposeMediaPreview();
+          return;
+        }
+        
+        const mediaIndex = startIndex + idx;
+        const mediaItem = composeMediaList[mediaIndex];
+        if (!mediaItem) {
+          processQueue(idx + 1);
+          return;
         }
 
+        const file = mediaItem.fileObj;
+        const isVideo = mediaItem.type === 'video';
+        const tempId = mediaItem.tempId;
+
         const reader = new FileReader();
-        let targetProgress = 10;
+        let targetProgress = 15;
         let currentProgress = 0;
 
         const progressInterval = setInterval(() => {
           if (currentProgress < targetProgress) {
             currentProgress += Math.max(1, Math.floor((targetProgress - currentProgress) / 4));
-          } else if (currentProgress < 92 && !mediaItem.loadedResult) {
-            currentProgress += 1;
+          } else if (currentProgress < 90) {
+            currentProgress += 2;
           }
           mediaItem.progress = currentProgress;
           const progEl = document.getElementById('prog-text-' + tempId);
           if (progEl) progEl.textContent = currentProgress + '%';
-        }, 40);
+        }, 30);
 
         reader.onprogress = (e) => {
           if (e.lengthComputable) {
-            targetProgress = Math.round((e.loaded / e.total) * 95);
+            targetProgress = Math.round((e.loaded / e.total) * 90);
           }
         };
 
         reader.onload = (e) => {
-          mediaItem.loadedResult = e.target.result;
-          clearInterval(progressInterval);
-          mediaItem.progress = 100;
-          const progEl = document.getElementById('prog-text-' + tempId);
-          if (progEl) progEl.textContent = '100%';
-          
-          setTimeout(() => {
+          mediaItem.src = e.target.result;
+          delete mediaItem.fileObj;
+
+          const finishItem = () => {
+            clearInterval(progressInterval);
+            mediaItem.progress = 100;
             mediaItem.uploading = false;
-            mediaItem.src = mediaItem.loadedResult;
-            delete mediaItem.loadedResult;
             delete mediaItem.tempId;
             delete mediaItem.progress;
             renderComposeMediaPreview();
-          }, 300);
+            setTimeout(() => processQueue(idx + 1), 20);
+          };
+
+          if (isVideo) {
+            let finished = false;
+            const safetyTimeout = setTimeout(() => {
+              if (!finished) {
+                finished = true;
+                finishItem();
+              }
+            }, 1000);
+
+            try {
+              const blobUrl = URL.createObjectURL(file);
+              const vidTmp = document.createElement('video');
+              vidTmp.muted = true;
+              vidTmp.playsInline = true;
+              vidTmp.preload = 'metadata';
+              vidTmp.onloadedmetadata = () => {
+                try {
+                  vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
+                } catch(err) { console.warn('Seek err', err); }
+              };
+              vidTmp.onseeked = () => {
+                if (finished) return;
+                finished = true;
+                clearTimeout(safetyTimeout);
+                try {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = vidTmp.videoWidth || 400;
+                  canvas.height = vidTmp.videoHeight || 400;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
+                  mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
+                } catch(err) { console.warn('Thumbnail err', err); }
+                URL.revokeObjectURL(blobUrl);
+                vidTmp.src = '';
+                finishItem();
+              };
+              vidTmp.onerror = () => {
+                if (finished) return;
+                finished = true;
+                clearTimeout(safetyTimeout);
+                URL.revokeObjectURL(blobUrl);
+                finishItem();
+              };
+              vidTmp.src = blobUrl;
+            } catch (err) {
+              if (!finished) {
+                finished = true;
+                clearTimeout(safetyTimeout);
+                finishItem();
+              }
+            }
+          } else {
+            finishItem();
+          }
+        };
+
+        reader.onerror = () => {
+          clearInterval(progressInterval);
+          mediaItem.uploading = false;
+          processQueue(idx + 1);
         };
 
         reader.readAsDataURL(file);
-      });
+      }
+
+      processQueue(0);
       event.target.value = '';
     }
 
