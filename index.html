@@ -1499,28 +1499,96 @@
     /* ─── WORLD-CLASS POSTS & MEDIA SYSTEM ─── */
     .post-media-preview-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px;
       margin-top: 10px;
       margin-bottom: 10px;
-      padding: 10px;
-      background: rgba(0,0,0,0.2);
-      border-radius: 8px;
-      border: 1px dashed rgba(201,168,76,0.3);
+      padding: 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      border: 1px dashed rgba(201,168,76,0.35);
     }
     .post-media-preview-item {
       position: relative;
       aspect-ratio: 1;
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
       background: #111;
       border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .post-media-preview-item.uploading-card {
+      background: #0a0a0a;
+      border: 1px dashed var(--gold, #c9a84c);
+      box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
     }
     .post-media-preview-item img,
     .post-media-preview-item video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+    .upload-progress-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 6px;
+    }
+    .circular-dots-loader {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+    .spinning-dots-ring {
+      position: absolute;
+      inset: 0;
+      border: 5px dotted var(--gold, #c9a84c);
+      border-radius: 50%;
+      border-left-color: transparent;
+      border-bottom-color: #e0504f;
+      animation: spinCircularDots 1.8s linear infinite;
+    }
+    .spinning-dots-ring::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border: 3px dotted rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+      border-right-color: transparent;
+      border-top-color: var(--gold, #c9a84c);
+      animation: spinCircularDotsReverse 2.5s linear infinite;
+    }
+    .progress-percent-text {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(201, 168, 76, 0.8);
+      z-index: 2;
+      font-family: 'Outfit', sans-serif;
+    }
+    .upload-status-label {
+      font-size: 0.72rem;
+      color: #ddd;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.2;
+    }
+    @keyframes spinCircularDots {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes spinCircularDotsReverse {
+      0% { transform: rotate(360deg); }
+      100% { transform: rotate(0deg); }
     }
     .post-media-preview-item .remove-media-btn {
       position: absolute;
@@ -1538,6 +1606,7 @@
       justify-content: center;
       cursor: pointer;
       transition: all .2s;
+      z-index: 10;
     }
     .post-media-preview-item .remove-media-btn:hover {
       background: #e0504f;
@@ -3953,15 +4022,62 @@
       if (!files || !files.length) return;
       Array.from(files).forEach(file => {
         const isVideo = file.type.startsWith('video/');
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          composeMediaList.push({
-            type: isVideo ? 'video' : 'image',
-            src: e.target.result,
-            name: file.name
-          });
-          renderComposeMediaPreview();
+        const tempId = 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        
+        const mediaItem = {
+          tempId: tempId,
+          uploading: true,
+          progress: 0,
+          type: isVideo ? 'video' : 'image',
+          name: file.name
         };
+        composeMediaList.push(mediaItem);
+        renderComposeMediaPreview();
+
+        const reader = new FileReader();
+        let targetProgress = 0;
+        let currentProgress = 0;
+
+        const progressInterval = setInterval(() => {
+          if (currentProgress < targetProgress) {
+            currentProgress += Math.max(1, Math.floor((targetProgress - currentProgress) / 4));
+          } else if (currentProgress < 92 && !mediaItem.loadedResult) {
+            currentProgress += 1;
+          }
+          mediaItem.progress = currentProgress;
+          const progEl = document.getElementById('prog-text-' + tempId);
+          if (progEl) progEl.textContent = currentProgress + '%';
+        }, 40);
+
+        reader.onprogress = (e) => {
+          if (e.lengthComputable) {
+            targetProgress = Math.round((e.loaded / e.total) * 95);
+          }
+        };
+
+        reader.onload = (e) => {
+          mediaItem.loadedResult = e.target.result;
+          targetProgress = 100;
+          const checkDone = setInterval(() => {
+            if (currentProgress >= 100 || targetProgress === 100) {
+              clearInterval(checkDone);
+              clearInterval(progressInterval);
+              mediaItem.progress = 100;
+              const progEl = document.getElementById('prog-text-' + tempId);
+              if (progEl) progEl.textContent = '100%';
+              
+              setTimeout(() => {
+                mediaItem.uploading = false;
+                mediaItem.src = mediaItem.loadedResult;
+                delete mediaItem.loadedResult;
+                delete mediaItem.tempId;
+                delete mediaItem.progress;
+                renderComposeMediaPreview();
+              }, 450);
+            }
+          }, 30);
+        };
+
         reader.readAsDataURL(file);
       });
       event.target.value = '';
@@ -3976,12 +4092,28 @@
         return;
       }
       preview.style.display = 'grid';
-      preview.innerHTML = composeMediaList.map((m, idx) => `
-        <div class="post-media-preview-item">
-          ${m.type === 'video' ? `<video src="${m.src}" muted></video>` : `<img src="${m.src}">`}
-          <button class="remove-media-btn" onclick="removeComposeMedia(${idx})" title="حذف">✕</button>
-        </div>
-      `).join('');
+      preview.innerHTML = composeMediaList.map((m, idx) => {
+        if (m.uploading) {
+          return `
+            <div class="post-media-preview-item uploading-card">
+              <div class="upload-progress-container">
+                <div class="circular-dots-loader">
+                  <div class="spinning-dots-ring"></div>
+                  <span class="progress-percent-text" id="prog-text-${m.tempId}">${m.progress}%</span>
+                </div>
+                <div class="upload-status-label">${m.type === 'video' ? '🎬 جاري رفع الفيديو...' : '📷 جاري رفع الصورة...'}</div>
+              </div>
+              <button class="remove-media-btn" onclick="removeComposeMedia(${idx})" title="إلغاء الرفع">✕</button>
+            </div>
+          `;
+        }
+        return `
+          <div class="post-media-preview-item">
+            ${m.type === 'video' ? `<video src="${m.src}" muted controls></video>` : `<img src="${m.src}">`}
+            <button class="remove-media-btn" onclick="removeComposeMedia(${idx})" title="حذف">✕</button>
+          </div>
+        `;
+      }).join('');
     }
 
     function removeComposeMedia(idx) {
