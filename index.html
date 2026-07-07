@@ -4257,28 +4257,22 @@
         const safetyTimeout = setTimeout(() => {
           if (!finished) {
             finished = true;
+            try { if (vidTmp && vidTmp.parentNode) vidTmp.remove(); } catch(e){}
             renderComposeMediaPreview();
             processThumbnails(idx + 1);
           }
-        }, 4000);
+        }, 4500);
 
+        const vidTmp = document.createElement('video');
         try {
-          const vidTmp = document.createElement('video');
+          vidTmp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:10px;height:10px;opacity:0;pointer-events:none;';
+          document.body.appendChild(vidTmp);
           vidTmp.muted = true;
           vidTmp.playsInline = true;
           vidTmp.preload = 'auto';
-          vidTmp.onloadedmetadata = () => {
-            try {
-              vidTmp.currentTime = 0.1;
-            } catch (err) { console.warn('Seek err', err); }
-          };
-          vidTmp.onloadeddata = () => {
-            try {
-              if (vidTmp.currentTime === 0) vidTmp.currentTime = 0.1;
-            } catch (err) { }
-          };
-          vidTmp.onseeked = () => {
-            if (finished) return;
+
+          const tryExtract = () => {
+            if (finished || !vidTmp.videoWidth || !vidTmp.videoHeight) return;
             finished = true;
             clearTimeout(safetyTimeout);
             try {
@@ -4289,14 +4283,23 @@
               ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
               mediaItem.poster = canvas.toDataURL('image/jpeg', 0.7);
             } catch (err) { console.warn('Thumbnail err', err); }
+            try { if (vidTmp.parentNode) vidTmp.remove(); } catch(e){}
             vidTmp.src = '';
             renderComposeMediaPreview();
             processThumbnails(idx + 1);
           };
+
+          vidTmp.onloadedmetadata = () => {
+            try { vidTmp.currentTime = 0.1; } catch (err) {}
+          };
+          vidTmp.onloadeddata = tryExtract;
+          vidTmp.oncanplay = tryExtract;
+          vidTmp.onseeked = tryExtract;
           vidTmp.onerror = () => {
             if (finished) return;
             finished = true;
             clearTimeout(safetyTimeout);
+            try { if (vidTmp.parentNode) vidTmp.remove(); } catch(e){}
             processThumbnails(idx + 1);
           };
           vidTmp.src = mediaItem.src;
@@ -4304,6 +4307,7 @@
           if (!finished) {
             finished = true;
             clearTimeout(safetyTimeout);
+            try { if (vidTmp && vidTmp.parentNode) vidTmp.remove(); } catch(e){}
             processThumbnails(idx + 1);
           }
         }
@@ -4353,7 +4357,7 @@
         return `
           <div class="post-media-preview-item" style="cursor:pointer;" onclick="openComposeMediaViewer(${idx})" title="انقر للمعاينة والتشغيل">
             ${m.type === 'video' ? `
-              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
+              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{this.currentTime=0.001}catch(e){}" muted playsinline preload="metadata"></video>
               <div class="media-video-play-icon">▶</div>
             ` : `<img src="${m.src}">`}
             <button class="remove-media-btn" onclick="event.stopPropagation(); removeComposeMedia(${idx})" title="حذف">✕</button>
@@ -4452,9 +4456,9 @@
         ${visibleMedia.map((m, idx) => `
           <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
             ${m.type === 'video' ? `
-              <video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ''} muted playsinline preload="metadata"></video>
+              <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{this.currentTime=0.001}catch(e){}" muted playsinline preload="metadata"></video>
               <div class="media-video-play-icon">▶</div>
-            ` : `<img src="${m.src}" loading="lazy">`}
+            ` : `<img ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} src="${m.src || ''}" loading="lazy">`}
             ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
           </div>
         `).join('')}
@@ -4576,6 +4580,14 @@
           if (data) {
             const url = (data instanceof Blob || data instanceof File) ? URL.createObjectURL(data) : data;
             el.src = url;
+            if (el.tagName.toLowerCase() === 'video') {
+              el.load();
+              el.onloadeddata = () => {
+                try {
+                  el.currentTime = 0.001;
+                } catch (e) {}
+              };
+            }
           }
         }
       }
