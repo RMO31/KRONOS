@@ -4054,136 +4054,103 @@
       
       fileList.forEach(file => {
         const isVideo = file.type.startsWith('video/');
-        const tempId = 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        const blobUrl = URL.createObjectURL(file);
+        
         composeMediaList.push({
-          tempId: tempId,
-          uploading: true,
-          progress: 0,
+          tempId: 'upload_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+          uploading: false,
           type: isVideo ? 'video' : 'image',
+          src: blobUrl,
           name: file.name,
           fileObj: file
         });
       });
       renderComposeMediaPreview();
 
-      function processQueue(idx) {
+      function processThumbnails(idx) {
         if (idx >= fileList.length) {
-          renderComposeMediaPreview();
+          setTimeout(() => processBase64Queue(0), 100);
           return;
         }
-        
-        const mediaIndex = startIndex + idx;
-        const mediaItem = composeMediaList[mediaIndex];
-        if (!mediaItem) {
-          processQueue(idx + 1);
+        const mediaItem = composeMediaList[startIndex + idx];
+        if (!mediaItem || mediaItem.type !== 'video') {
+          processThumbnails(idx + 1);
           return;
         }
 
-        const file = mediaItem.fileObj;
-        const isVideo = mediaItem.type === 'video';
-        const tempId = mediaItem.tempId;
+        let finished = false;
+        const safetyTimeout = setTimeout(() => {
+          if (!finished) {
+            finished = true;
+            renderComposeMediaPreview();
+            processThumbnails(idx + 1);
+          }
+        }, 800);
+
+        try {
+          const vidTmp = document.createElement('video');
+          vidTmp.muted = true;
+          vidTmp.playsInline = true;
+          vidTmp.preload = 'metadata';
+          vidTmp.onloadedmetadata = () => {
+            try {
+              vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
+            } catch(err) { console.warn('Seek err', err); }
+          };
+          vidTmp.onseeked = () => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(safetyTimeout);
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = vidTmp.videoWidth || 400;
+              canvas.height = vidTmp.videoHeight || 400;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
+              mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
+            } catch(err) { console.warn('Thumbnail err', err); }
+            vidTmp.src = '';
+            renderComposeMediaPreview();
+            processThumbnails(idx + 1);
+          };
+          vidTmp.onerror = () => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(safetyTimeout);
+            processThumbnails(idx + 1);
+          };
+          vidTmp.src = mediaItem.src;
+        } catch (err) {
+          if (!finished) {
+            finished = true;
+            clearTimeout(safetyTimeout);
+            processThumbnails(idx + 1);
+          }
+        }
+      }
+
+      function processBase64Queue(idx) {
+        if (idx >= fileList.length) return;
+        const mediaItem = composeMediaList[startIndex + idx];
+        if (!mediaItem || !mediaItem.fileObj) {
+          processBase64Queue(idx + 1);
+          return;
+        }
 
         const reader = new FileReader();
-        let targetProgress = 15;
-        let currentProgress = 0;
-
-        const progressInterval = setInterval(() => {
-          if (currentProgress < targetProgress) {
-            currentProgress += Math.max(1, Math.floor((targetProgress - currentProgress) / 4));
-          } else if (currentProgress < 90) {
-            currentProgress += 2;
-          }
-          mediaItem.progress = currentProgress;
-          const progEl = document.getElementById('prog-text-' + tempId);
-          if (progEl) progEl.textContent = currentProgress + '%';
-        }, 30);
-
-        reader.onprogress = (e) => {
-          if (e.lengthComputable) {
-            targetProgress = Math.round((e.loaded / e.total) * 90);
-          }
-        };
-
         reader.onload = (e) => {
           mediaItem.src = e.target.result;
           delete mediaItem.fileObj;
-
-          const finishItem = () => {
-            clearInterval(progressInterval);
-            mediaItem.progress = 100;
-            mediaItem.uploading = false;
-            delete mediaItem.tempId;
-            delete mediaItem.progress;
-            renderComposeMediaPreview();
-            setTimeout(() => processQueue(idx + 1), 20);
-          };
-
-          if (isVideo) {
-            let finished = false;
-            const safetyTimeout = setTimeout(() => {
-              if (!finished) {
-                finished = true;
-                finishItem();
-              }
-            }, 1000);
-
-            try {
-              const blobUrl = URL.createObjectURL(file);
-              const vidTmp = document.createElement('video');
-              vidTmp.muted = true;
-              vidTmp.playsInline = true;
-              vidTmp.preload = 'metadata';
-              vidTmp.onloadedmetadata = () => {
-                try {
-                  vidTmp.currentTime = Math.min(0.5, (vidTmp.duration || 1) / 2);
-                } catch(err) { console.warn('Seek err', err); }
-              };
-              vidTmp.onseeked = () => {
-                if (finished) return;
-                finished = true;
-                clearTimeout(safetyTimeout);
-                try {
-                  const canvas = document.createElement('canvas');
-                  canvas.width = vidTmp.videoWidth || 400;
-                  canvas.height = vidTmp.videoHeight || 400;
-                  const ctx = canvas.getContext('2d');
-                  ctx.drawImage(vidTmp, 0, 0, canvas.width, canvas.height);
-                  mediaItem.poster = canvas.toDataURL('image/jpeg', 0.85);
-                } catch(err) { console.warn('Thumbnail err', err); }
-                URL.revokeObjectURL(blobUrl);
-                vidTmp.src = '';
-                finishItem();
-              };
-              vidTmp.onerror = () => {
-                if (finished) return;
-                finished = true;
-                clearTimeout(safetyTimeout);
-                URL.revokeObjectURL(blobUrl);
-                finishItem();
-              };
-              vidTmp.src = blobUrl;
-            } catch (err) {
-              if (!finished) {
-                finished = true;
-                clearTimeout(safetyTimeout);
-                finishItem();
-              }
-            }
-          } else {
-            finishItem();
-          }
+          processBase64Queue(idx + 1);
         };
-
         reader.onerror = () => {
-          clearInterval(progressInterval);
-          mediaItem.uploading = false;
-          processQueue(idx + 1);
+          delete mediaItem.fileObj;
+          processBase64Queue(idx + 1);
         };
-
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(mediaItem.fileObj);
       }
 
-      processQueue(0);
+      processThumbnails(0);
       event.target.value = '';
     }
 
