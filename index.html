@@ -1809,19 +1809,49 @@
     .media-more-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.65);
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(20, 15, 5, 0.8) 100%);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 26px;
-      font-weight: 700;
-      backdrop-filter: blur(4px);
-      transition: background .2s;
+      backdrop-filter: blur(8px);
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
+      border: 2px solid var(--gold, #c9a84c);
+      box-shadow: inset 0 0 30px rgba(201, 168, 76, 0.25);
+    }
+
+    .media-more-overlay .more-num {
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--gold, #c9a84c);
+      text-shadow: 0 2px 15px rgba(201, 168, 76, 0.8), 0 2px 5px rgba(0,0,0,0.9);
+      line-height: 1;
+      margin-bottom: 8px;
+      font-family: 'Outfit', 'Segoe UI', sans-serif;
+    }
+
+    .media-more-overlay .more-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(201, 168, 76, 0.25);
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(201, 168, 76, 0.6);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .media-grid-item:hover .media-more-overlay {
-      background: rgba(0, 0, 0, 0.5);
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.85) 0%, rgba(0, 0, 0, 0.9) 100%);
+      transform: scale(1.02);
+    }
+
+    .media-grid-item:hover .media-more-overlay .more-num {
+      color: #fff;
+      text-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
     }
 
     .media-video-play-icon {
@@ -4477,9 +4507,9 @@
           <div class="media-grid-item" onclick="openMediaViewer('${postId}', ${idx})">
             ${m.type === 'video' ? `
               <video ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} ${m.posterKey ? `data-poster-idb="${m.posterKey}"` : ''} ${m.src ? `src="${m.src}"` : ''} ${m.poster ? `poster="${m.poster}"` : ''} onloadeddata="try{if(this.currentTime<0.2)this.currentTime=0.5}catch(e){}" muted playsinline preload="auto"></video>
-              <div class="media-video-play-icon">▶</div>
+              ${(idx === 3 && count >= 5) ? '' : `<div class="media-video-play-icon">▶</div>`}
             ` : `<img ${m.idbKey ? `data-idb="${m.idbKey}"` : ''} ${m.src ? `src="${m.src}"` : ''} loading="lazy">`}
-            ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay">+${moreCount}</div>` : ''}
+            ${(idx === 3 && count >= 5) ? `<div class="media-more-overlay"><span class="more-num">+${moreCount}</span><span class="more-label">مشاهدة الكل (${count})</span></div>` : ''}
           </div>
         `).join('')}
       </div>`;
