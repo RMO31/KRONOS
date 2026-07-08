@@ -3356,9 +3356,21 @@
 
   <!-- ══════════════════════════════ POSTS ══════════════════════════════ -->
   <section id="room-posts" class="room">
-    <div class="section-header">
-      <h2><span class="icon">📢</span> <span data-i18n="posts.title">المنشورات</span></h2>
-      <p data-i18n="posts.sub">شارك أفكارك وأبحاثك مع مجتمع المهتمين</p>
+    <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.2rem">
+      <div>
+        <h2 style="margin-bottom:4px"><span class="icon">📢</span> <span data-i18n="posts.title">المنشورات</span></h2>
+        <p data-i18n="posts.sub" style="margin:0">شارك أفكارك وأبحاثك مع مجتمع المهتمين</p>
+      </div>
+      <div class="posts-search-box" style="display:flex;align-items:center;gap:.5rem;background:linear-gradient(145deg, rgba(24,20,12,0.8), rgba(13,10,6,0.9));border:1.5px solid rgba(201,168,76,0.4);border-radius:14px;padding:.4rem .8rem;box-shadow:0 6px 20px rgba(0,0,0,0.5), 0 0 15px rgba(201,168,76,0.1);flex:1;min-width:280px;max-width:480px">
+        <span style="color:var(--gold,#c9a84c);font-size:17px">🔍</span>
+        <input type="text" id="postsSearchInput" placeholder="ابحث في المنشورات..." style="background:transparent;border:none;color:#fff;outline:none;font-family:var(--font-ar);font-size:13.5px;flex:1;min-width:120px" oninput="filterPostsFeed()">
+        <select id="postsSearchFilterType" onchange="filterPostsFeed()" style="background:#16130c;color:var(--gold,#c9a84c);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:.3rem .6rem;font-family:var(--font-ar);font-size:12.5px;outline:none;cursor:pointer">
+          <option value="all">🌐 الكل (المحتوى والكاتب)</option>
+          <option value="content">📝 المنشورات (النص)</option>
+          <option value="author">👤 المستخدم (الكاتب)</option>
+        </select>
+        <button onclick="clearPostsSearch()" title="مسح البحث" style="background:transparent;border:none;color:#ff6b6b;cursor:pointer;font-size:16px;display:none;padding:0 .3rem;font-weight:bold" id="clearPostsSearchBtn">✕</button>
+      </div>
     </div>
     <div class="content-wrap">
       <div class="posts-layout">
@@ -4899,14 +4911,55 @@
       }
     }
 
+    function filterPostsFeed() {
+      renderPostsFeed();
+    }
+
+    function clearPostsSearch() {
+      const searchInput = document.getElementById('postsSearchInput');
+      if (searchInput) searchInput.value = '';
+      renderPostsFeed();
+    }
+
     function renderPostsFeed() {
       const feed = document.getElementById('postsFeed');
       if (!feed) return;
-      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
-      if (!posts.length) {
+      const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      if (!allPosts.length) {
         feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد — كن أول من ينشر!</div>`;
         return;
       }
+
+      const searchInput = document.getElementById('postsSearchInput');
+      const filterSelect = document.getElementById('postsSearchFilterType');
+      const clearBtn = document.getElementById('clearPostsSearchBtn');
+      const query = (searchInput ? searchInput.value.trim().toLowerCase() : '');
+      const filterType = (filterSelect ? filterSelect.value : 'all');
+
+      if (clearBtn) {
+        clearBtn.style.display = query ? 'inline-block' : 'none';
+      }
+
+      let posts = allPosts;
+      if (query) {
+        posts = allPosts.filter(post => {
+          const contentStr = (post.text || '').toLowerCase();
+          const authorStr = (post.author || '').toLowerCase();
+          if (filterType === 'content') {
+            return contentStr.includes(query);
+          } else if (filterType === 'author') {
+            return authorStr.includes(query);
+          } else {
+            return contentStr.includes(query) || authorStr.includes(query);
+          }
+        });
+      }
+
+      if (!posts.length) {
+        feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد نتائج مطابقة لبحثك عن "<b>${query}</b>" <button onclick="clearPostsSearch()" style="background:transparent;border:none;color:var(--gold);cursor:pointer;text-decoration:underline">إلغاء البحث</button></div>`;
+        return;
+      }
+
       const session = getSession();
       const currentUserId = session?.userId || 'me';
       const currentUserName = session?.name || 'أنت';
