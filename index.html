@@ -2253,23 +2253,30 @@
     }
 
     .yt-modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 100;
+      width: 38px;
+      height: 38px;
       display: flex;
       align-items: center;
-      gap: .5rem;
+      justify-content: center;
       background: transparent;
       border: none;
-      color: var(--text-dim);
-      font-family: var(--font-ar);
-      font-size: 13px;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
       cursor: pointer;
-      padding: .8rem 1.5rem;
-      border-top: 1px solid rgba(201, 168, 76, 0.1);
-      width: 100%;
-      transition: color .2s;
+      border-radius: 50%;
+      padding: 0;
+      transition: all 0.2s ease;
     }
 
     .yt-modal-close:hover {
-      color: var(--gold);
+      color: var(--gold, #c9a84c);
+      transform: scale(1.15);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     /* ───── ABOUT ───── */
@@ -3433,9 +3440,7 @@
   <!-- Media Viewer Modal (World-Class Lightbox) -->
   <div class="yt-modal-overlay" id="mediaViewerModal" style="z-index:6000">
     <div class="media-lightbox-content">
-      <button class="yt-modal-close"
-        style="top:20px;right:20px;position:absolute;z-index:100;background:rgba(0,0,0,0.7);color:#fff;border:1px solid rgba(255,255,255,0.2)"
-        onclick="closeMediaViewer()">✕ &nbsp;إغلاق</button>
+      <button class="yt-modal-close" style="top:25px;right:25px" onclick="closeMediaViewer()" title="إغلاق">✕</button>
       <button class="media-nav-btn prev" id="mediaPrevBtn" onclick="navigateMedia(-1)" title="السابق (يمين)">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
           stroke-linecap="round" stroke-linejoin="round">
@@ -3456,7 +3461,7 @@
   <!-- User Profile & Stats Modal -->
   <div class="yt-modal-overlay" id="userProfileModal" style="z-index:6500" onclick="if(event.target===this)closeUserProfile()">
     <div class="user-profile-modal-card">
-      <button class="yt-modal-close" style="top:15px;right:15px;position:absolute;background:rgba(0,0,0,0.6);color:#fff;border:1px solid rgba(255,255,255,0.2)" onclick="closeUserProfile()">✕</button>
+      <button class="yt-modal-close" style="top:15px;right:15px" onclick="closeUserProfile()" title="إغلاق">✕</button>
       <div class="user-profile-header">
         <div class="user-profile-avatar" id="upmAvatar">👤</div>
         <h3 class="user-profile-name" id="upmName">المستخدم</h3>
