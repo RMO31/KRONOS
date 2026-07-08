@@ -3466,6 +3466,7 @@
             <div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد
               — كن أول من ينشر!</div>
           </div>
+          <div id="postsPaginationWrap" style="margin-top:1.5rem"></div>
         </div>
 
         <!-- Sidebar -->
@@ -5039,15 +5040,69 @@
       return score;
     }
 
+    let currentPostsPage = 1;
+
+    function changePostsPage(newPage) {
+      currentPostsPage = newPage;
+      renderPostsFeed();
+      const feed = document.getElementById('postsFeed');
+      if (feed) {
+        const header = document.querySelector('#room-posts .section-header') || feed;
+        header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function renderPostsPaginationControls(currentPage, totalPages) {
+      if (totalPages <= 1) return '';
+      const pStyle = (active) => `style="padding:.45rem .85rem;border-radius:8px;border:1px solid ${active ? 'var(--gold)' : 'rgba(201,168,76,0.25)'};background:${active ? 'linear-gradient(145deg, rgba(201,168,76,0.3), rgba(201,168,76,0.1))' : 'rgba(255,255,255,0.03)'};color:${active ? 'var(--gold)' : '#ccc'};cursor:pointer;font-family:var(--font-ar);font-weight:bold;font-size:13.5px;transition:all 0.2s"`;
+
+      let html = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.8rem;flex-wrap:wrap;margin:1.5rem 0 0.5rem;padding:1.2rem;background:linear-gradient(145deg, rgba(26,22,13,0.9), rgba(13,10,6,0.9));border:1px solid rgba(201,168,76,0.35);border-radius:14px;box-shadow:0 8px 25px rgba(0,0,0,0.5);width:100%">
+          <button onclick="changePostsPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#aaa;border-radius:8px;padding:.5rem 1.2rem;font-size:13.5px;font-family:var(--font-ar);font-weight:bold"' : 'style="background:linear-gradient(145deg, rgba(201,168,76,0.25), rgba(201,168,76,0.1));border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:.5rem 1.2rem;font-size:13.5px;font-family:var(--font-ar);font-weight:bold;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(201,168,76,0.2)"'}>
+            ◀ رجوع
+          </button>
+          
+          <div style="display:flex;align-items:center;gap:0.4rem;font-family:var(--font-ar);font-size:14px;color:var(--parchment);margin:0 0.5rem">
+            <span>الصفحة</span>
+            <span style="background:var(--gold);color:#000;font-weight:bold;padding:.15rem .6rem;border-radius:6px;font-size:13px">${currentPage}</span>
+            <span>من</span>
+            <span style="font-weight:bold;color:var(--gold-light)">${totalPages}</span>
+          </div>
+
+          <div style="display:flex;gap:.4rem;align-items:center">
+      `;
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2) {
+          html += `<button ${pStyle(p === currentPage)} onclick="changePostsPage(${p})">${p}</button>`;
+        } else if (Math.abs(p - currentPage) === 3) {
+          html += `<span style="color:var(--text-dimmer)">…</span>`;
+        }
+      }
+      html += `</div>`;
+
+      html += `
+          <button onclick="changePostsPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled style="opacity:0.4;cursor:not-allowed;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#aaa;border-radius:8px;padding:.5rem 1.2rem;font-size:13.5px;font-family:var(--font-ar);font-weight:bold"' : 'style="background:linear-gradient(145deg, rgba(201,168,76,0.25), rgba(201,168,76,0.1));border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:.5rem 1.2rem;font-size:13.5px;font-family:var(--font-ar);font-weight:bold;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(201,168,76,0.2)"'}>
+            تقدم ▶
+          </button>
+        </div>
+      `;
+      return html;
+    }
+
     function filterPostsByAuthorClick(authorName) {
       const searchInput = document.getElementById('postsSearchInput');
       const filterSelect = document.getElementById('postsSearchFilterType');
       if (filterSelect) filterSelect.value = 'all';
       if (searchInput) searchInput.value = authorName;
+      currentPostsPage = 1;
       renderPostsFeed();
     }
 
     function filterPostsFeed(isManualTrigger) {
+      if (isManualTrigger || window._resetPostsPageOnFilter !== false) {
+        currentPostsPage = 1;
+      }
       renderPostsFeed();
       if (isManualTrigger) {
         const searchInput = document.getElementById('postsSearchInput');
@@ -5062,15 +5117,18 @@
     function clearPostsSearch() {
       const searchInput = document.getElementById('postsSearchInput');
       if (searchInput) searchInput.value = '';
+      currentPostsPage = 1;
       renderPostsFeed();
     }
 
     function renderPostsFeed() {
       const feed = document.getElementById('postsFeed');
+      const paginationWrap = document.getElementById('postsPaginationWrap');
       if (!feed) return;
       const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       if (!allPosts.length) {
         feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد — كن أول من ينشر!</div>`;
+        if (paginationWrap) paginationWrap.innerHTML = '';
         return;
       }
 
@@ -5109,16 +5167,22 @@
 
         if (!authorsList.length) {
           feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا يوجد كاتب/مستخدم يطابق الاسم "<b>${rawQuery}</b>" <br><br><button onclick="clearPostsSearch()" class="btn-gold" style="padding:.4rem 1rem;font-size:13px">إلغاء البحث</button></div>`;
+          if (paginationWrap) paginationWrap.innerHTML = '';
           return;
         }
 
+        const totalPages = Math.max(1, Math.ceil(authorsList.length / 20));
+        currentPostsPage = Math.min(Math.max(1, currentPostsPage), totalPages);
+        const start = (currentPostsPage - 1) * 20;
+        const paginatedAuthors = authorsList.slice(start, start + 20);
+
         feed.innerHTML = `
-          <div style="margin-bottom:1.2rem;color:var(--gold);font-size:14px;font-family:var(--font-ar);display:flex;align-items:center;justify-content:space-between">
-            <span>👥 تم العثور على <b>${authorsList.length}</b> من الكتاب والمستخدمين حسب سياق البحث:</span>
+          <div style="margin-bottom:1.2rem;color:var(--gold);font-size:14px;font-family:var(--font-ar);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+            <span>👥 تم العثور على <b>${authorsList.length}</b> من الكتاب والمستخدمين (عرض الصفحة ${currentPostsPage} من ${totalPages}):</span>
             ${rawQuery ? `<button onclick="clearPostsSearch()" style="background:transparent;border:1px solid rgba(201,168,76,0.4);color:var(--gold);border-radius:6px;padding:.2rem .6rem;font-size:12px;cursor:pointer">إلغاء فلتر الكاتب</button>` : ''}
           </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:1.2rem;margin-bottom:2rem">
-            ${authorsList.map(author => `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:1.2rem;margin-bottom:1.5rem">
+            ${paginatedAuthors.map(author => `
               <div class="author-search-card" style="background:linear-gradient(145deg, #1a160d, #0d0a06);border:1.5px solid rgba(201,168,76,0.35);border-radius:16px;padding:1.5rem 1.2rem;text-align:center;transition:all 0.3s ease;box-shadow:0 8px 25px rgba(0,0,0,0.6)">
                 <div class="post-avatar" style="width:80px;height:80px;font-size:40px;margin:0 auto 1rem;border:2.5px solid var(--gold,#c9a84c);box-shadow:0 0 20px rgba(201,168,76,0.35);display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;background:rgba(201,168,76,0.1)" onclick="openUserProfileByAuthorName('${author.name}')">${author.avatar}</div>
                 <h4 style="color:var(--gold,#c9a84c);margin:0 0 .5rem;font-size:18px;font-weight:bold;font-family:var(--font-ar);cursor:pointer" onclick="openUserProfileByAuthorName('${author.name}')">${author.name}</h4>
@@ -5131,6 +5195,9 @@
             `).join('')}
           </div>
         `;
+        if (paginationWrap) {
+          paginationWrap.innerHTML = renderPostsPaginationControls(currentPostsPage, totalPages);
+        }
         return;
       }
 
@@ -5146,14 +5213,30 @@
 
       if (!posts.length) {
         feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات مطابقة لخوارزمية البحث عن "<b>${rawQuery}</b>" <br><br><button onclick="clearPostsSearch()" class="btn-gold" style="padding:.4rem 1rem;font-size:13px">إلغاء البحث</button></div>`;
+        if (paginationWrap) paginationWrap.innerHTML = '';
         return;
       }
+
+      const totalPages = Math.max(1, Math.ceil(posts.length / 20));
+      currentPostsPage = Math.min(Math.max(1, currentPostsPage), totalPages);
+      const start = (currentPostsPage - 1) * 20;
+      const paginatedPosts = posts.slice(start, start + 20);
 
       const session = getSession();
       const currentUserId = session?.userId || 'me';
       const currentUserName = session?.name || 'أنت';
 
-      feed.innerHTML = posts.map(post => {
+      let headerInfo = '';
+      if (rawQuery) {
+        headerInfo = `
+          <div style="margin-bottom:1.2rem;color:var(--gold);font-size:14px;font-family:var(--font-ar);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+            <span>🔍 نتائج البحث عن "<b>${rawQuery}</b>": تم العثور على <b>${posts.length}</b> منشور (الصفحة ${currentPostsPage} من ${totalPages})</span>
+            <button onclick="clearPostsSearch()" style="background:transparent;border:1px solid rgba(201,168,76,0.4);color:var(--gold);border-radius:6px;padding:.2rem .6rem;font-size:12px;cursor:pointer">إلغاء البحث</button>
+          </div>
+        `;
+      }
+
+      feed.innerHTML = headerInfo + paginatedPosts.map(post => {
         const isOwner = post.authorId === currentUserId || post.author === 'أنت' || post.author === currentUserName;
         const csId = 'cs_' + post.id;
         return `
@@ -5191,6 +5274,10 @@
           </div>
         `;
       }).join('');
+
+      if (paginationWrap) {
+        paginationWrap.innerHTML = renderPostsPaginationControls(currentPostsPage, totalPages);
+      }
       setTimeout(hydrateIndexedDBMedia, 30);
       setTimeout(checkDirectPostRouting, 150);
     }
@@ -5291,7 +5378,10 @@
 
       try {
         localStorage.setItem('kronos_posts', JSON.stringify(posts));
-        if (!editingPostId) showToast('🎉 تم نشر منشورك بنجاح!');
+        if (!editingPostId) {
+          currentPostsPage = 1;
+          showToast('🎉 تم نشر منشورك بنجاح!');
+        }
         input.value = '';
         composeMediaList = [];
         renderComposeMediaPreview();
