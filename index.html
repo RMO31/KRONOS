@@ -2842,23 +2842,92 @@
       transform: translateY(0);
     }
 
-    /* ───── FOOTER ───── */
-    footer {
-      border-top: 1px solid rgba(201, 168, 76, 0.1);
-      padding: 1.5rem 2rem;
+    /* ───── FOOTER (WORLD-CLASS COPYRIGHT & RMO PROTECTION) ───── */
+    footer, .site-footer {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      background: linear-gradient(180deg, rgba(14, 11, 6, 0.6) 0%, rgba(8, 6, 3, 0.98) 100%);
+      border-top: 1px solid rgba(212, 175, 55, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 3rem 1.5rem 2.5rem;
+      margin-top: 4rem;
       text-align: center;
-      font-size: 12px;
-      color: var(--text-dimmer);
-      background: var(--dark2);
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1.8;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
     }
-
-    footer a {
-      color: var(--gold-dim);
-      text-decoration: none;
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
     }
-
-    footer a:hover {
+    .footer-logo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-title);
+      font-size: 1.5rem;
+      font-weight: 700;
       color: var(--gold);
+      letter-spacing: 1px;
+    }
+    .footer-legal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: var(--gold-light);
+      padding: 0.45rem 1.2rem;
+      border-radius: 50px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 18px rgba(212, 175, 55, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .footer-legal-badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212, 175, 55, 0.3);
+    }
+    .footer-copyright-text {
+      color: var(--parchment);
+      font-size: 15px;
+      max-width: 880px;
+      margin: 0 auto;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      line-height: 1.9;
+    }
+    .footer-rmo {
+      color: var(--gold);
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFF8DB 0%, #D4AF37 50%, #AA771C 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding: 0 4px;
+      display: inline-block;
+      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+    }
+    .footer-divider {
+      width: 100px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0.4rem 0;
+    }
+    .footer-bottom-row {
+      font-size: 12.5px;
+      color: rgba(235, 225, 201, 0.55);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.8rem;
     }
 
     /* ───── RESPONSIVE ───── */
@@ -3137,11 +3206,6 @@
         </div>
       </div>
     </div>
-
-    <footer>
-      <p>© 2024 Kronos — <span data-i18n="footer.rights">جميع الحقوق محفوظة</span> · <a href="#"
-          onclick="showRoom('about')" data-i18n="footer.about">من نحن</a></p>
-    </footer>
   </section>
 
   <!-- ══════════════════════════════ ARCHIVE ══════════════════════════════ -->
@@ -3558,8 +3622,28 @@
           <p data-i18n="about.stat4">لغات مدعومة</p>
         </div>
       </div>
-    </div>
   </section>
+
+  <!-- ══════════════════════════════ GLOBAL SITE FOOTER ══════════════════════════════ -->
+  <footer id="globalSiteFooter" class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo-row">
+        <span>KRONOS ARCHIVE</span>
+      </div>
+      <div class="footer-legal-badge">
+        <span data-i18n="footer.badge">حماية عالمية للملكية الفكرية ⚖️</span>
+      </div>
+      <div class="footer-copyright-text">
+        <span data-i18n="footer.copyright">جميع الحقوق ومحتويات وأرشيف الموقع محمية دولياً بموجب قوانين واتفاقيات الملكية الفكرية العالمية © 2026 من طرف</span>
+        <span class="footer-rmo">RMO</span>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-bottom-row">
+        <span>© 2026 KRONOS · RMO GLOBAL INTELLECTUAL PROPERTY RIGHTS</span> · 
+        <a href="#" onclick="showRoom('about'); return false;" style="color:var(--gold-light);text-decoration:none;" data-i18n="footer.about">من نحن</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- ══════════════════════════════ AUTH MODAL ══════════════════════════════ -->
   <div class="auth-overlay" id="authOverlay">
@@ -3772,6 +3856,8 @@
         'auth.login': 'دخول', 'auth.register': 'حساب جديد',
         'auth.email': 'البريد الإلكتروني', 'auth.password': 'كلمة المرور', 'auth.name': 'الاسم الكامل',
         'auth.loginBtn': 'تسجيل الدخول', 'auth.registerBtn': 'إنشاء الحساب',
+        'footer.badge': 'حماية عالمية للملكية الفكرية ⚖️',
+        'footer.copyright': 'جميع الحقوق ومحتويات وأرشيف الموقع محمية دولياً بموجب قوانين واتفاقيات الملكية الفكرية العالمية © 2026 من طرف'
       },
       en: {
         'nav.tagline': 'History & Geography', 'nav.home': 'Home', 'nav.archive': 'Archive',
@@ -3809,6 +3895,8 @@
         'auth.login': 'Login', 'auth.register': 'Register',
         'auth.email': 'Email', 'auth.password': 'Password', 'auth.name': 'Full Name',
         'auth.loginBtn': 'Sign In', 'auth.registerBtn': 'Create Account',
+        'footer.badge': 'Global Intellectual Property Protection ⚖️',
+        'footer.copyright': 'All rights, site contents and archives are globally protected under international copyright and intellectual property treaties © 2026 From'
       },
       fr: {
         'nav.tagline': 'Histoire & Géographie', 'nav.home': 'Accueil', 'nav.archive': 'Archive',
@@ -3819,7 +3907,7 @@
         'home.sub': 'Une plateforme dédiée à l\'Histoire et la Géographie — archives structurées, publications interactives et vidéos documentaires.',
         'home.btn1': 'Explorer l\'Archive', 'home.btn2': 'Publications',
         'home.card1.tag': 'Ères Anciennes', 'home.card1.title': 'Civilisations antiques', 'home.card1.desc': 'Égypte pharaonique, Mésopotamie, Grèce et Rome — documents, cartes et analyses.',
-        'home.card2.tag': 'Ère Islamique', 'home.card2.title': 'Le Califat & les Sciences', 'home.card2.desc': 'L\'âge d\'or de la civilisation islamique — science, philosophie, géographie.',
+        'home.card2.tag': 'Ère Islamique', 'home.card2.title': 'Le Califat & les Sciences', 'home.card2.desc': 'L\'age d\'or de la civilisation islamique — science, philosophie, géographie.',
         'home.card3.tag': 'Vidéos', 'home.card3.title': 'Documentation Visuelle', 'home.card3.desc': 'Vidéos éducatives et documentaires sélectionnées sur l\'histoire et la géographie.',
         'home.card4.tag': 'Communauté', 'home.card4.title': 'Publications & Discussions', 'home.card4.desc': 'Partagez vos recherches et idées avec une communauté passionnée.',
         'footer.rights': 'Tous droits réservés', 'footer.about': 'À propos',
@@ -3846,6 +3934,8 @@
         'auth.login': 'Connexion', 'auth.register': 'S\'inscrire',
         'auth.email': 'Email', 'auth.password': 'Mot de passe', 'auth.name': 'Nom complet',
         'auth.loginBtn': 'Se connecter', 'auth.registerBtn': 'Créer un compte',
+        'footer.badge': 'Protection Mondiale de la Propriété Intellectuelle ⚖️',
+        'footer.copyright': 'Tous droits et contenus du site sont protégés à l\'échelle mondiale par les traités internationaux de propriété intellectuelle © 2026 Par'
       },
       es: {
         'nav.tagline': 'Historia y Geografía', 'nav.home': 'Inicio', 'nav.archive': 'Archivo',
@@ -3856,7 +3946,7 @@
         'home.sub': 'Una plataforma dedicada a la Historia y Geografía — archivo estructurado, publicaciones interactivas y videos documentales.',
         'home.btn1': 'Explorar Archivo', 'home.btn2': 'Publicaciones',
         'home.card1.tag': 'Eras Antiguas', 'home.card1.title': 'Civilizaciones Antiguas', 'home.card1.desc': 'Egipto faraónico, Mesopotamia, Grecia y Roma — documentos, mapas y análisis.',
-        'home.card2.tag': 'Era Islámica', 'home.card2.title': 'El Califato y las Ciencias', 'home.card2.desc': 'La edad de oro de la civilización islámica — ciencia, filosofía, geografía.',
+        'home.card2.tag': 'Era Islámica', 'home.card2.title': 'El Califat y las Ciencias', 'home.card2.desc': 'La edad de oro de la civilización islámica — ciencia, filosofía, geografía.',
         'home.card3.tag': 'Videos', 'home.card3.title': 'Documentación Visual', 'home.card3.desc': 'Videos educativos y documentales seleccionados sobre historia y geografía.',
         'home.card4.tag': 'Comunidad', 'home.card4.title': 'Publicaciones y Debates', 'home.card4.desc': 'Comparte tu investigación e ideas con la comunidad.',
         'footer.rights': 'Todos los derechos reservados', 'footer.about': 'Acerca de',
@@ -3883,6 +3973,8 @@
         'auth.login': 'Iniciar sesión', 'auth.register': 'Registrarse',
         'auth.email': 'Correo electrónico', 'auth.password': 'Contraseña', 'auth.name': 'Nombre completo',
         'auth.loginBtn': 'Iniciar sesión', 'auth.registerBtn': 'Crear cuenta',
+        'footer.badge': 'Protección Global de la Propiedad Intelectual ⚖️',
+        'footer.copyright': 'Todos los derechos y contenidos del sitio están protegidos mundialmente por tratados internacionales de propiedad intelectual © 2026 Por'
       }
     };
 
@@ -4354,45 +4446,21 @@
 
     function initPostsSystem() {
       if (!localStorage.getItem('kronos_posts')) {
-        const initialPosts = [
-          {
-            id: 'post_sample_1',
-            author: '👑 Kronos_Admin',
-            authorId: 'admin_01',
-            avatar: '👑',
-            date: 'منذ ساعتين',
-            text: 'مرحباً بكم في نظام المنشورات المطوّر لكرونوس! 🌟 يمكنكم الآن مشاركة الأبحاث والصور والفيديوهات المتعددة مع مجتمعنا. أهلاً بك @الجميع في عالم #التاريخ و #الجغرافيا و #تراث_إنساني !',
-            media: [
-              { type: 'image', src: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80' },
-              { type: 'image', src: 'https://images.unsplash.com/photo-1524654458049-e36be0721fa2?auto=format&fit=crop&w=800&q=80' },
-              { type: 'image', src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80' }
-            ],
-            likes: 18,
-            comments: [
-              { author: 'ZAMAKAN', text: 'تحديث أسطوري! نظام الوسائط المتعددة والإشارات رائع جداً 👏' }
-            ]
-          },
-          {
-            id: 'post_sample_2',
-            author: 'RMO',
-            authorId: 'rmo_01',
-            avatar: '👤',
-            date: 'منذ 5 ساعات',
-            text: 'بحث جديد حول تطور الخرائط في العصور الوسطى! قمت برفع بعض الخرائط التاريخية النادرة للمعاينة. ما رأيك @ZAMAKAN في هذه التحف؟ #خرائط #مخطوطات #تراث',
-            media: [
-              { type: 'image', src: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80' },
-              { type: 'image', src: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=800&q=80' }
-            ],
-            likes: 12,
-            comments: []
-          }
-        ];
-        localStorage.setItem('kronos_posts', JSON.stringify(initialPosts));
+        localStorage.setItem('kronos_posts', JSON.stringify([]));
       }
       try {
         let existingPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
         let modified = false;
+        // Remove dummy accounts / fake info from stored posts or comments
+        const origPostsLen = existingPosts.length;
+        existingPosts = existingPosts.filter(p => p.author !== 'ZAMAKAN' && p.author !== 'حساب وهمي' && p.id !== 'post_sample_1' && p.id !== 'post_sample_2');
+        if (existingPosts.length !== origPostsLen) modified = true;
         for (let p of existingPosts) {
+          if (p.comments && Array.isArray(p.comments)) {
+            let origLen = p.comments.length;
+            p.comments = p.comments.filter(c => c.author !== 'ZAMAKAN' && c.author !== 'حساب وهمي' && c.author !== '👑 Kronos_Admin');
+            if (p.comments.length !== origLen) modified = true;
+          }
           if (p.media && Array.isArray(p.media)) {
             for (let m of p.media) {
               // Migrate large inline data to IDB
@@ -4413,6 +4481,27 @@
         }
         if (modified) localStorage.setItem('kronos_posts', JSON.stringify(existingPosts));
       } catch (e) { console.warn('Migration error', e); }
+
+      // Clean up any fake random account data / numbers from user profiles in localStorage
+      try {
+        let profiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
+        let modifiedProfiles = false;
+        for (let name in profiles) {
+          if (name === 'ZAMAKAN' || name === 'حساب وهمي' || name === '👑 Kronos_Admin' || name === 'Kronos_Admin' || name.includes('sample') || name.includes('dummy')) {
+            delete profiles[name];
+            modifiedProfiles = true;
+            continue;
+          }
+          if (profiles[name].followersCount > 1 || profiles[name].followingCount > 0) {
+            profiles[name].followersCount = profiles[name].isFollowedByMe ? 1 : 0;
+            profiles[name].followingCount = 0;
+            modifiedProfiles = true;
+          }
+        }
+        if (modifiedProfiles) {
+          localStorage.setItem('kronos_users_profiles', JSON.stringify(profiles));
+        }
+      } catch (e) {}
 
       renderPostsFeed();
     }
@@ -4607,11 +4696,13 @@
 
       if (lastAt !== -1 && !/\s/.test(textBefore.slice(lastAt))) {
         const query = textBefore.slice(lastAt + 1).toLowerCase();
+        const realProfiles = Object.keys(JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}'))
+          .filter(n => n !== 'ZAMAKAN' && n !== 'حساب وهمي' && n !== 'RMO' && !n.includes('Admin'))
+          .map(n => ({ tag: n, label: `👤 @${n}` }));
         const defaultMentions = [
           { tag: 'الجميع', label: '👑 @الجميع (إشارة لجميع المتابعين)' },
-          { tag: 'RMO', label: '👤 @RMO (مشرف)' },
-          { tag: 'ZAMAKAN', label: '👤 @ZAMAKAN (عضو مبدع)' },
-          { tag: 'Kronos_Admin', label: '👑 @Kronos_Admin' }
+          { tag: 'RMO', label: '👑 @RMO (إدارة ومؤسس كرونوس)' },
+          ...realProfiles
         ];
         const filtered = defaultMentions.filter(m => m.tag.toLowerCase().includes(query) || m.label.toLowerCase().includes(query));
         if (filtered.length) {
@@ -4744,21 +4835,9 @@
     function getProfileData(userName) {
       let profiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
       if (!profiles[userName]) {
-        let defaultFollowers = Math.floor(Math.random() * 400) + 50;
-        let defaultFollowing = Math.floor(Math.random() * 150) + 10;
-        if (userName.includes('Kronos') || userName.includes('Admin') || userName.includes('كرونوس')) {
-          defaultFollowers = 1540;
-          defaultFollowing = 12;
-        } else if (userName === 'ZAMAKAN') {
-          defaultFollowers = 340;
-          defaultFollowing = 85;
-        } else if (userName === 'RMO') {
-          defaultFollowers = 210;
-          defaultFollowing = 45;
-        }
         profiles[userName] = {
-          followersCount: defaultFollowers,
-          followingCount: defaultFollowing,
+          followersCount: 0,
+          followingCount: 0,
           isFollowedByMe: false
         };
         localStorage.setItem('kronos_users_profiles', JSON.stringify(profiles));
