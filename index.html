@@ -2877,6 +2877,123 @@
         padding: 2rem 1rem 1rem;
       }
     }
+
+    /* ─── USER PROFILE MODAL & STATS ─── */
+    .user-profile-modal-card {
+      background: linear-gradient(145deg, #18140c 0%, #0d0a06 100%);
+      border: 2px solid var(--gold, #c9a84c);
+      border-radius: 16px;
+      padding: 30px 25px;
+      width: 90%;
+      max-width: 400px;
+      position: relative;
+      text-align: center;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.9), 0 0 35px rgba(201, 168, 76, 0.35);
+      animation: zoomInModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes zoomInModal {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .user-profile-header {
+      margin-bottom: 22px;
+    }
+    .user-profile-avatar {
+      font-size: 64px;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 12px;
+      background: rgba(201, 168, 76, 0.15);
+      border: 3px solid var(--gold, #c9a84c);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(201, 168, 76, 0.4);
+    }
+    .user-profile-name {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--gold, #c9a84c);
+      margin: 0 0 6px;
+      font-family: 'Outfit', 'Segoe UI', sans-serif;
+    }
+    .user-profile-badge {
+      font-size: 13px;
+      color: #ccc;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+    }
+    .user-profile-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 25px;
+      background: rgba(0,0,0,0.4);
+      padding: 15px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .user-profile-stats .stat-box {
+      text-align: center;
+    }
+    .user-profile-stats .stat-num {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      font-family: 'Outfit', 'Segoe UI', sans-serif;
+    }
+    .user-profile-stats .stat-label {
+      font-size: 12px;
+      color: var(--gold, #c9a84c);
+      margin-top: 4px;
+    }
+    .user-profile-actions .btn-follow {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 30px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-follow.follow {
+      background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b08d33 100%);
+      color: #000;
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.4);
+    }
+    .btn-follow.follow:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(201, 168, 76, 0.6);
+    }
+    .btn-follow.following {
+      background: rgba(40, 167, 69, 0.2);
+      color: #28a745;
+      border: 2px solid #28a745;
+    }
+    .btn-follow.following:hover {
+      background: rgba(220, 53, 69, 0.2);
+      color: #dc3545;
+      border-color: #dc3545;
+    }
+    .btn-follow.following:hover::after {
+      content: ' (إلغاء المتابعة)';
+      font-size: 13px;
+    }
+    .btn-follow.self {
+      background: rgba(255,255,255,0.1);
+      color: #aaa;
+      cursor: default;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
   </style>
 </head>
 
@@ -3333,6 +3450,35 @@
         </svg>
       </button>
       <div class="media-viewer-counter" id="mediaViewerCounter"></div>
+    </div>
+  </div>
+
+  <!-- User Profile & Stats Modal -->
+  <div class="yt-modal-overlay" id="userProfileModal" style="z-index:6500" onclick="if(event.target===this)closeUserProfile()">
+    <div class="user-profile-modal-card">
+      <button class="yt-modal-close" style="top:15px;right:15px;position:absolute;background:rgba(0,0,0,0.6);color:#fff;border:1px solid rgba(255,255,255,0.2)" onclick="closeUserProfile()">✕</button>
+      <div class="user-profile-header">
+        <div class="user-profile-avatar" id="upmAvatar">👤</div>
+        <h3 class="user-profile-name" id="upmName">المستخدم</h3>
+        <div class="user-profile-badge" id="upmBadge">👑 عضو في مجتمع كرونوس الملكي</div>
+      </div>
+      <div class="user-profile-stats">
+        <div class="stat-box">
+          <div class="stat-num" id="upmFollowers">0</div>
+          <div class="stat-label">متابعون</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="upmFollowing">0</div>
+          <div class="stat-label">يتابع</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="upmPosts">0</div>
+          <div class="stat-label">منشورات</div>
+        </div>
+      </div>
+      <div class="user-profile-actions" id="upmActions">
+        <!-- Follow button injected dynamically -->
+      </div>
     </div>
   </div>
 
@@ -4484,7 +4630,7 @@
       escaped = escaped.replace(/@(?:الجميع|everyone)/gi, `<span class="post-tag-badge everyone" onclick="showToast('👑 تم الإشارة لجميع المتابعين ومجتمع كرونوس!')">👑 @الجميع</span>`);
       escaped = escaped.replace(/@([a-zA-Z0-9_ء-ي]+)/g, (m, u) => {
         if (u === 'الجميع') return m;
-        return `<span class="post-tag-badge user" onclick="showToast('👤 الملف الشخصي لـ @${u}')">👤 @${u}</span>`;
+        return `<span class="post-tag-badge user" style="cursor:pointer" onclick="openUserProfile('${u}', '${u}', '👤')">👤 @${u}</span>`;
       });
       escaped = escaped.replace(/#([a-zA-Z0-9_ء-ي]+)/g, `<span class="post-hashtag" onclick="showToast('🔍 عرض المنشورات بوسم #$1')">#$1</span>`);
       return escaped;
@@ -4578,6 +4724,151 @@
       if (nextBtn) nextBtn.style.display = currentViewerMedia.length > 1 ? 'flex' : 'none';
     }
 
+    function getProfileData(userName) {
+      let profiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
+      if (!profiles[userName]) {
+        let defaultFollowers = Math.floor(Math.random() * 400) + 50;
+        let defaultFollowing = Math.floor(Math.random() * 150) + 10;
+        if (userName.includes('Kronos') || userName.includes('Admin') || userName.includes('كرونوس')) {
+          defaultFollowers = 1540;
+          defaultFollowing = 12;
+        } else if (userName === 'ZAMAKAN') {
+          defaultFollowers = 340;
+          defaultFollowing = 85;
+        } else if (userName === 'RMO') {
+          defaultFollowers = 210;
+          defaultFollowing = 45;
+        }
+        profiles[userName] = {
+          followersCount: defaultFollowers,
+          followingCount: defaultFollowing,
+          isFollowedByMe: false
+        };
+        localStorage.setItem('kronos_users_profiles', JSON.stringify(profiles));
+      }
+      return profiles[userName];
+    }
+
+    function openUserProfile(userId, userName, avatar) {
+      const modal = document.getElementById('userProfileModal');
+      if (!modal) return;
+      
+      const profile = getProfileData(userName);
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const userPostsCount = posts.filter(p => p.author === userName || p.authorId === userId).length;
+
+      document.getElementById('upmAvatar').textContent = avatar || '👤';
+      document.getElementById('upmName').textContent = userName;
+      document.getElementById('upmFollowers').textContent = profile.followersCount.toLocaleString();
+      document.getElementById('upmFollowing').textContent = profile.followingCount.toLocaleString();
+      document.getElementById('upmPosts').textContent = userPostsCount.toLocaleString();
+
+      const badge = document.getElementById('upmBadge');
+      if (userName.includes('Kronos') || userName.includes('Admin')) {
+        badge.textContent = '👑 إدارة ومؤسس كرونوس الملكي';
+      } else {
+        badge.textContent = '✨ عضو مؤكد في مجتمع كرونوس';
+      }
+
+      const session = getSession();
+      const currentUserName = session?.name || 'أنت';
+      const actionsDiv = document.getElementById('upmActions');
+
+      if (userName === currentUserName || userName === 'أنت') {
+        actionsDiv.innerHTML = `<button class="btn-follow self">👤 هذا ملفك الشخصي</button>`;
+      } else if (profile.isFollowedByMe) {
+        actionsDiv.innerHTML = `<button class="btn-follow following" onclick="toggleFollowUser('${userName}')">✔️ متابع</button>`;
+      } else {
+        actionsDiv.innerHTML = `<button class="btn-follow follow" onclick="toggleFollowUser('${userName}')">➕ متابعة</button>`;
+      }
+
+      modal.classList.add('open');
+    }
+
+    function closeUserProfile() {
+      const modal = document.getElementById('userProfileModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function toggleFollowUser(userName) {
+      let profiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
+      let profile = profiles[userName] || getProfileData(userName);
+      
+      profile.isFollowedByMe = !profile.isFollowedByMe;
+      if (profile.isFollowedByMe) {
+        profile.followersCount++;
+        showToast(`🌟 أصبحت الآن تتابع @${userName}!`);
+      } else {
+        profile.followersCount = Math.max(0, profile.followersCount - 1);
+        showToast(`ℹ️ تم إلغاء متابعة @${userName}`);
+      }
+      
+      profiles[userName] = profile;
+      localStorage.setItem('kronos_users_profiles', JSON.stringify(profiles));
+      
+      document.getElementById('upmFollowers').textContent = profile.followersCount.toLocaleString();
+      const actionsDiv = document.getElementById('upmActions');
+      if (profile.isFollowedByMe) {
+        actionsDiv.innerHTML = `<button class="btn-follow following" onclick="toggleFollowUser('${userName}')">✔️ متابع</button>`;
+      } else {
+        actionsDiv.innerHTML = `<button class="btn-follow follow" onclick="toggleFollowUser('${userName}')">➕ متابعة</button>`;
+      }
+    }
+
+    function copyPostLink(postId) {
+      let baseUrl = window.location.origin + window.location.pathname;
+      if (window.location.protocol === 'file:') {
+        baseUrl = window.location.href.split('?')[0].split('#')[0];
+      }
+      const fullUrl = `${baseUrl}?post=${postId}`;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          showToast('🔗 تم نسخ رابط المنشور! الصقه في المتصفح للدخول إليه مباشرة');
+        }).catch(() => fallbackCopy(fullUrl));
+      } else {
+        fallbackCopy(fullUrl);
+      }
+      function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('🔗 تم نسخ رابط المنشور! الصقه في المتصفح للدخول إليه مباشرة');
+        } catch (e) {
+          prompt('انسخ رابط المنشور للوصول إليه مباشرة:', text);
+        }
+        document.body.removeChild(ta);
+      }
+    }
+
+    function checkDirectPostRouting() {
+      const params = new URLSearchParams(window.location.search);
+      let targetId = params.get('post') || params.get('p');
+      if (!targetId && window.location.hash) {
+        const hash = window.location.hash.replace('#', '');
+        if (hash.startsWith('post=')) targetId = hash.replace('post=', '');
+        else if (hash.startsWith('card_')) targetId = hash.replace('card_', '');
+        else if (hash.startsWith('post_')) targetId = hash;
+      }
+      if (targetId && !window._postRouted) {
+        window._postRouted = true;
+        const card = document.getElementById('card_' + targetId) || document.getElementById(targetId);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.transition = 'all 0.5s ease';
+          card.style.boxShadow = '0 0 40px rgba(201, 168, 76, 0.95)';
+          card.style.border = '2px solid var(--gold, #c9a84c)';
+          setTimeout(() => {
+            card.style.boxShadow = '';
+            card.style.border = '';
+          }, 4000);
+        }
+      }
+    }
+
     function renderPostsFeed() {
       const feed = document.getElementById('postsFeed');
       if (!feed) return;
@@ -4597,8 +4888,8 @@
           <div class="post-card" id="card_${post.id}">
             <div class="post-user" style="display:flex;align-items:center;justify-content:space-between">
               <div style="display:flex;align-items:center;gap:.7rem">
-                <div class="post-avatar">${post.avatar || '👤'}</div>
-                <div><div class="post-username">${post.author}</div><div class="post-date">${post.date || 'الآن'}</div></div>
+                <div class="post-avatar" style="cursor:pointer" onclick="openUserProfile('${post.authorId || post.author}', '${post.author}', '${post.avatar || '👤'}')">${post.avatar || '👤'}</div>
+                <div><div class="post-username" style="cursor:pointer" onclick="openUserProfile('${post.authorId || post.author}', '${post.author}', '${post.avatar || '👤'}')">${post.author}</div><div class="post-date">${post.date || 'الآن'}</div></div>
               </div>
               ${isOwner ? `
                 <div class="post-author-actions">
@@ -4612,13 +4903,12 @@
             <div class="post-actions">
               <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">❤️ <span>${post.likes || 0}</span></button>
               <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>${(post.comments || []).length}</span> تعليق</button>
-              <button class="post-action-btn" onclick="showToast('تم مشاركة المنشور')">🔁 مشاركة</button>
-              <button class="post-action-btn" onclick="showToast('تم حفظ المنشور في الإشارات المرجعية')">🔖 حفظ</button>
+              <button class="post-action-btn" onclick="copyPostLink('${post.id}')" title="نسخ رابط المنشور مباشرة">🔗 <span>رابط المنشور</span></button>
             </div>
             <div class="comments-section" id="${csId}">
               ${(post.comments || []).map(c => `
                 <div class="comment" style="margin-bottom:.5rem;padding:.5rem;background:rgba(255,255,255,0.03);border-radius:6px;font-size:13px">
-                  <span style="font-weight:700;color:var(--gold)">${c.author}:</span> <span style="color:var(--parchment)">${c.text}</span>
+                  <span style="font-weight:700;color:var(--gold);cursor:pointer" onclick="openUserProfile('${c.author}', '${c.author}', '👤')">${c.author}:</span> <span style="color:var(--parchment)">${c.text}</span>
                 </div>
               `).join('')}
               <div class="comment-input-row">
@@ -4630,6 +4920,7 @@
         `;
       }).join('');
       setTimeout(hydrateIndexedDBMedia, 30);
+      setTimeout(checkDirectPostRouting, 150);
     }
 
     async function hydrateIndexedDBMedia() {
