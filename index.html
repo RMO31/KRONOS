@@ -2111,12 +2111,12 @@
       border-radius: 6px;
       overflow: hidden;
       cursor: pointer;
-      transition: transform .25s, border-color .25s, box-shadow .25s;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
     }
 
     .yt-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(201, 168, 76, 0.3);
+      transform: translateY(-2px);
+      border-color: rgba(201, 168, 76, 0.35);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
 
@@ -2125,6 +2125,17 @@
       aspect-ratio: 16/9;
       background: var(--dark4);
       overflow: hidden;
+    }
+
+    .yt-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .yt-card:hover .yt-thumb img {
+      transform: scale(1.03);
     }
 
     .yt-thumb iframe {
@@ -2162,7 +2173,7 @@
     }
 
     .yt-card:hover .yt-play-btn {
-      transform: scale(1.1);
+      transform: scale(1.05);
     }
 
     .yt-info {
@@ -3509,6 +3520,7 @@
       </div>
       <div class="yt-modal-info">
         <div class="yt-modal-title" id="ytModalTitle"></div>
+        <div class="yt-modal-meta" id="ytModalMeta" style="margin-bottom:0.8rem;display:flex;gap:1.5rem;font-size:13px;color:var(--gold,#c9a84c);font-family:monospace,sans-serif;direction:ltr;flex-wrap:wrap"></div>
         <div class="yt-modal-desc" id="ytModalDesc"></div>
       </div>
     </div>
@@ -5239,12 +5251,29 @@
       feed.innerHTML = headerInfo + paginatedPosts.map(post => {
         const isOwner = post.authorId === currentUserId || post.author === 'أنت' || post.author === currentUserName;
         const csId = 'cs_' + post.id;
+        let pubDateDisplay = post.date || 'الآن';
+        if (!pubDateDisplay.includes('📅') && !pubDateDisplay.includes('تاريخ النشر')) {
+          if (post.id && post.id.startsWith('post_')) {
+            const ts = parseInt(post.id.replace('post_', ''));
+            if (!isNaN(ts) && ts > 1600000000000) {
+              const dStr = new Date(ts).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+              pubDateDisplay = `📅 تاريخ النشر: ${dStr}${post.date && post.date !== 'الآن' && !post.date.includes('/') && !post.date.includes('-') ? ' (' + post.date + ')' : ''}`;
+            } else {
+              pubDateDisplay = `📅 تاريخ النشر: ${pubDateDisplay}`;
+            }
+          } else {
+            pubDateDisplay = `📅 تاريخ النشر: ${pubDateDisplay}`;
+          }
+        }
         return `
           <div class="post-card" id="card_${post.id}">
             <div class="post-user" style="display:flex;align-items:center;justify-content:space-between">
               <div style="display:flex;align-items:center;gap:.7rem">
                 <div class="post-avatar" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.avatar || '👤'}</div>
-                <div><div class="post-username" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.author}</div><div class="post-date">${post.date || 'الآن'}</div></div>
+                <div>
+                  <div class="post-username" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.author}</div>
+                  <div class="post-date" style="color:var(--gold,#c9a84c);font-weight:bold;margin-top:2px;font-size:12px;">${pubDateDisplay}</div>
+                </div>
               </div>
               ${isOwner ? `
                 <div class="post-author-actions">
@@ -5263,7 +5292,11 @@
             <div class="comments-section" id="${csId}">
               ${(post.comments || []).map(c => `
                 <div class="comment" style="margin-bottom:.5rem;padding:.5rem;background:rgba(255,255,255,0.03);border-radius:6px;font-size:13px">
-                  <span style="font-weight:700;color:var(--gold);cursor:pointer" onclick="openUserProfileByAuthorName('${c.author}')">${c.author}:</span> <span style="color:var(--parchment)">${c.text}</span>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                    <span style="font-weight:700;color:var(--gold);cursor:pointer" onclick="openUserProfileByAuthorName('${c.author}')">${c.author}:</span>
+                    ${c.date ? `<span style="font-size:10px;color:var(--text-dimmer)">📅 ${c.date}</span>` : ''}
+                  </div>
+                  <div style="color:var(--parchment)">${c.text}</div>
                 </div>
               `).join('')}
               <div class="comment-input-row">
@@ -5356,18 +5389,20 @@
         if (idx !== -1) {
           posts[idx].text = val;
           posts[idx].media = cleanMedia;
-          posts[idx].date = 'تم التعديل الآن';
+          const nowStr = new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          posts[idx].date = `📅 تاريخ النشر: ${nowStr} (تم التعديل)`;
           showToast('✅ تم تعديل المنشور بنجاح!');
         }
         editingPostId = null;
         if (btn) btn.textContent = 'نشر';
       } else {
+        const nowStr = new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const newPost = {
           id: 'post_' + Date.now(),
           author: session?.name || 'أنت',
           authorId: session?.userId || 'me',
           avatar: session?.avatar ? `<img src="${session.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : '👤',
-          date: 'الآن',
+          date: `📅 تاريخ النشر: ${nowStr}`,
           text: val,
           media: cleanMedia,
           likes: 0,
@@ -5450,7 +5485,8 @@
       if (!post.comments) post.comments = [];
       post.comments.push({
         author: session?.name || 'أنت',
-        text: val
+        text: val,
+        date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
       });
       localStorage.setItem('kronos_posts', JSON.stringify(posts));
       renderPostsFeed();
@@ -5458,10 +5494,14 @@
     }
 
     // ─── YOUTUBE ────────────────────────────────────────────────────────────────
-    function openYT(id, title, desc) {
+    function openYT(id, title, desc, pubTime, timing) {
       document.getElementById('ytModalIframe').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
       document.getElementById('ytModalTitle').textContent = title;
       document.getElementById('ytModalDesc').textContent = desc;
+      const metaEl = document.getElementById('ytModalMeta');
+      if (metaEl) {
+        metaEl.innerHTML = `<span>📅 ${pubTime ? new Date(pubTime).toLocaleDateString('ar-EG') : 'حديثاً'}</span><span>⏱ ${timing || '1234'}</span>`;
+      }
       document.getElementById('ytModal').classList.add('open');
     }
     function closeYT() {
@@ -6232,13 +6272,15 @@
             title: v.title || '',
             thumb: `https://img.youtube.com/vi/${v.youtube_id}/mqdefault.jpg`,
             chName: chMap[v.channel_youtube_id] || v.channel_youtube_id || '',
-            cat: v.category || ''
+            cat: v.category || '',
+            pubTime: v.published_at || '',
+            timing: '1234'
           });
         });
       } else {
         for (const ch of (channels || [])) {
           for (const vid of (ch.videoIds || [])) {
-            _ytAllVideos.push({ vid, title: '', thumb: `https://img.youtube.com/vi/${vid}/mqdefault.jpg`, chName: ch.name || '', cat: ch.cat || '' });
+            _ytAllVideos.push({ vid, title: '', thumb: `https://img.youtube.com/vi/${vid}/mqdefault.jpg`, chName: ch.name || '', cat: ch.cat || '', pubTime: '', timing: '1234' });
           }
         }
       }
@@ -6256,9 +6298,11 @@
       const start = (_ytPage - 1) * YT_PER_PAGE;
       const slice = _ytAllVideos.slice(start, start + YT_PER_PAGE);
       grid.innerHTML = slice.map(v => {
-        const safeTitle = (v.title || v.chName || '').replace(/'/g, "\'").replace(/"/g, '&quot;');
-        const safeCh = (v.chName || '').replace(/'/g, "\'");
-        return `<div class="yt-card" onclick="openYT('${v.vid}','${safeCh}','${safeTitle}')">
+        const safeTitle = (v.title || v.chName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeCh = (v.chName || '').replace(/'/g, "\\'");
+        const pubDateStr = v.pubTime ? new Date(v.pubTime).toLocaleDateString('ar-EG') : 'حديثاً';
+        const timingStr = v.timing || '1234';
+        return `<div class="yt-card" onclick="openYT('${v.vid}','${safeCh}','${safeTitle}','${v.pubTime || ''}','${timingStr}')">
       <div class="yt-thumb">
         <img src="${v.thumb}" style="width:100%;height:100%;object-fit:cover"
              onerror="this.src='https://img.youtube.com/vi/${v.vid}/hqdefault.jpg'" alt="">
@@ -6267,7 +6311,10 @@
       <div class="yt-info">
         <div class="yt-cat">${v.cat}</div>
         <div class="yt-title">${v.title || v.chName}</div>
-        <div class="yt-meta"><span>📺 ${v.chName}</span></div>
+        <div class="yt-meta" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;font-size:12px;color:var(--text-dim,#aaa);">
+          <span>📺 ${v.chName}</span>
+          <span>📅 ${pubDateStr} | ⏱ ${timingStr}</span>
+        </div>
       </div>
     </div>`;
       }).join('');
