@@ -4911,6 +4911,74 @@
       }
     }
 
+    function normalizeSearchText(str) {
+      if (!str) return '';
+      return str.toString()
+        .toLowerCase()
+        // Remove Arabic diacritics / tashkeel
+        .replace(/[\u064B-\u065F\u0670]/g, '')
+        // Normalize Alef forms (أ, إ, آ to ا)
+        .replace(/[أإآ]/g, 'ا')
+        // Normalize teh marbuta and heh (ة to ه)
+        .replace(/ة/g, 'ه')
+        // Normalize yeh forms (ى to ي)
+        .replace(/ى/g, 'ي')
+        // Normalize tatweel (kashida _)
+        .replace(/ـ/g, '')
+        .trim();
+    }
+
+    function smartSearchScore(post, rawQuery, filterType) {
+      if (!rawQuery) return 1;
+      const query = normalizeSearchText(rawQuery);
+      if (!query) return 1;
+
+      const normContent = normalizeSearchText(post.text || '');
+      const normAuthor = normalizeSearchText(post.author || '');
+      const normComments = normalizeSearchText((post.comments || []).map(c => (c.text || '') + ' ' + (c.author || '')).join(' '));
+
+      let score = 0;
+
+      // 1. Exact phrase match
+      if (filterType === 'content' || filterType === 'all') {
+        if (normContent.includes(query)) score += 50;
+        if (normComments.includes(query)) score += 20;
+      }
+      if (filterType === 'author' || filterType === 'all') {
+        if (normAuthor.includes(query)) score += 50;
+      }
+
+      // 2. Tokenized multi-word matching
+      const queryTokens = query.split(/\s+/).filter(t => t.length > 0);
+      if (queryTokens.length > 1) {
+        let matchedTokens = 0;
+        for (const token of queryTokens) {
+          let tokenFound = false;
+          if (filterType === 'content' || filterType === 'all') {
+            if (normContent.includes(token)) { score += 15; tokenFound = true; }
+            else if (normComments.includes(token)) { score += 8; tokenFound = true; }
+          }
+          if (filterType === 'author' || filterType === 'all') {
+            if (normAuthor.includes(token)) { score += 20; tokenFound = true; }
+          }
+          if (tokenFound) matchedTokens++;
+        }
+        if (matchedTokens === queryTokens.length) {
+          score += 35; // Big bonus if every word in query matched somewhere
+        }
+      }
+
+      return score;
+    }
+
+    function filterPostsByAuthorClick(authorName) {
+      const searchInput = document.getElementById('postsSearchInput');
+      const filterSelect = document.getElementById('postsSearchFilterType');
+      if (filterSelect) filterSelect.value = 'all';
+      if (searchInput) searchInput.value = authorName;
+      renderPostsFeed();
+    }
+
     function filterPostsFeed() {
       renderPostsFeed();
     }
@@ -4933,30 +5001,75 @@
       const searchInput = document.getElementById('postsSearchInput');
       const filterSelect = document.getElementById('postsSearchFilterType');
       const clearBtn = document.getElementById('clearPostsSearchBtn');
-      const query = (searchInput ? searchInput.value.trim().toLowerCase() : '');
+      const rawQuery = (searchInput ? searchInput.value.trim() : '');
       const filterType = (filterSelect ? filterSelect.value : 'all');
 
       if (clearBtn) {
-        clearBtn.style.display = query ? 'inline-block' : 'none';
+        clearBtn.style.display = rawQuery ? 'inline-block' : 'none';
       }
 
-      let posts = allPosts;
-      if (query) {
-        posts = allPosts.filter(post => {
-          const contentStr = (post.text || '').toLowerCase();
-          const authorStr = (post.author || '').toLowerCase();
-          if (filterType === 'content') {
-            return contentStr.includes(query);
-          } else if (filterType === 'author') {
-            return authorStr.includes(query);
-          } else {
-            return contentStr.includes(query) || authorStr.includes(query);
+      // If author filter is selected -> Render Authors Grid with Avatars/Logos & Names!
+      if (filterType === 'author') {
+        const normQuery = normalizeSearchText(rawQuery);
+        // Collect distinct authors
+        const authorsMap = new Map();
+        allPosts.forEach(post => {
+          const authorName = post.author || 'مستخدم';
+          if (!authorsMap.has(authorName)) {
+            authorsMap.set(authorName, {
+              name: authorName,
+              avatar: post.avatar || '👤',
+              badge: '👑 عضو مؤكد في مجتمع كرونوس',
+              postCount: 0
+            });
           }
+          authorsMap.get(authorName).postCount++;
         });
+
+        const authorsList = Array.from(authorsMap.values()).filter(author => {
+          if (!normQuery) return true;
+          return normalizeSearchText(author.name).includes(normQuery);
+        });
+
+        if (!authorsList.length) {
+          feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا يوجد كاتب/مستخدم يطابق الاسم "<b>${rawQuery}</b>" <br><br><button onclick="clearPostsSearch()" class="btn-gold" style="padding:.4rem 1rem;font-size:13px">إلغاء البحث</button></div>`;
+          return;
+        }
+
+        feed.innerHTML = `
+          <div style="margin-bottom:1.2rem;color:var(--gold);font-size:14px;font-family:var(--font-ar);display:flex;align-items:center;justify-content:space-between">
+            <span>👥 تم العثور على <b>${authorsList.length}</b> من الكتاب والمستخدمين حسب سياق البحث:</span>
+            ${rawQuery ? `<button onclick="clearPostsSearch()" style="background:transparent;border:1px solid rgba(201,168,76,0.4);color:var(--gold);border-radius:6px;padding:.2rem .6rem;font-size:12px;cursor:pointer">إلغاء فلتر الكاتب</button>` : ''}
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:1.2rem;margin-bottom:2rem">
+            ${authorsList.map(author => `
+              <div class="author-search-card" style="background:linear-gradient(145deg, #1a160d, #0d0a06);border:1.5px solid rgba(201,168,76,0.35);border-radius:16px;padding:1.5rem 1.2rem;text-align:center;transition:all 0.3s ease;box-shadow:0 8px 25px rgba(0,0,0,0.6)">
+                <div class="post-avatar" style="width:80px;height:80px;font-size:40px;margin:0 auto 1rem;border:2.5px solid var(--gold,#c9a84c);box-shadow:0 0 20px rgba(201,168,76,0.35);display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;background:rgba(201,168,76,0.1)" onclick="openUserProfileByAuthorName('${author.name}')">${author.avatar}</div>
+                <h4 style="color:var(--gold,#c9a84c);margin:0 0 .5rem;font-size:18px;font-weight:bold;font-family:var(--font-ar);cursor:pointer" onclick="openUserProfileByAuthorName('${author.name}')">${author.name}</h4>
+                <div style="font-size:12px;color:#ccc;margin-bottom:1.2rem;background:rgba(255,255,255,0.04);padding:.3rem .6rem;border-radius:20px;display:inline-block">${author.badge}</div>
+                <div style="display:flex;gap:.6rem;justify-content:center">
+                  <button onclick="openUserProfileByAuthorName('${author.name}')" style="background:linear-gradient(145deg,rgba(201,168,76,0.25),rgba(201,168,76,0.1));color:var(--gold);border:1px solid var(--gold);border-radius:10px;padding:.45rem .8rem;font-size:12.5px;cursor:pointer;font-family:var(--font-ar);font-weight:bold;transition:all 0.2s;flex:1">👤 الملف الشخصي</button>
+                  <button onclick="filterPostsByAuthorClick('${author.name}')" style="background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:.45rem .8rem;font-size:12.5px;cursor:pointer;font-family:var(--font-ar);transition:all 0.2s;flex:1">📝 منشوراته (${author.postCount})</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        return;
+      }
+
+      // If 'all' or 'content' filter is selected -> Algorithmic Textual Search on Posts!
+      let posts = allPosts;
+      if (rawQuery) {
+        posts = allPosts
+          .map(post => ({ post, score: smartSearchScore(post, rawQuery, filterType) }))
+          .filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(item => item.post);
       }
 
       if (!posts.length) {
-        feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد نتائج مطابقة لبحثك عن "<b>${query}</b>" <button onclick="clearPostsSearch()" style="background:transparent;border:none;color:var(--gold);cursor:pointer;text-decoration:underline">إلغاء البحث</button></div>`;
+        feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات مطابقة لخوارزمية البحث عن "<b>${rawQuery}</b>" <br><br><button onclick="clearPostsSearch()" class="btn-gold" style="padding:.4rem 1rem;font-size:13px">إلغاء البحث</button></div>`;
         return;
       }
 
