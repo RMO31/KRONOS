@@ -2144,9 +2144,9 @@
     }
 
     .yt-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(201, 168, 76, 0.35);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      transform: translateY(-8px) scale(1.045);
+      border-color: var(--gold, #c9a84c);
+      box-shadow: 0 16px 36px rgba(201, 168, 76, 0.3), 0 10px 24px rgba(0, 0, 0, 0.7);
     }
 
     .yt-thumb {
@@ -2160,11 +2160,11 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform .35s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform .45s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .yt-card:hover .yt-thumb img {
-      transform: scale(1.03);
+      transform: scale(1.15);
     }
 
     .yt-thumb iframe {
@@ -2202,7 +2202,8 @@
     }
 
     .yt-card:hover .yt-play-btn {
-      transform: scale(1.05);
+      transform: scale(1.18);
+      box-shadow: 0 0 20px rgba(201, 168, 76, 0.85);
     }
 
     .yt-info {
@@ -5171,11 +5172,18 @@
       renderPostsFeed();
     }
 
+    function convertDigitsToWestern(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/[٠-٩]/g, ch => '٠١٢٣٤٥٦٧٨٩'.indexOf(ch))
+        .replace(/[۰-۹]/g, ch => '۰۱۲۳۴۵۶۷۸۹'.indexOf(ch));
+    }
+
     function formatRealDateTime(input, isOnlyDate = false) {
       if (!input) return '';
       let d = null;
-      if (input instanceof Date) {
-        if (!isNaN(input.getTime())) d = input;
+      if (input instanceof Date && !isNaN(input.getTime())) {
+        d = input;
       } else if (typeof input === 'number' || (typeof input === 'string' && /^\d{13}$/.test(input.trim()))) {
         const ts = parseInt(input);
         if (!isNaN(ts) && ts > 1000000000000) d = new Date(ts);
@@ -5183,9 +5191,12 @@
         if (input.startsWith('post_')) {
           const ts = parseInt(input.replace('post_', ''));
           if (!isNaN(ts) && ts > 1000000000000) d = new Date(ts);
-        } else if (!input.includes('تاريخ النشر') && !input.includes(' ar-') && !input.includes('،') && !input.includes('م') && !input.includes('ص')) {
-          const parsed = Date.parse(input);
-          if (!isNaN(parsed) && parsed > 1000000000000) d = new Date(parsed);
+        } else {
+          const cleanInput = convertDigitsToWestern(input.replace('📅 تاريخ النشر: ', '').replace('📅 ', '').trim());
+          const parsed = Date.parse(cleanInput);
+          if (!isNaN(parsed) && parsed > 1000000000000) {
+            d = new Date(parsed);
+          }
         }
       }
 
@@ -5193,13 +5204,19 @@
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        const h = String(d.getHours()).padStart(2, '0');
+        if (isOnlyDate) {
+          return `${y}/${m}/${day}`;
+        }
+        let h = d.getHours();
         const min = String(d.getMinutes()).padStart(2, '0');
-        return isOnlyDate ? `${y}/${m}/${day}` : `${y}/${m}/${day} - ${h}:${min}`;
+        const ampm = h >= 12 ? 'م' : 'ص';
+        let h12 = h % 12;
+        h12 = h12 ? h12 : 12;
+        return `${day}/${m}/${y} - ${String(h12).padStart(2, '0')}:${min} ${ampm}`;
       }
 
       if (typeof input === 'string') {
-        const stdStr = input.replace(/[٠-٩]/g, ch => '٠١٢٣٤٥٦٧٨٩'.indexOf(ch)).replace(/[۰-۹]/g, ch => '۰۱۲۳۴۵۶۷۸۹'.indexOf(ch));
+        const stdStr = convertDigitsToWestern(input);
         const match = stdStr.match(/(\d{1,4})[\/\-](\d{1,2})[\/\-](\d{1,4})(?:.*?(\d{1,2}):(\d{2}))?/);
         if (match) {
           let p1 = parseInt(match[1]), p2 = parseInt(match[2]), p3 = parseInt(match[3]);
@@ -5212,7 +5229,7 @@
           const yStr = y;
           const mStr = String(m).padStart(2, '0');
           const dStr = String(day).padStart(2, '0');
-          return isOnlyDate ? `${yStr}/${mStr}/${dStr}` : `${yStr}/${mStr}/${dStr} - ${h}:${min}`;
+          return isOnlyDate ? `${yStr}/${mStr}/${dStr}` : `${dStr}/${mStr}/${yStr} - ${h}:${min}`;
         }
         return stdStr.replace('📅 تاريخ النشر: ', '').replace('📅 ', '').trim();
       }
@@ -5338,16 +5355,23 @@
         const isOwner = post.authorId === currentUserId || post.author === 'أنت' || post.author === currentUserName;
         const csId = 'cs_' + post.id;
         let pubDateDisplay = post.date || 'الآن';
-        if (!pubDateDisplay.includes('📅') && !pubDateDisplay.includes('تاريخ النشر')) {
-          if (post.id && post.id.startsWith('post_')) {
-            const ts = parseInt(post.id.replace('post_', ''));
-            if (!isNaN(ts) && ts > 1600000000000) {
-              const dStr = new Date(ts).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-              pubDateDisplay = `📅 تاريخ النشر: ${dStr}${post.date && post.date !== 'الآن' && !post.date.includes('/') && !post.date.includes('-') ? ' (' + post.date + ')' : ''}`;
-            } else {
-              pubDateDisplay = `📅 تاريخ النشر: ${pubDateDisplay}`;
+        if (post.id && post.id.startsWith('post_')) {
+          const ts = parseInt(post.id.replace('post_', ''));
+          if (!isNaN(ts) && ts > 1600000000000) {
+            const dStr = formatRealDateTime(new Date(ts), false);
+            let relativePart = '';
+            if (pubDateDisplay.includes('(')) {
+              relativePart = ' ' + convertDigitsToWestern(pubDateDisplay.substring(pubDateDisplay.indexOf('(')));
+            } else if (post.date && post.date !== 'الآن' && !post.date.includes('/') && !post.date.includes('-') && !post.date.includes('📅')) {
+              relativePart = ` (${convertDigitsToWestern(post.date)})`;
             }
+            pubDateDisplay = `📅 تاريخ النشر: ${dStr}${relativePart}`;
           } else {
+            pubDateDisplay = `📅 تاريخ النشر: ${convertDigitsToWestern(pubDateDisplay)}`;
+          }
+        } else {
+          pubDateDisplay = convertDigitsToWestern(pubDateDisplay);
+          if (!pubDateDisplay.includes('📅') && !pubDateDisplay.includes('تاريخ النشر')) {
             pubDateDisplay = `📅 تاريخ النشر: ${pubDateDisplay}`;
           }
         }
@@ -5371,16 +5395,16 @@
             <div class="post-body" style="white-space:pre-wrap">${parsePostTags(post.text)}</div>
             ${renderMediaGrid(post.media, post.id)}
             <div class="post-actions">
-              <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">❤️ <span>${post.likes || 0}</span></button>
-              <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>${(post.comments || []).length}</span> تعليق</button>
-              <button class="post-action-btn" onclick="copyPostLink('${post.id}')" title="نسخ رابط المنشور مباشرة">🔗 <span>رابط المنشور</span></button>
-            </div>
+               <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">❤️ <span>${post.likes || 0}</span></button>
+               <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>${(post.comments || []).length}</span> تعليق</button>
+               <button class="post-action-btn" onclick="copyPostLink('${post.id}')" title="نسخ رابط المنشور مباشرة">🔗 <span>رابط المنشور</span></button>
+             </div>
             <div class="comments-section" id="${csId}">
               ${(post.comments || []).map(c => `
                 <div class="comment" style="margin-bottom:.5rem;padding:.5rem;background:rgba(255,255,255,0.03);border-radius:6px;font-size:13px">
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
                     <span style="font-weight:700;color:var(--gold);cursor:pointer" onclick="openUserProfileByAuthorName('${c.author}')">${c.author}:</span>
-                    ${c.date ? `<span style="font-size:10px;color:var(--text-dimmer)">📅 ${c.date}</span>` : ''}
+                    ${c.date ? `<span style="font-size:10px;color:var(--text-dimmer)">📅 ${convertDigitsToWestern(c.date)}</span>` : ''}
                   </div>
                   <div style="color:var(--parchment)">${c.text}</div>
                 </div>
@@ -5475,14 +5499,14 @@
         if (idx !== -1) {
           posts[idx].text = val;
           posts[idx].media = cleanMedia;
-          const nowStr = new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const nowStr = formatRealDateTime(new Date(), false);
           posts[idx].date = `📅 تاريخ النشر: ${nowStr} (تم التعديل)`;
           showToast('✅ تم تعديل المنشور بنجاح!');
         }
         editingPostId = null;
         if (btn) btn.textContent = 'نشر';
       } else {
-        const nowStr = new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const nowStr = formatRealDateTime(new Date(), false);
         const newPost = {
           id: 'post_' + Date.now(),
           author: session?.name || 'أنت',
@@ -5572,7 +5596,7 @@
       post.comments.push({
         author: session?.name || 'أنت',
         text: val,
-        date: new Date().toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        date: formatRealDateTime(new Date(), false)
       });
       localStorage.setItem('kronos_posts', JSON.stringify(posts));
       renderPostsFeed();
@@ -5580,13 +5604,41 @@
     }
 
     // ─── YOUTUBE ────────────────────────────────────────────────────────────────
+    function formatRealDuration(d) {
+      if (!d || d === 'null' || d === 'undefined' || d === '') return '12:34';
+      d = String(d).trim();
+      if (d === '1234') return '12:34';
+      if (d.startsWith('PT')) {
+        const hMatch = d.match(/(\d+)H/);
+        const mMatch = d.match(/(\d+)M/);
+        const sMatch = d.match(/(\d+)S/);
+        const h = hMatch ? parseInt(hMatch[1], 10) : 0;
+        const m = mMatch ? parseInt(mMatch[1], 10) : 0;
+        const s = sMatch ? parseInt(sMatch[1], 10) : 0;
+        if (h > 0) return `${h}:${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+      }
+      if (/^\d+$/.test(d) && parseInt(d, 10) > 0) {
+        if (d === '1234') return '12:34';
+        const sec = parseInt(d, 10);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        if (h > 0) return `${h}:${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+      }
+      return d || '12:34';
+    }
+
     function openYT(id, title, desc, pubTime, timing) {
       document.getElementById('ytModalIframe').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
       document.getElementById('ytModalTitle').textContent = title;
       document.getElementById('ytModalDesc').textContent = desc;
       const metaEl = document.getElementById('ytModalMeta');
       if (metaEl) {
-        metaEl.innerHTML = `<span>📅 ${pubTime ? new Date(pubTime).toLocaleDateString('ar-EG') : 'حديثاً'}</span><span>⏱ ${timing || '1234'}</span>`;
+        const timingFormatted = formatRealDuration(timing);
+        const timingSpan = timingFormatted ? `<span>⏱ ${timingFormatted}</span>` : '';
+        metaEl.innerHTML = `<span>📅 ${pubTime ? formatRealDateTime(pubTime, false) : 'حديثاً'}</span>${timingSpan}`;
       }
       document.getElementById('ytModal').classList.add('open');
     }
@@ -6277,7 +6329,7 @@
       try {
         const [channels, videos] = await Promise.all([
           sbIdx('youtube_channels?select=channel_id,channel_name,channel_logo,subscriber_count,category&order=created_at.desc&limit=100'),
-          sbIdx('videos?select=youtube_id,title,channel_youtube_id,category&order=published_at.desc&limit=1000')
+          sbIdx('videos?select=*&order=published_at.desc&limit=1000')
         ]);
 
         console.log('[YT] channels:', channels.length, '| videos:', videos.length);
@@ -6360,13 +6412,13 @@
             chName: chMap[v.channel_youtube_id] || v.channel_youtube_id || '',
             cat: v.category || '',
             pubTime: v.published_at || '',
-            timing: '1234'
+            timing: formatRealDuration(v.timing || v.duration || v.video_duration || '')
           });
         });
       } else {
         for (const ch of (channels || [])) {
           for (const vid of (ch.videoIds || [])) {
-            _ytAllVideos.push({ vid, title: '', thumb: `https://img.youtube.com/vi/${vid}/mqdefault.jpg`, chName: ch.name || '', cat: ch.cat || '', pubTime: '', timing: '1234' });
+            _ytAllVideos.push({ vid, title: '', thumb: `https://img.youtube.com/vi/${vid}/mqdefault.jpg`, chName: ch.name || '', cat: ch.cat || '', pubTime: '', timing: '' });
           }
         }
       }
@@ -6386,9 +6438,11 @@
       grid.innerHTML = slice.map(v => {
         const safeTitle = (v.title || v.chName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
         const safeCh = (v.chName || '').replace(/'/g, "\\'");
-        const pubDateStr = v.pubTime ? new Date(v.pubTime).toLocaleDateString('ar-EG') : 'حديثاً';
-        const timingStr = v.timing || '1234';
-        return `<div class="yt-card" onclick="openYT('${v.vid}','${safeCh}','${safeTitle}','${v.pubTime || ''}','${timingStr}')">
+        const pubDateStr = v.pubTime ? formatRealDateTime(v.pubTime, false) : 'حديثاً';
+        const timingFormatted = formatRealDuration(v.timing);
+        const timingSafe = timingFormatted.replace(/'/g, "\\'");
+        const timingBadge = timingFormatted ? ` | ⏱ ${timingFormatted}` : '';
+        return `<div class="yt-card" onclick="openYT('${v.vid}','${safeCh}','${safeTitle}','${v.pubTime || ''}','${timingSafe}')">
       <div class="yt-thumb">
         <img src="${v.thumb}" style="width:100%;height:100%;object-fit:cover"
              onerror="this.src='https://img.youtube.com/vi/${v.vid}/hqdefault.jpg'" alt="">
@@ -6399,7 +6453,7 @@
         <div class="yt-title">${v.title || v.chName}</div>
         <div class="yt-meta" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;font-size:12px;color:var(--text-dim,#aaa);">
           <span>📺 ${v.chName}</span>
-          <span>📅 ${pubDateStr} | ⏱ ${timingStr}</span>
+          <span>📅 ${pubDateStr}${timingBadge}</span>
         </div>
       </div>
     </div>`;
