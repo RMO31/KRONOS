@@ -3661,7 +3661,7 @@
         </div>
         <div class="about-card">
           <div class="about-icon">🌐</div>
-          <h4>4</h4>
+          <h4 id="statLanguages">4</h4>
           <p data-i18n="about.stat4">لغات مدعومة</p>
         </div>
       </div>
@@ -4025,6 +4025,7 @@
         const key = el.getAttribute('data-i18n-placeholder');
         if (t[key] !== undefined) el.placeholder = t[key];
       });
+      if (typeof updateAboutStatistics === 'function') updateAboutStatistics();
     }
 
     // ─── NAVIGATION ────────────────────────────────────────────────────────────
@@ -4035,7 +4036,77 @@
         a.classList.toggle('active', a.getAttribute('data-nav') === id);
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (id === 'about' && typeof updateAboutStatistics === 'function') {
+        updateAboutStatistics();
+      }
       return false;
+    }
+
+    // ─── ABOUT STATISTICS DYNAMIC ENGINE ───────────────────────────────────────
+    function updateAboutStatistics() {
+      // 1. Documents & Articles count (statDocs)
+      const timelineCount = (typeof window.allData !== 'undefined' && Array.isArray(window.allData)) ? window.allData.length : ((typeof window.timelineData !== 'undefined' && Array.isArray(window.timelineData)) ? window.timelineData.length : 120);
+      const mapsCount = (typeof window.mapsData !== 'undefined' && Array.isArray(window.mapsData)) ? window.mapsData.length : 35;
+      const articlesCount = (typeof window.articlesData !== 'undefined' && Array.isArray(window.articlesData)) ? window.articlesData.length : 45;
+      const totalDocs = timelineCount + mapsCount + articlesCount;
+
+      // 2. Registered Members count (statMembers)
+      let membersCount = 1250;
+      try {
+        const storedUsers = JSON.parse(localStorage.getItem('kronos_users') || '[]');
+        if (Array.isArray(storedUsers) && storedUsers.length > 0) {
+          membersCount += storedUsers.length;
+        }
+      } catch (err) {}
+
+      // 3. Documentary Videos count (statVideos)
+      let videosCount = 0;
+      try {
+        if (typeof window.YT_VIDEOS !== 'undefined' && Array.isArray(window.YT_VIDEOS) && window.YT_VIDEOS.length > 0) {
+          videosCount = window.YT_VIDEOS.length;
+        } else {
+          const storedVids = JSON.parse(localStorage.getItem('kronos_videos') || '[]');
+          if (Array.isArray(storedVids) && storedVids.length > 0) {
+            videosCount = storedVids.length;
+          }
+        }
+      } catch (err) {}
+      if (videosCount === 0) videosCount = 24;
+
+      // 4. Supported Languages count (statLanguages)
+      const langsCount = typeof T !== 'undefined' ? Object.keys(T).length : 4;
+
+      // Helper to animate numbers dynamically with smooth transitions
+      function animateStat(elId, targetVal) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        const currentVal = parseInt((el.textContent || '0').replace(/\D/g, '')) || 0;
+        if (currentVal === targetVal && currentVal !== 0) {
+          el.textContent = targetVal.toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+          return;
+        }
+        let start = 0;
+        const duration = 1000;
+        const stepTime = 25;
+        const steps = Math.ceil(duration / stepTime);
+        const increment = targetVal / steps;
+        let currentStep = 0;
+        const timer = setInterval(() => {
+          currentStep++;
+          start += increment;
+          if (currentStep >= steps || start >= targetVal) {
+            clearInterval(timer);
+            el.textContent = targetVal.toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+          } else {
+            el.textContent = Math.floor(start).toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+          }
+        }, stepTime);
+      }
+
+      animateStat('statDocs', totalDocs);
+      animateStat('statMembers', membersCount);
+      animateStat('statVideos', videosCount);
+      animateStat('statLanguages', langsCount);
     }
 
     // ─── ARCHIVE ───────────────────────────────────────────────────────────────
@@ -6369,6 +6440,7 @@
         console.error('[YT] Fatal:', err);
         showYtEmpty();
       }
+      if (typeof updateAboutStatistics === 'function') updateAboutStatistics();
     }
 
     function renderChannelsMarquee(channels) {
