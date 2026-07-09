@@ -9,6 +9,8 @@ token*.json
 *.env
 *.pem
 *.key
+# Admin Panel (Local Only)
+admin.html
 
 # Python & Temp
 __pycache__/
