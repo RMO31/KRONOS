@@ -5579,11 +5579,22 @@
       if (trendingEl) {
         const tagCounts = {};
         allPosts.forEach(post => {
-          const text = (post.content || '') + ' ' + (post.title || '');
-          const matches = text.match(/#[\w\u0600-\u06FF_]+/g) || [];
-          const tagsFromProp = Array.isArray(post.tags) ? post.tags : [];
-          const combined = [...matches, ...tagsFromProp.map(t => t.startsWith('#') ? t : `#${t}`)];
-          const uniqueTags = new Set(combined.map(t => t.trim()));
+          const rawText = String(post.text || '') + ' ' + String(post.content || '') + ' ' + String(post.title || '') + ' ' + String(post.body || '');
+          const matches = rawText.match(/#([a-zA-Z0-9_ء-ي\u0600-\u06FF-]+)/g) || [];
+          const combined = [...matches];
+          if (Array.isArray(post.tags)) {
+            post.tags.forEach(t => combined.push(String(t).startsWith('#') ? String(t) : `#${t}`));
+          } else if (typeof post.tags === 'string') {
+            const tMatches = post.tags.match(/#([a-zA-Z0-9_ء-ي\u0600-\u06FF-]+)/g) || [];
+            tMatches.forEach(t => combined.push(t));
+          }
+          const uniqueTags = new Set();
+          combined.forEach(t => {
+            const clean = t.trim();
+            if (clean.length > 1 && !clean.match(/^#[0-9a-fA-F]{3,8}$/)) {
+              uniqueTags.add(clean);
+            }
+          });
           uniqueTags.forEach(tag => {
             tagCounts[tag] = (tagCounts[tag] || 0) + 1;
           });
