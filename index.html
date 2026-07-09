@@ -7,7 +7,7 @@
   <title>كرونوس — التاريخ والجغرافيا</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="shortcut icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="logo.jpg">
+  <link rel="apple-touch-icon" href="favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -4050,15 +4050,9 @@
 
     // ─── ABOUT STATISTICS DYNAMIC ENGINE ───────────────────────────────────────
     function updateAboutStatistics() {
-      // 1. Documents & Articles count (statDocs) - Real historical entries + posts
+      // 1. Documents & Articles count (statDocs) - Strictly real archive documents and articles
       let totalDocs = 0;
       try {
-        if (typeof ERAS !== 'undefined') {
-          Object.values(ERAS).forEach(e => {
-            if (e && Array.isArray(e.powers)) totalDocs += e.powers.length;
-            if (e && Array.isArray(e.golden)) totalDocs += e.golden.length;
-          });
-        }
         if (typeof ARCHIVE_POSTS !== 'undefined') {
           Object.values(ARCHIVE_POSTS).forEach(arr => {
             if (Array.isArray(arr)) totalDocs += arr.length;
@@ -4066,14 +4060,25 @@
         }
         const storedPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
         if (Array.isArray(storedPosts)) totalDocs += storedPosts.length;
+        const storedArc = JSON.parse(localStorage.getItem('kronos_archive_posts') || '[]');
+        if (Array.isArray(storedArc)) totalDocs += storedArc.length;
+        const storedArt = JSON.parse(localStorage.getItem('kronos_articles') || '[]');
+        if (Array.isArray(storedArt)) totalDocs += storedArt.length;
+        const storedDoc = JSON.parse(localStorage.getItem('kronos_documents') || '[]');
+        if (Array.isArray(storedDoc)) totalDocs += storedDoc.length;
       } catch (err) {}
 
-      // 2. Registered Members count (statMembers) - Real registered users only (no fake baselines)
+      // 2. Registered Members count (statMembers) - Strictly real registered users/profiles across all storages
       let membersCount = 0;
       try {
         const storedUsers = JSON.parse(localStorage.getItem('kronos_users') || '[]');
-        if (Array.isArray(storedUsers)) {
-          membersCount += storedUsers.length;
+        if (Array.isArray(storedUsers)) membersCount += storedUsers.length;
+        const storedProfiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
+        if (storedProfiles && typeof storedProfiles === 'object') {
+          membersCount = Math.max(membersCount, Object.keys(storedProfiles).length);
+        }
+        if (localStorage.getItem('kronos_profile')) {
+          membersCount = Math.max(membersCount, 1);
         }
         if (typeof window.allUsers !== 'undefined' && Array.isArray(window.allUsers)) {
           membersCount = Math.max(membersCount, window.allUsers.length);

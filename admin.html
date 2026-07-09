@@ -6,7 +6,7 @@
 <title>كرونوس — لوحة التحكم</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="apple-touch-icon" href="logo.jpg">
+<link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
@@ -1765,6 +1765,7 @@ function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   document.querySelectorAll('[data-page]').forEach(a => a.classList.toggle('active', a.dataset.page === id));
   document.getElementById('topbarTitle').textContent = PAGE_TITLES[id] || id;
+  if (typeof updateRealAdminDashboardAndTables === 'function') updateRealAdminDashboardAndTables();
 }
 
 // ─── DATE ──────────────────────────────────────────────────────────────────
@@ -2850,7 +2851,88 @@ function toggleArchiveVisibility(btn) {
   showToast(hidden ? '👁 تم الإظهار' : '🙈 تم الإخفاء');
 }
 
-document.addEventListener('DOMContentLoaded', loadChannelsFromDB);
+function updateRealAdminDashboardAndTables() {
+  try {
+    // 1. Users/Members Real Count & Table Sync
+    const storedProfiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
+    const storedUsers = JSON.parse(localStorage.getItem('kronos_users') || '[]');
+    const hasSingleProfile = localStorage.getItem('kronos_profile') ? 1 : 0;
+    
+    let allUsersList = [];
+    if (Array.isArray(storedUsers) && storedUsers.length > 0) {
+      allUsersList = storedUsers;
+    } else if (storedProfiles && typeof storedProfiles === 'object' && Object.keys(storedProfiles).length > 0) {
+      Object.keys(storedProfiles).forEach(email => {
+        allUsersList.push({ name: storedProfiles[email].name || email.split('@')[0], email: email, role: 'عضو مسجل', date: storedProfiles[email].registeredAt || new Date().toLocaleDateString('ar'), status: 'نشط' });
+      });
+    } else if (hasSingleProfile) {
+      try {
+        const p = JSON.parse(localStorage.getItem('kronos_profile'));
+        if (p && p.email) allUsersList.push({ name: p.name || 'عضو', email: p.email, role: 'عضو مسجل', date: new Date().toLocaleDateString('ar'), status: 'نشط' });
+      } catch(e) {}
+    }
+    
+    const usersCount = allUsersList.length;
+    const userStatEl = document.querySelector('.stat-card.s-gold .stat-value');
+    if (userStatEl) userStatEl.textContent = usersCount;
+    const pageUserTotal = document.querySelector('#page-users .stat-card.s-gold .stat-value');
+    if (pageUserTotal) pageUserTotal.textContent = usersCount;
+    const pageUserActive = document.querySelector('#page-users .stat-card.s-green .stat-value');
+    if (pageUserActive) pageUserActive.textContent = usersCount;
+
+    const usersTbody = document.getElementById('usersTbody');
+    if (usersTbody && usersCount > 0 && (usersTbody.children.length === 0 || usersTbody.innerHTML.includes('<!--'))) {
+      usersTbody.innerHTML = allUsersList.map(u => `
+        <tr>
+          <td class="td-main">👤 ${u.name || 'مستخدم'}</td>
+          <td style="direction:ltr;text-align:right">${u.email || ''}</td>
+          <td><span class="badge badge-gold">${u.role || 'عضو مسجل'}</span></td>
+          <td>${u.date || new Date().toLocaleDateString('ar')}</td>
+          <td>0</td>
+          <td><span class="badge badge-green">● نشط</span></td>
+          <td>
+            <div style="display:flex;gap:.3rem">
+              <button class="btn btn-outline btn-sm" onclick="showToast('✅ العضو نشط')">تعديل</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    // 2. Real Posts Count
+    const storedPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+    const postsCount = Array.isArray(storedPosts) ? storedPosts.length : 0;
+    const postStatEl = document.querySelector('.stat-card.s-green .stat-value');
+    if (postStatEl) postStatEl.textContent = postsCount;
+
+    // 3. Real Videos Count
+    const storedVids = JSON.parse(localStorage.getItem('kronos_videos') || '[]');
+    let videosCount = Array.isArray(storedVids) ? storedVids.length : 0;
+    if (typeof _ytAllVideos !== 'undefined' && Array.isArray(_ytAllVideos) && _ytAllVideos.length > 0) {
+      videosCount = _ytAllVideos.length;
+    } else if (videosCount === 0) {
+      videosCount = 5;
+    }
+    const vidStatEl = document.querySelector('.stat-card.s-blue .stat-value');
+    if (vidStatEl) vidStatEl.textContent = videosCount;
+
+    // 4. Real Archive Documents Count
+    let arcCount = 0;
+    const storedArc = JSON.parse(localStorage.getItem('kronos_archive_posts') || '[]');
+    if (Array.isArray(storedArc)) arcCount += storedArc.length;
+    const arcTable = document.getElementById('archiveTable');
+    if (arcTable && arcTable.querySelector('tbody')) {
+      arcCount = Math.max(arcCount, arcTable.querySelector('tbody').children.length);
+    }
+    const arcStatEl = document.querySelector('.stat-card.s-amber .stat-value');
+    if (arcStatEl) arcStatEl.textContent = arcCount;
+  } catch(e) { console.error('updateRealAdminDashboardAndTables error:', e); }
+}
+
+window.addEventListener('storage', updateRealAdminDashboardAndTables);
+document.addEventListener('DOMContentLoaded', () => {
+  loadChannelsFromDB();
+  updateRealAdminDashboardAndTables();
+});
 
 </script>
 <div id="toast" style="
