@@ -5562,8 +5562,19 @@
       return '';
     }
 
+    function renderContributorSmallLogo(avatarRaw) {
+      let str = String(avatarRaw || '👤').trim();
+      if (str.includes('<img')) {
+        return `<div style="width:24px;height:24px;min-width:24px;min-height:24px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid rgba(201,168,76,0.4)">${str.replace(/<img/gi, '<img style="width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;max-width:24px!important;max-height:24px!important;object-fit:cover!important;border-radius:50%!important;margin:0!important;padding:0!important;display:block!important;"')}</div>`;
+      }
+      if (str.startsWith('http') || str.startsWith('data:image') || str.endsWith('.png') || str.endsWith('.jpg') || str.endsWith('.jpeg') || str.endsWith('.webp') || str.endsWith('.gif') || str.endsWith('.ico')) {
+        return `<div style="width:24px;height:24px;min-width:24px;min-height:24px;border-radius:50%;overflow:hidden;border:1px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center"><img src="${str}" style="width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;max-width:24px!important;max-height:24px!important;object-fit:cover!important;border-radius:50%!important;margin:0!important;padding:0!important;display:block!important;" /></div>`;
+      }
+      return `<div style="width:24px;height:24px;min-width:24px;min-height:24px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:13px">${str}</div>`;
+    }
+
     function updateSidebarStats(allPosts) {
-      // 1. Trending Hashtags (#trendingList)
+      // 1. Trending Hashtags (#trendingList) - Real Data Only (No Dummy Info)
       const trendingEl = document.getElementById('trendingList');
       if (trendingEl) {
         const tagCounts = {};
@@ -5580,28 +5591,22 @@
 
         let sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
         if (!sortedTags.length) {
-          sortedTags = [
-            ['#كرونوس', 15],
-            ['#تاريخ_الحضارات', 12],
-            ['#الذكاء_الاصطناعي', 9],
-            ['#العصر_الذهبي', 7],
-            ['#تاريخ_وثائقي', 5]
-          ];
+          trendingEl.innerHTML = `<div style="font-size:12.5px;color:var(--text-dimmer);padding:.5rem;text-align:center">لا يوجد هاشتاغات منشورة بعد</div>`;
+        } else {
+          const topTags = sortedTags.slice(0, 6);
+          trendingEl.innerHTML = topTags.map(([tag, count]) => {
+            const cleanTag = tag.startsWith('#') ? tag : `#${tag}`;
+            return `
+              <div onclick="filterPostsByHashtagClick('${cleanTag.replace(/'/g, "\\'")}')" style="display:flex;justify-content:space-between;align-items:center;padding:.45rem .3rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:all 0.2s" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+                <span style="color:var(--gold);font-weight:bold;font-size:13px">${cleanTag}</span>
+                <span style="background:rgba(201,168,76,0.15);color:#e8c97a;padding:1px 8px;border-radius:10px;font-size:11px">${count} نقاش</span>
+              </div>
+            `;
+          }).join('');
         }
-
-        const topTags = sortedTags.slice(0, 6);
-        trendingEl.innerHTML = topTags.map(([tag, count]) => {
-          const cleanTag = tag.startsWith('#') ? tag : `#${tag}`;
-          return `
-            <div onclick="filterPostsByHashtagClick('${cleanTag.replace(/'/g, "\\'")}')" style="display:flex;justify-content:space-between;align-items:center;padding:.45rem .3rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:all 0.2s" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
-              <span style="color:var(--gold);font-weight:bold;font-size:13px">${cleanTag}</span>
-              <span style="background:rgba(201,168,76,0.15);color:#e8c97a;padding:1px 8px;border-radius:10px;font-size:11px">${count} نقاش</span>
-            </div>
-          `;
-        }).join('');
       }
 
-      // 2. Active Contributors (#activeUsersList)
+      // 2. Active Contributors (#activeUsersList) - Real Data Only & Tiny Avatars
       const activeEl = document.getElementById('activeUsersList');
       if (activeEl) {
         const authorCounts = {};
@@ -5610,7 +5615,7 @@
           if (!authorCounts[authorName]) {
             authorCounts[authorName] = {
               name: authorName,
-              avatar: post.avatar || '👑',
+              avatar: post.avatar || '👤',
               count: 0
             };
           }
@@ -5619,25 +5624,19 @@
 
         let sortedAuthors = Object.values(authorCounts).sort((a, b) => b.count - a.count);
         if (!sortedAuthors.length) {
-          sortedAuthors = [
-            { name: 'إدارة كرونوس', avatar: '👑', count: 24 },
-            { name: 'مؤرخ كرونوس', avatar: '📜', count: 18 },
-            { name: 'باحث حضارات', avatar: '🏛️', count: 14 },
-            { name: 'ريان المؤرخ', avatar: '🐉', count: 11 },
-            { name: 'مستكشف المعرفة', avatar: '🧭', count: 8 }
-          ];
-        }
-
-        const topAuthors = sortedAuthors.slice(0, 5);
-        activeEl.innerHTML = topAuthors.map(author => `
-          <div onclick="filterPostsByAuthorClick('${author.name.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .3rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:all 0.2s" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
-            <div style="display:flex;align-items:center;gap:.5rem">
-              <span style="font-size:18px">${author.avatar}</span>
-              <span style="color:#f5edd8;font-size:13px;font-weight:500">${author.name}</span>
+          activeEl.innerHTML = `<div style="font-size:12.5px;color:var(--text-dimmer);padding:.5rem;text-align:center">لا يوجد مساهمين بعد</div>`;
+        } else {
+          const topAuthors = sortedAuthors.slice(0, 5);
+          activeEl.innerHTML = topAuthors.map(author => `
+            <div onclick="filterPostsByAuthorClick('${author.name.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .3rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:all 0.2s" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+              <div style="display:flex;align-items:center;gap:.6rem">
+                ${renderContributorSmallLogo(author.avatar)}
+                <span style="color:#f5edd8;font-size:13px;font-weight:500">${author.name}</span>
+              </div>
+              <span style="background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 8px;border-radius:10px;font-size:11px">${author.count} منشور</span>
             </div>
-            <span style="background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 8px;border-radius:10px;font-size:11px">${author.count} منشور</span>
-          </div>
-        `).join('');
+          `).join('');
+        }
       }
     }
 
