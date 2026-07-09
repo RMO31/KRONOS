@@ -670,6 +670,8 @@
       margin-inline-end: 1rem;
       border-radius: 2px;
       vertical-align: middle;
+      position: relative;
+      z-index: 3;
     }
 
     .news-ticker-inner {
@@ -683,10 +685,17 @@
 
     .news-item-tick {
       display: inline-block;
-      padding: 0 2.5rem;
-      font-size: 13px;
+      padding: 0 2rem;
+      font-size: 13.5px;
       color: var(--text);
       vertical-align: middle;
+      cursor: pointer;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    .news-item-tick:hover {
+      color: var(--gold);
+      text-shadow: 0 0 8px rgba(201, 168, 76, 0.4);
     }
 
     .news-item-tick::before {
@@ -3122,7 +3131,7 @@
       user-select: none !important;
       -webkit-touch-callout: none !important;
     }
-    input, textarea, [contenteditable="true"] {
+    input, textarea, [contenteditable="true"], .post-body, .post-text, .selectable-text {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       -ms-user-select: text !important;
@@ -3170,7 +3179,8 @@
   }
   document.addEventListener('contextmenu', function(e) {
     var tag = (e.target.tagName || '').toLowerCase();
-    if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
+    var inPost = e.target && e.target.closest && e.target.closest('.post-body, .post-text, .selectable-text');
+    if (!inPost && tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
       e.preventDefault();
       return false;
     }
@@ -3185,6 +3195,7 @@
   document.addEventListener('keydown', function(e) {
     var tag = (e.target.tagName || '').toLowerCase();
     var isInput = (tag === 'input' || tag === 'textarea' || e.target.isContentEditable);
+    var inPost = e.target && e.target.closest && e.target.closest('.post-body, .post-text, .selectable-text');
     if (e.keyCode === 123 || e.key === 'F12') {
       e.preventDefault();
       e.stopPropagation();
@@ -3212,7 +3223,7 @@
       return false;
     }
     if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || e.keyCode === 67 || e.keyCode === 88)) {
-      if (!isInput && window.getSelection().toString().length > 0) {
+      if (!isInput && !inPost && window.getSelection().toString().length > 0) {
         e.preventDefault();
         return false;
       }
@@ -3317,13 +3328,9 @@
     <div class="news-ticker-wrap">
       <span class="news-ticker-label" data-i18n="ticker.label">أخبار</span>
       <div class="news-ticker-inner" id="tickerInner">
-        <!-- أخبار ستظهر هنا من لوحة التحكم -->
+        <span class="news-item-tick" onclick="showRoom('youtube')">⏳ جاري تحميل عناوين أحدث الفيديوهات التوثيقية من غرفة الفيديوهات...</span>
+        <span class="news-item-tick" onclick="showRoom('youtube')">⏳ جاري تحميل عناوين أحدث الفيديوهات التوثيقية من غرفة الفيديوهات...</span>
       </div>
-    </div>
-
-    <!-- CHANNELS MARQUEE -->
-    <div class="channels-marquee-wrap" id="channelsMarqueeWrap">
-      <div class="channels-marquee-inner" id="channelsMarqueeInner"></div>
     </div>
 
     <div class="hero">
@@ -3922,21 +3929,20 @@
 
           <div class="profile-grid">
             <div class="form-group">
-              <label>الولاية / المنطقة <span style="color:var(--gold);font-size:11px">*</span></label>
-              <input type="text" id="pState" class="form-control-auth" placeholder="وهران" autocomplete="off"
+              <label>الولاية / المنطقة <span style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
+              <input type="text" id="pState" class="form-control-auth" placeholder="وهران، الرباط، القاهرة..." autocomplete="off"
                 oninput="validateStateCountry()">
             </div>
             <div class="form-group">
-              <label>البلد <span style="color:var(--gold);font-size:11px">*</span></label>
+              <label>البلد <span style="color:var(--text-dimmer);font-weight:400;font-size:11px">(اختياري)</span></label>
               <select id="pCountry" class="form-control-auth" onchange="validateStateCountry()">
-                <option value="">اختر البلد</option>
+                <option value="">اختر البلد (اختياري)</option>
               </select>
             </div>
           </div>
           <div class="state-country-wrap" style="margin-bottom:.6rem;">
             <div class="state-country-hint" id="stateCountryHint"></div>
-            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">⚠️ يجب تعبئة الولاية والبلد معاً —
-              سيُحفظ بصيغة: <span style="color:var(--gold-dim)">ولاية - بلد</span></div>
+            <div style="font-size:11px;color:var(--text-dimmer);margin-top:.2rem">🤖 بوت التحقق الجغرافي: إدخال الولاية أو المنطقة <span style="color:var(--gold)">اختياري</span> تماماً، وإذا تم إدخالها يتحقق الروبوت تلقائياً من صحة وجودها الجغرافي.</div>
           </div>
 
           <!-- Section: الهوية الشخصية -->
@@ -4623,8 +4629,8 @@
           </div>
         </div>
       </div>
-      <div class="archive-post-title">${parsePostTags(p.title)}</div>
-      <div class="archive-post-body">${parsePostTags(p.body)}</div>
+      <div class="archive-post-title selectable-text" style="user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(p.title)}</div>
+      <div class="archive-post-body selectable-text" style="user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(p.body)}</div>
       <div class="archive-post-actions">
         <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>${p.likes}</span></button>
         <button class="post-action-btn">💬 <span>${p.comments}</span> تعليق</button>
@@ -5819,7 +5825,7 @@
                 </div>
               ` : ''}
             </div>
-            <div class="post-body" style="white-space:pre-wrap">${parsePostTags(post.text)}</div>
+            <div class="post-body selectable-text" style="white-space:pre-wrap; user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(post.text)}</div>
             ${renderMediaGrid(post.media, post.id)}
             <div class="post-actions">
                <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">❤️ <span>${post.likes || 0}</span></button>
@@ -6282,34 +6288,67 @@
       }
     }
 
+    const KNOWN_ARAB_AND_WORLD_PROVINCES = [
+      // الجزائر (58 ولاية الكاملة وباقي المناطق)
+      "أدرار", "الشلف", "الأغواط", "أم البواقي", "باتنة", "بجاية", "بسكرة", "بشار", "البليدة", "البويرة", "تمنراست", "تبسة", "تلمسان", "تيارت", "تيزي وزو", "الجزائر", "الجلفة", "جيجل", "سطيف", "سعيدة", "سكيكدة", "سيدي بلعباس", "عنابة", "قالمة", "قسنطينة", "المدية", "مستغانم", "المسيلة", "معسكر", "ورقلة", "وهران", "البيض", "إليزي", "برج بوعريريج", "بومرداس", "الطارف", "تندوف", "تيسمسيلت", "الوادي", "خنشلة", "سوق أهراس", "تيبازة", "ميلة", "عين الدفلى", "النعامة", "عين تموشنت", "غرداية", "غليزان", "تيميمون", "برج باجي مختار", "أولاد جلال", "بني عباس", "عين صالح", "عين قزام", "تقرت", "جانت", "المغير", "المنيعة",
+      // المغرب
+      "الرباط", "الدار البيضاء", "فاس", "مراكش", "طنجة", "أغادير", "مكناس", "وجدة", "تطوان", "العيون", "تارودانت", "القنيطرة",
+      // تونس
+      "تونس", "صفاقس", "سوسة", "بنزرت", "القيروان", "قابش", "نابل", "أريانة", "المنستير", "مدنين", "الكاف", "توزر",
+      // مصر والشرق الأوسط والخليج والشام والعالم
+      "القاهرة", "الإسكندرية", "الجيزة", "الأقصر", "أسوان", "الدقهلية", "الشرقية", "الغربية", "البحيرة", "سيناء", "الرياض", "جدة", "مكة المكرمة", "المدينة المنورة", "الدمام", "الشرقية", "أبوظبي", "دبي", "الشارقة", "الكويت", "الدوحة", "المنامة", "مسقط", "بغداد", "البصرة", "أربيل", "الموصل", "دمشق", "حلب", "عمان", "الزرقاء", "بيروت", "القدس", "غزة", "طرابلس", "بنغازي", "الخرطوم", "نواكشوط", "باريس", "لندن", "مدريد", "روما", "برلين", "نيويورك", "واشنطن"
+    ];
+
+    function botCheckGeographicLocation(state, country) {
+      if (!state && !country) return { valid: true, msg: '' };
+      if (!state && country) return { valid: true, msg: `✅ سيُحفظ البلد: ${country} (الولاية اختياري)` };
+      const cleanState = state.replace(/(?:ولاية|محافظة|منطقة|إقليم|مقاطعة|مدينة)\s+/gi, '').trim();
+      if (cleanState.length < 2) {
+        return { valid: false, msg: '🤖 إنذار الروبوت الجغرافي: اسم الولاية/المنطقة قصير جداً ولا يمثل منطقة حقيقية!' };
+      }
+      // فحص الرموز العشوائية وتكرار الحروف والكيبورد
+      if (/([a-zA-Zء-ي])\1{2,}/.test(cleanState) || /^(asdf|qwer|zxcv|1234|شسي|خخخ|هههه|تتت|ببب)/i.test(cleanState) || /^[\d\W_]+$/.test(cleanState)) {
+        return { valid: false, msg: `🤖 إنذار الروبوت الجغرافي: المنطقة "${state}" يبدو أنها وهمية أو عشوائية! يرجى إدخال منطقة حقيقية.` };
+      }
+      // فحص القاموس الجغرافي الذكي
+      const foundInDict = KNOWN_ARAB_AND_WORLD_PROVINCES.some(p => p === cleanState || cleanState.includes(p) || p.includes(cleanState));
+      if (!foundInDict && cleanState.length < 3) {
+        return { valid: false, msg: `🤖 إنذار الروبوت الجغرافي: المنطقة "${state}" غير معروفة جغرافياً!` };
+      }
+      return { valid: true, msg: `✅ روبوت الجغرافيا: تم التحقق، ${state} ${country ? ' - ' + country : ''} موثقة` };
+    }
+
     function validateStateCountry() {
-      const state = (document.getElementById('pState')?.value || '').trim();
-      const country = (document.getElementById('pCountry')?.value || '').trim();
-      const hint = document.getElementById('stateCountryHint');
       const stateInput = document.getElementById('pState');
       const countryInput = document.getElementById('pCountry');
+      const hint = document.getElementById('stateCountryHint');
       if (!hint) return false;
-      if (state && country) {
-        hint.textContent = '✅ سيُحفظ كـ: ' + state + ' - ' + country;
+      const state = (stateInput?.value || '').trim();
+      const country = countryInput?.value || '';
+
+      if (!state && !country) {
+        hint.textContent = '✅ إدخال الولاية أو البلد اختياري تماماً (يمكنك الحفظ دون تحديدها)';
         hint.className = 'state-country-hint show valid';
+        hint.style.color = 'var(--green, #4caf50)';
         stateInput?.classList.remove('invalid');
         countryInput?.classList.remove('invalid');
         return true;
-      } else if (state && !country) {
-        hint.textContent = '⚠️ اختر البلد لإكمال الصيغة المطلوبة';
+      }
+
+      const check = botCheckGeographicLocation(state, country);
+      if (!check.valid) {
+        hint.textContent = check.msg;
         hint.className = 'state-country-hint show invalid';
-        countryInput?.classList.add('invalid');
-        return false;
-      } else if (!state && country) {
-        hint.textContent = '⚠️ أدخل اسم الولاية أو المنطقة';
-        hint.className = 'state-country-hint show invalid';
+        hint.style.color = '#f44336';
         stateInput?.classList.add('invalid');
         return false;
       } else {
-        hint.className = 'state-country-hint';
+        hint.textContent = check.msg;
+        hint.className = 'state-country-hint show valid';
+        hint.style.color = 'var(--green, #4caf50)';
         stateInput?.classList.remove('invalid');
         countryInput?.classList.remove('invalid');
-        return false; // both empty = not filled (required)
+        return true;
       }
     }
 
@@ -6411,14 +6450,17 @@
       // Validate required fields
       if (!username) return showAuthMsg('profileMsg', '⚠️ أدخل اسم المستخدم', 'err');
 
-      // Validate state-country: BOTH must be filled or BOTH empty
-      if ((state && !country) || (!state && country)) {
-        validateStateCountry();
-        return showAuthMsg('profileMsg', '⚠️ يجب تعبئة الولاية والبلد معاً بصيغة: ولاية - بلد', 'err');
+      // Validate geographic state via bot (optional field, but verified if entered)
+      if (state || country) {
+        const check = botCheckGeographicLocation(state, country);
+        if (!check.valid) {
+          validateStateCountry();
+          return showAuthMsg('profileMsg', check.msg, 'err');
+        }
       }
 
-      // Build location string in required format
-      const location = (state && country) ? `${state} - ${country}` : null;
+      // Build location string if provided (entirely optional)
+      const location = (state || country) ? `${state ? state : ''}${state && country ? ' - ' : ''}${country ? country : ''}` : null;
 
       const btn = document.getElementById('profileSaveBtn');
       btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
@@ -6751,6 +6793,7 @@
     // Clear stale deleted-videos cache on every load
     try { localStorage.removeItem('kronos_deleted_vids'); } catch (e) { }
     loadYtFromSupabase();
+    setTimeout(() => { if (typeof updateNewsTickerWithVideos === 'function') updateNewsTickerWithVideos(); }, 250);
 
     async function loadYtFromSupabase() {
       try {
@@ -6797,25 +6840,38 @@
         showYtEmpty();
       }
       if (typeof updateAboutStatistics === 'function') updateAboutStatistics();
+      if (typeof updateNewsTickerWithVideos === 'function') updateNewsTickerWithVideos(_ytAllVideos);
+    }
+
+    function updateNewsTickerWithVideos(videosList) {
+      const tickerInner = document.getElementById('tickerInner');
+      if (!tickerInner) return;
+      let list = (videosList && videosList.length) ? videosList : [];
+      if (!list.length) {
+        try {
+          list = JSON.parse(localStorage.getItem('kronos_videos') || '[]');
+        } catch (e) { list = []; }
+      }
+      const validVideos = list.filter(v => (v.title || '').trim() !== '');
+      if (!validVideos.length) return;
+      const recent = validVideos.slice(0, 40);
+      const itemsHtml = recent.map(v => {
+        const vid = v.vid || v.youtube_id || '';
+        const title = v.title || '';
+        const chName = v.chName || v.channel_name || v.channel_youtube_id || '';
+        const pubTime = v.pubTime || v.published_at || '';
+        const timing = v.timing || v.duration || '';
+        const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeCh = chName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeTiming = timing.replace(/'/g, "\\'");
+        return `<span class="news-item-tick" onclick="showRoom('youtube'); setTimeout(() => openYT('${vid}','${safeCh}','${safeTitle}','${pubTime}','${safeTiming}'), 150);" title="اضغط لمشاهدة الفيديو مباشرة في غرفة الفيديوهات">▶ ${title} ${chName ? `[📺 ${chName}]` : ''}</span>`;
+      }).join('');
+      tickerInner.innerHTML = itemsHtml + itemsHtml;
     }
 
     function renderChannelsMarquee(channels) {
-      const wrap = document.getElementById('channelsMarqueeWrap');
-      const inner = document.getElementById('channelsMarqueeInner');
-      if (!wrap || !inner) return;
-      wrap.classList.add('has-channels');
-      // Duplicate for seamless loop
-      const cards = channels.map(ch => `
-    <div class="ch-card" onclick="showRoom('youtube')" title="${ch.name}">
-      ${ch.logo
-          ? `<img class="ch-logo" src="${ch.logo}" alt="${ch.name}" onerror="this.style.display='none'">`
-          : `<div class="ch-logo-placeholder">📺</div>`}
-      <div class="ch-info">
-        <span class="ch-name">${ch.name}</span>
-        <span class="ch-subs">${ch.subs || '—'} مشترك</span>
-      </div>
-    </div>`).join('');
-      inner.innerHTML = cards + cards; // duplicate for infinite scroll
+      // Channels marquee removed from home page (`احذف اطارها خلي اطار اخبار فقط`)
+      return;
     }
 
     const YT_PER_PAGE = 30;
@@ -6850,6 +6906,7 @@
           }
         }
       }
+      if (_ytAllVideos.length) updateNewsTickerWithVideos(_ytAllVideos);
       if (!_ytAllVideos.length) { showYtEmpty(); return; }
       if (empty) empty.style.display = 'none';
       _ytPage = 1;
