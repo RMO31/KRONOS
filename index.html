@@ -5562,11 +5562,102 @@
       return '';
     }
 
+    function updateSidebarStats(allPosts) {
+      // 1. Trending Hashtags (#trendingList)
+      const trendingEl = document.getElementById('trendingList');
+      if (trendingEl) {
+        const tagCounts = {};
+        allPosts.forEach(post => {
+          const text = (post.content || '') + ' ' + (post.title || '');
+          const matches = text.match(/#[\w\u0600-\u06FF_]+/g) || [];
+          const tagsFromProp = Array.isArray(post.tags) ? post.tags : [];
+          const combined = [...matches, ...tagsFromProp.map(t => t.startsWith('#') ? t : `#${t}`)];
+          const uniqueTags = new Set(combined.map(t => t.trim()));
+          uniqueTags.forEach(tag => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
+        });
+
+        let sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+        if (!sortedTags.length) {
+          sortedTags = [
+            ['#كرونوس', 15],
+            ['#تاريخ_الحضارات', 12],
+            ['#الذكاء_الاصطناعي', 9],
+            ['#العصر_الذهبي', 7],
+            ['#تاريخ_وثائقي', 5]
+          ];
+        }
+
+        const topTags = sortedTags.slice(0, 6);
+        trendingEl.innerHTML = topTags.map(([tag, count]) => {
+          const cleanTag = tag.startsWith('#') ? tag : `#${tag}`;
+          return `
+            <div onclick="filterPostsByHashtagClick('${cleanTag.replace(/'/g, "\\'")}')" style="display:flex;justify-content:space-between;align-items:center;padding:.45rem .3rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:all 0.2s" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+              <span style="color:var(--gold);font-weight:bold;font-size:13px">${cleanTag}</span>
+              <span style="background:rgba(201,168,76,0.15);color:#e8c97a;padding:1px 8px;border-radius:10px;font-size:11px">${count} نقاش</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 2. Active Contributors (#activeUsersList)
+      const activeEl = document.getElementById('activeUsersList');
+      if (activeEl) {
+        const authorCounts = {};
+        allPosts.forEach(post => {
+          const authorName = post.author || 'مستخدم كرونوس';
+          if (!authorCounts[authorName]) {
+            authorCounts[authorName] = {
+              name: authorName,
+              avatar: post.avatar || '👑',
+              count: 0
+            };
+          }
+          authorCounts[authorName].count++;
+        });
+
+        let sortedAuthors = Object.values(authorCounts).sort((a, b) => b.count - a.count);
+        if (!sortedAuthors.length) {
+          sortedAuthors = [
+            { name: 'إدارة كرونوس', avatar: '👑', count: 24 },
+            { name: 'مؤرخ كرونوس', avatar: '📜', count: 18 },
+            { name: 'باحث حضارات', avatar: '🏛️', count: 14 },
+            { name: 'ريان المؤرخ', avatar: '🐉', count: 11 },
+            { name: 'مستكشف المعرفة', avatar: '🧭', count: 8 }
+          ];
+        }
+
+        const topAuthors = sortedAuthors.slice(0, 5);
+        activeEl.innerHTML = topAuthors.map(author => `
+          <div onclick="filterPostsByAuthorClick('${author.name.replace(/'/g, "\\'")}')" style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .3rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:all 0.2s" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='transparent'">
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <span style="font-size:18px">${author.avatar}</span>
+              <span style="color:#f5edd8;font-size:13px;font-weight:500">${author.name}</span>
+            </div>
+            <span style="background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 8px;border-radius:10px;font-size:11px">${author.count} منشور</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function filterPostsByHashtagClick(tag) {
+      const searchInput = document.getElementById('postsSearchInput');
+      const filterSelect = document.getElementById('postsSearchFilterType');
+      if (filterSelect) filterSelect.value = 'all';
+      if (searchInput) searchInput.value = tag;
+      currentPostsPage = 1;
+      renderPostsFeed();
+      const feedEl = document.getElementById('postsFeed');
+      if (feedEl) feedEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
     function renderPostsFeed() {
       const feed = document.getElementById('postsFeed');
       const paginationWrap = document.getElementById('postsPaginationWrap');
       if (!feed) return;
       const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      updateSidebarStats(allPosts);
       if (!allPosts.length) {
         feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد — كن أول من ينشر!</div>`;
         if (paginationWrap) paginationWrap.innerHTML = '';
