@@ -3114,10 +3114,136 @@
       cursor: default;
       border: 1px solid rgba(255,255,255,0.2);
     }
+    /* KRONOS SECURITY & ANTI-COPY SHIELD */
+    body, html {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    input, textarea, [contenteditable="true"] {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+    img, svg, canvas {
+      -webkit-user-drag: none !important;
+    }
+    #kronos-security-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(14, 12, 9, 0.98);
+      z-index: 999999999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      color: var(--gold);
+      font-family: 'Tajawal', sans-serif;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+    }
+    #kronos-security-overlay h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #e8c97a;
+      text-shadow: 0 0 15px rgba(201, 168, 76, 0.5);
+    }
+    #kronos-security-overlay p {
+      font-size: 1.2rem;
+      color: #f5edd8;
+      max-width: 600px;
+      line-height: 1.8;
+    }
   </style>
 </head>
 
 <body>
+<script id="kronos-security-engine">
+(function() {
+  if (window.self !== window.top) {
+    try { window.top.location.href = window.self.location.href; } catch (e) {}
+  }
+  document.addEventListener('contextmenu', function(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
+  document.addEventListener('dragstart', function(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'img' || tag === 'svg' || tag === 'a') {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
+  document.addEventListener('keydown', function(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    var isInput = (tag === 'input' || tag === 'textarea' || e.target.isContentEditable);
+    if (e.keyCode === 123 || e.key === 'F12') {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSecurityWarning("تم تعطيل أداة فحص المتصفح لحماية الملكية الفكرية وأكواد الموقع.");
+      return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+      var key = (e.key || '').toUpperCase();
+      if (key === 'I' || key === 'J' || key === 'C' || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerSecurityWarning("محاولة فتح أدوات المطورين محظورة بحماية نظام كرونوس.");
+        return false;
+      }
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSecurityWarning("عرض مصدر الصفحة محظور لحماية الشفرة والمحتوى.");
+      return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || e.keyCode === 67 || e.keyCode === 88)) {
+      if (!isInput && window.getSelection().toString().length > 0) {
+        e.preventDefault();
+        return false;
+      }
+    }
+  }, true);
+  var devtoolsDetected = false;
+  function triggerSecurityWarning(msg) {
+    var overlay = document.getElementById('kronos-security-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'kronos-security-overlay';
+      overlay.innerHTML = '<div style="font-size: 4rem; margin-bottom: 1rem;">🛡️</div><h2>تنبيه حماية الملكية الفكرية</h2><p id="kronos-security-msg">' + (msg || 'تم اكتشاف محاولة فحص أو نسخ أكواد النظام. تم تأمين الشاشة وتشفير المحتوى لحماية حقوق كرونوس.') + '</p><button onclick="document.getElementById(\'kronos-security-overlay\').style.display=\'none\'" style="margin-top: 2rem; padding: 0.8rem 2rem; background: var(--gold); color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">إغلاق والعودة</button>';
+      document.body.appendChild(overlay);
+    }
+    var msgEl = document.getElementById('kronos-security-msg');
+    if (msgEl && msg) msgEl.textContent = msg;
+    overlay.style.display = 'flex';
+  }
+  setInterval(function() {
+    var widthDiff = window.outerWidth - window.innerWidth;
+    var heightDiff = window.outerHeight - window.innerHeight;
+    if ((widthDiff > 180 || heightDiff > 180) && window.outerWidth > 300 && window.outerHeight > 300) {
+      if (!devtoolsDetected) {
+        devtoolsDetected = true;
+      }
+    } else {
+      devtoolsDetected = false;
+    }
+  }, 1000);
+})();
+</script>
 
   <!-- NAV -->
   <nav id="nav">
@@ -4489,16 +4615,16 @@
       <div class="archive-post-head">
         <div class="archive-post-avatar">${p.avatar}</div>
         <div class="archive-post-meta">
-          <div class="archive-post-author">${p.author}</div>
+          <div class="archive-post-author">${escapeHtml(p.author)}</div>
           <div class="archive-post-info">
-            <span class="archive-post-date">${p.date}</span>
-            <span class="archive-post-type">${p.type}</span>
-            <span class="archive-post-branch">${p.branch}</span>
+            <span class="archive-post-date">${escapeHtml(p.date)}</span>
+            <span class="archive-post-type">${escapeHtml(p.type)}</span>
+            <span class="archive-post-branch">${escapeHtml(p.branch)}</span>
           </div>
         </div>
       </div>
-      <div class="archive-post-title">${p.title}</div>
-      <div class="archive-post-body">${p.body}</div>
+      <div class="archive-post-title">${parsePostTags(p.title)}</div>
+      <div class="archive-post-body">${parsePostTags(p.body)}</div>
       <div class="archive-post-actions">
         <button class="post-action-btn" onclick="toggleLike(this)">❤️ <span>${p.likes}</span></button>
         <button class="post-action-btn">💬 <span>${p.comments}</span> تعليق</button>
@@ -4958,9 +5084,19 @@
       }
     }
 
+    function escapeHtml(str) {
+      if (!str && str !== 0) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     function parsePostTags(text) {
       if (!text) return '';
-      let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      let escaped = escapeHtml(text);
       escaped = escaped.replace(/@(?:ALL|الجميع|everyone)/gi, `<span class="post-tag-badge everyone" title="إشارة لجميع المتابعين في هذه الغرفة" onclick="showToast('👑 إشارة عامة: تم تنبيه كافة المتابعين والأعضاء في الغرفة للتفاعل!')">👑 @ALL (الجميع)</span>`);
       escaped = escaped.replace(/@([a-zA-Z0-9_ء-ي]+)/g, (m, u) => {
         if (u.toUpperCase() === 'ALL' || u === 'الجميع') return m;
@@ -5593,10 +5729,10 @@
               ${(post.comments || []).map(c => `
                 <div class="comment" style="margin-bottom:.5rem;padding:.5rem;background:rgba(255,255,255,0.03);border-radius:6px;font-size:13px">
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-                    <span style="font-weight:700;color:var(--gold);cursor:pointer" onclick="openUserProfileByAuthorName('${c.author}')">${c.author}:</span>
+                    <span style="font-weight:700;color:var(--gold);cursor:pointer" onclick="openUserProfileByAuthorName('${escapeHtml(c.author)}')">${escapeHtml(c.author)}:</span>
                     ${c.date ? `<span style="font-size:10px;color:var(--text-dimmer)">📅 ${convertDigitsToWestern(c.date)}</span>` : ''}
                   </div>
-                  <div style="color:var(--parchment)">${c.text}</div>
+                  <div style="color:var(--parchment)">${parsePostTags(c.text)}</div>
                 </div>
               `).join('')}
               <div class="comment-input-row">

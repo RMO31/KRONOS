@@ -1,0 +1,26 @@
+# Secrets & Credentials
+client_secret_*.json
+credentials_*.json
+token*.json
+*.json
+!skills.json
+!package.json
+.env
+*.env
+*.pem
+*.key
+
+# Python & Temp
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+analyze.py
+check_*.py
+scratch/
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+*.bak
+*.swp

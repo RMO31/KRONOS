@@ -669,9 +669,135 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .prog-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-bottom: .3rem; }
 .prog-bar-track { height: 6px; background: var(--dark5); border-radius: 3px; overflow: hidden; }
 .prog-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(to right, var(--gold-dim), var(--gold)); transition: width .6s ease; }
+/* KRONOS SECURITY & ANTI-COPY SHIELD */
+body, html {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+img, svg, canvas {
+  -webkit-user-drag: none !important;
+}
+#kronos-security-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(14, 12, 9, 0.98);
+  z-index: 999999999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  color: var(--gold);
+  font-family: 'Tajawal', sans-serif;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+#kronos-security-overlay h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #e8c97a;
+  text-shadow: 0 0 15px rgba(201, 168, 76, 0.5);
+}
+#kronos-security-overlay p {
+  font-size: 1.2rem;
+  color: #f5edd8;
+  max-width: 600px;
+  line-height: 1.8;
+}
 </style>
 </head>
 <body>
+<script id="kronos-security-engine">
+(function() {
+  if (window.self !== window.top) {
+    try { window.top.location.href = window.self.location.href; } catch (e) {}
+  }
+  document.addEventListener('contextmenu', function(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
+  document.addEventListener('dragstart', function(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'img' || tag === 'svg' || tag === 'a') {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
+  document.addEventListener('keydown', function(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    var isInput = (tag === 'input' || tag === 'textarea' || e.target.isContentEditable);
+    if (e.keyCode === 123 || e.key === 'F12') {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSecurityWarning("تم تعطيل أداة فحص المتصفح لحماية الملكية الفكرية وأكواد الموقع.");
+      return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+      var key = (e.key || '').toUpperCase();
+      if (key === 'I' || key === 'J' || key === 'C' || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerSecurityWarning("محاولة فتح أدوات المطورين محظورة بحماية نظام كرونوس.");
+        return false;
+      }
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSecurityWarning("عرض مصدر الصفحة محظور لحماية الشفرة والمحتوى.");
+      return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || e.keyCode === 67 || e.keyCode === 88)) {
+      if (!isInput && window.getSelection().toString().length > 0) {
+        e.preventDefault();
+        return false;
+      }
+    }
+  }, true);
+  var devtoolsDetected = false;
+  function triggerSecurityWarning(msg) {
+    var overlay = document.getElementById('kronos-security-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'kronos-security-overlay';
+      overlay.innerHTML = '<div style="font-size: 4rem; margin-bottom: 1rem;">🛡️</div><h2>تنبيه حماية الملكية الفكرية</h2><p id="kronos-security-msg">' + (msg || 'تم اكتشاف محاولة فحص أو نسخ أكواد النظام. تم تأمين الشاشة وتشفير المحتوى لحماية حقوق كرونوس.') + '</p><button onclick="document.getElementById(\'kronos-security-overlay\').style.display=\'none\'" style="margin-top: 2rem; padding: 0.8rem 2rem; background: var(--gold); color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">إغلاق والعودة</button>';
+      document.body.appendChild(overlay);
+    }
+    var msgEl = document.getElementById('kronos-security-msg');
+    if (msgEl && msg) msgEl.textContent = msg;
+    overlay.style.display = 'flex';
+  }
+  setInterval(function() {
+    var widthDiff = window.outerWidth - window.innerWidth;
+    var heightDiff = window.outerHeight - window.innerHeight;
+    if ((widthDiff > 180 || heightDiff > 180) && window.outerWidth > 300 && window.outerHeight > 300) {
+      if (!devtoolsDetected) {
+        devtoolsDetected = true;
+      }
+    } else {
+      devtoolsDetected = false;
+    }
+  }, 1000);
+})();
+</script>
 
 <!-- ══ SIDEBAR ══════════════════════════════════════════════════════ -->
 <aside id="sidebar">
@@ -1776,6 +1902,17 @@ function showPage(id) {
     d.toLocaleDateString('ar-DZ', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 })();
 
+// ─── SECURITY / ESCAPE HTML ────────────────────────────────────────────────
+function escapeHtml(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // ─── TOAST ─────────────────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg, cls='') {
@@ -1914,11 +2051,11 @@ function addArchivePost() {
   tr.setAttribute('data-era', era);
   tr.setAttribute('data-type', type);
   tr.innerHTML = `
-    <td class="td-main">${title.substring(0,45)}${title.length>45?'...':''}</td>
-    <td><span class="badge badge-gold">${ERA_NAMES[era]}</span></td>
-    <td>${branch}</td>
-    <td><span class="badge badge-blue">${type}</span></td>
-    <td>${author}</td>
+    <td class="td-main">${escapeHtml(title.substring(0,45))}${title.length>45?'...':''}</td>
+    <td><span class="badge badge-gold">${escapeHtml(ERA_NAMES[era]||era)}</span></td>
+    <td>${escapeHtml(branch)}</td>
+    <td><span class="badge badge-blue">${escapeHtml(type)}</span></td>
+    <td>${escapeHtml(author)}</td>
     <td>${new Date().toLocaleDateString('ar')}</td>
     <td><span style="color:var(--gold)">0❤ 0💬</span></td>
     <td><div style="display:flex;gap:.3rem">

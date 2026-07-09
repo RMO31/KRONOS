@@ -11,48 +11,59 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def fetch_channel_info(channel_id):
     """يجلب معلومات القناة: الاسم، اللوجو، وعدد المشتركين"""
+    if not channel_id or not isinstance(channel_id, str):
+        return None
     url = (f"https://www.googleapis.com/youtube/v3/channels"
            f"?part=snippet,statistics&id={channel_id}&key={YT_API_KEY}")
-    res = requests.get(url, timeout=15)
-    if res.status_code == 200:
-        items = res.json().get('items', [])
-        if items:
-            snippet = items[0]['snippet']
-            stats   = items[0]['statistics']
-            return {
-                'channel_name':    snippet.get('title', ''),
-                'channel_logo':    snippet.get('thumbnails', {}).get('high', {}).get('url', ''),
-                'subscriber_count': int(stats.get('subscriberCount', 0))
-            }
-    print(f"  ⚠️  fetch_channel_info HTTP {res.status_code}")
+    try:
+        res = requests.get(url, timeout=15)
+        if res.status_code == 200:
+            items = res.json().get('items', [])
+            if items:
+                snippet = items[0]['snippet']
+                stats   = items[0]['statistics']
+                return {
+                    'channel_name':    snippet.get('title', ''),
+                    'channel_logo':    snippet.get('thumbnails', {}).get('high', {}).get('url', ''),
+                    'subscriber_count': int(stats.get('subscriberCount', 0))
+                }
+        print(f"  ⚠️  fetch_channel_info HTTP {res.status_code}")
+    except Exception as e:
+        print(f"  ❌  fetch_channel_info network/parse error: {e}")
     return None
 
 def fetch_latest_videos(channel_id, max_results=10):
     """يجلب آخر فيديوهات للقناة (افتراضي 10)"""
+    videos = []
+    if not channel_id or not isinstance(channel_id, str) or len(channel_id) < 3 or not channel_id.startswith('UC'):
+        print(f"  ⚠️  Invalid channel_id format for playlist conversion: '{channel_id}' (Must start with 'UC')")
+        return videos
     playlist_id = 'UU' + channel_id[2:]   # UC… → UU…
     url = (f"https://www.googleapis.com/youtube/v3/playlistItems"
            f"?part=snippet&playlistId={playlist_id}&maxResults={max_results}&key={YT_API_KEY}")
-    res = requests.get(url, timeout=15)
-    videos = []
-    if res.status_code == 200:
-        data = res.json()
-        if data.get('error'):
-            print(f"  ⚠️  YT API error: {data['error'].get('message')}")
-            return videos
-        for item in data.get('items', []):
-            snippet = item.get('snippet', {})
-            vid_id  = snippet.get('resourceId', {}).get('videoId')
-            if not vid_id:
-                continue
-            videos.append({
-                'youtube_id':   vid_id,
-                'title':        snippet.get('title', ''),
-                'description':  (snippet.get('description', '') or '')[:500],
-                'published_at': snippet.get('publishedAt'),
-                'status':       'published'
-            })
-    else:
-        print(f"  ⚠️  fetch_latest_videos HTTP {res.status_code}: {res.text[:200]}")
+    try:
+        res = requests.get(url, timeout=15)
+        if res.status_code == 200:
+            data = res.json()
+            if data.get('error'):
+                print(f"  ⚠️  YT API error: {data['error'].get('message')}")
+                return videos
+            for item in data.get('items', []):
+                snippet = item.get('snippet', {})
+                vid_id  = snippet.get('resourceId', {}).get('videoId')
+                if not vid_id:
+                    continue
+                videos.append({
+                    'youtube_id':   vid_id,
+                    'title':        snippet.get('title', ''),
+                    'description':  (snippet.get('description', '') or '')[:500],
+                    'published_at': snippet.get('publishedAt'),
+                    'status':       'published'
+                })
+        else:
+            print(f"  ⚠️  fetch_latest_videos HTTP {res.status_code}: {res.text[:200]}")
+    except Exception as e:
+        print(f"  ❌  fetch_latest_videos network/parse error: {e}")
     return videos
 
 def save_video(video_body):
