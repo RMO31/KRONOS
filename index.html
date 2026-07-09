@@ -3123,9 +3123,12 @@
   <nav id="nav">
     <!-- nav-start: RIGHT in RTL — logo + user widget when logged in -->
     <div class="nav-start">
-      <a class="nav-logo" href="#" onclick="showRoom('home')">
-        KRONOS
-        <span data-i18n="nav.tagline">التاريخ والجغرافيا</span>
+      <a class="nav-logo" href="#" onclick="showRoom('home')" style="display:flex;align-items:center;gap:0.6rem;text-decoration:none">
+        <img src="Logo.png" alt="KRONOS Logo" style="width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,0.65));transition:transform 0.3s ease" onmouseover="this.style.transform='scale(1.1) rotate(5deg)'" onmouseout="this.style.transform='scale(1) rotate(0deg)'">
+        <div>
+          <div style="line-height:1.1;font-weight:bold;color:var(--gold,#c9a84c)">KRONOS</div>
+          <span data-i18n="nav.tagline" style="font-size:11px;color:var(--text-dim,#aaa);display:block">التاريخ والجغرافيا</span>
+        </div>
       </a>
       <a class="nav-user-widget" id="navUserWidget" href="#" style="display:none"
         onclick="toggleProfileDropdown(event)">
@@ -4819,22 +4822,31 @@
       }
     }
 
+    let activeMentionInput = null;
+
     function handlePostInputMention(event) {
       const input = event.target;
+      activeMentionInput = input;
       const popup = document.getElementById('mentionPopup');
       if (!popup) return;
       const val = input.value;
       const cursorPos = input.selectionStart;
       const textBefore = val.slice(0, cursorPos);
       const lastAt = textBefore.lastIndexOf('@');
+      const lastHash = textBefore.lastIndexOf('#');
 
-      if (lastAt !== -1 && !/\s/.test(textBefore.slice(lastAt))) {
+      // Check if @ is the active trigger
+      if (lastAt !== -1 && lastAt >= lastHash && !/\s/.test(textBefore.slice(lastAt))) {
         const query = textBefore.slice(lastAt + 1).toLowerCase();
+        const storedUsers = JSON.parse(localStorage.getItem('kronos_users') || '[]');
+        const userList = storedUsers.map(u => typeof u === 'string' ? u : u.name || u.username || '').filter(Boolean);
         const realProfiles = Object.keys(JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}'))
-          .filter(n => n !== 'ZAMAKAN' && n !== 'حساب وهمي' && n !== 'RMO' && !n.includes('Admin'))
+          .concat(userList)
+          .filter((v, i, a) => a.indexOf(v) === i && v !== 'ZAMAKAN' && v !== 'حساب وهمي' && !v.includes('Admin'))
           .map(n => ({ tag: n, label: `👤 @${n}` }));
         const defaultMentions = [
-          { tag: 'الجميع', label: '👑 @الجميع (إشارة لجميع المتابعين)' },
+          { tag: 'ALL', label: '👑 @ALL (إشارة وتنبيه لكافة المتابعين والأعضاء في الغرفة)' },
+          { tag: 'الجميع', label: '👑 @الجميع (تنبيه كافة الأعضاء والمتابعين)' },
           { tag: 'RMO', label: '👑 @RMO (إدارة ومؤسس كرونوس)' },
           ...realProfiles
         ];
@@ -4846,12 +4858,54 @@
           popup.style.display = 'block';
           return;
         }
+      } 
+      // Check if # is the active trigger
+      else if (lastHash !== -1 && lastHash >= lastAt && !/\s/.test(textBefore.slice(lastHash))) {
+        const query = textBefore.slice(lastHash + 1).toLowerCase();
+        const historicalHashtags = [
+          { tag: 'مصر_القديمة', label: '🏛️ #مصر_القديمة (الحضارة الفرعونية والمعابد)' },
+          { tag: 'الإمبراطورية_الرومانية', label: '🛡️ #الإمبراطورية_الرومانية (تاريخ وقوى روما)' },
+          { tag: 'تاريخ_العرب', label: '📜 #تاريخ_العرب (الحضارة والفتوحات الإسلامية)' },
+          { tag: 'جغرافيا', label: '🌍 #جغرافيا (الخرائط والتضاريس والمناخ)' },
+          { tag: 'الأندلس', label: '🏰 #الأندلس (العصر الذهبي والعلوم والعمارة)' },
+          { tag: 'الحرب_العالمية', label: '⚔️ #الحرب_العالمية (التاريخ الحديث والمعاصر)' },
+          { tag: 'كرونوس', label: '⏳ #كرونوس (مجتمع ومنصة التاريخ والجغرافيا)' },
+          { tag: 'فلسفة_قديمة', label: '📖 #فلسفة_قديمة (الفكر اليوناني والشرقي)' },
+          { tag: 'الحضارة_الإسلامية', label: '🕌 #الحضارة_الإسلامية (العصر العباسي والأموي)' },
+          { tag: 'اليونان', label: '🏺 #اليونان (مهد الديمقراطية والفلسفة)' },
+          { tag: 'المغرب_الكبير', label: '🗺️ #المغرب_الكبير (تاريخ شمال إفريقيا)' },
+          { tag: 'بلاد_الرافدين', label: '🌾 #بلاد_الرافدين (سومر وبابل وآشور)' }
+        ];
+        // Extract dynamically stored tags from existing posts
+        try {
+          const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+          posts.forEach(p => {
+            const matches = (p.text || '').match(/#([a-zA-Z0-9_ء-ي]+)/g);
+            if (matches) {
+              matches.forEach(h => {
+                const clean = h.slice(1);
+                if (!historicalHashtags.some(x => x.tag === clean)) {
+                  historicalHashtags.push({ tag: clean, label: `🏷️ #${clean}` });
+                }
+              });
+            }
+          });
+        } catch(e) {}
+
+        const filtered = historicalHashtags.filter(m => m.tag.toLowerCase().includes(query) || m.label.toLowerCase().includes(query));
+        if (filtered.length) {
+          popup.innerHTML = filtered.map(m => `
+            <div class="mention-item" onclick="insertHashtag('${m.tag}')">${m.label}</div>
+          `).join('');
+          popup.style.display = 'block';
+          return;
+        }
       }
       popup.style.display = 'none';
     }
 
     function insertMention(tag) {
-      const input = document.getElementById('postInput');
+      const input = activeMentionInput || document.getElementById('postInput');
       const popup = document.getElementById('mentionPopup');
       if (!input) return;
       const val = input.value;
@@ -4866,15 +4920,53 @@
       if (popup) popup.style.display = 'none';
     }
 
+    function insertHashtag(tag) {
+      const input = activeMentionInput || document.getElementById('postInput');
+      const popup = document.getElementById('mentionPopup');
+      if (!input) return;
+      const val = input.value;
+      const cursorPos = input.selectionStart;
+      const textBefore = val.slice(0, cursorPos);
+      const textAfter = val.slice(cursorPos);
+      const lastHash = textBefore.lastIndexOf('#');
+      if (lastHash !== -1) {
+        input.value = textBefore.slice(0, lastHash) + '#' + tag + ' ' + textAfter;
+        input.focus();
+      }
+      if (popup) popup.style.display = 'none';
+    }
+
+    function searchByHashtag(tag) {
+      const cleanTag = tag.startsWith('#') ? tag : '#' + tag;
+      const postsInput = document.getElementById('postsSearchInput');
+      const archiveInput = document.getElementById('archiveSearchInput');
+      
+      showToast(`🔍 جاري تصفية وعرض المنشورات بوسم: ${cleanTag}`);
+      
+      const archiveRoom = document.getElementById('room-archive');
+      if (archiveRoom && archiveRoom.classList.contains('active')) {
+        if (archiveInput) {
+          archiveInput.value = cleanTag;
+          if (typeof renderArchivePosts === 'function') renderArchivePosts();
+        }
+      } else {
+        if (typeof showRoom === 'function') showRoom('posts');
+        if (postsInput) {
+          postsInput.value = cleanTag;
+          if (typeof filterPostsFeed === 'function') filterPostsFeed(true);
+        }
+      }
+    }
+
     function parsePostTags(text) {
       if (!text) return '';
       let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      escaped = escaped.replace(/@(?:الجميع|everyone)/gi, `<span class="post-tag-badge everyone" onclick="showToast('👑 تم الإشارة لجميع المتابعين ومجتمع كرونوس!')">👑 @الجميع</span>`);
+      escaped = escaped.replace(/@(?:ALL|الجميع|everyone)/gi, `<span class="post-tag-badge everyone" title="إشارة لجميع المتابعين في هذه الغرفة" onclick="showToast('👑 إشارة عامة: تم تنبيه كافة المتابعين والأعضاء في الغرفة للتفاعل!')">👑 @ALL (الجميع)</span>`);
       escaped = escaped.replace(/@([a-zA-Z0-9_ء-ي]+)/g, (m, u) => {
-        if (u === 'الجميع') return m;
-        return `<span class="post-tag-badge user" style="cursor:pointer" onclick="openUserProfileByAuthorName('${u}')">👤 @${u}</span>`;
+        if (u.toUpperCase() === 'ALL' || u === 'الجميع') return m;
+        return `<span class="post-tag-badge user" style="cursor:pointer" title="عرض ملف وعدد متابعي @${u}" onclick="openUserProfileByAuthorName('${u}')">👤 @${u}</span>`;
       });
-      escaped = escaped.replace(/#([a-zA-Z0-9_ء-ي]+)/g, `<span class="post-hashtag" onclick="showToast('🔍 عرض المنشورات بوسم #$1')">#$1</span>`);
+      escaped = escaped.replace(/#([a-zA-Z0-9_ء-ي]+)/g, `<span class="post-hashtag" style="cursor:pointer" title="انقر للبحث وعرض جميع المنشورات بوسم #$1" onclick="searchByHashtag('$1')">#$1</span>`);
       return escaped;
     }
 
