@@ -4180,6 +4180,9 @@
       if (id === 'about' && typeof updateAboutStatistics === 'function') {
         updateAboutStatistics();
       }
+      if (id === 'posts' && typeof loadPostsFromSupabase === 'function') {
+        loadPostsFromSupabase();
+      }
       return false;
     }
 
@@ -4769,6 +4772,7 @@
       } catch (e) {}
 
       renderPostsFeed();
+      if (typeof loadPostsFromSupabase === 'function') loadPostsFromSupabase();
     }
 
     function handlePostMediaSelect(event) {
@@ -5935,6 +5939,14 @@
           const nowStr = formatRealDateTime(new Date(), false);
           posts[idx].date = `📅 تاريخ النشر: ${nowStr} (تم التعديل)`;
           showToast('✅ تم تعديل المنشور بنجاح!');
+          const p = posts[idx];
+          const dbId = p.dbId || (typeof p.id === 'string' && p.id.startsWith('post_db_') ? p.id.replace('post_db_', '') : null);
+          if (dbId) {
+            sbIdxPatch('posts', `id=eq.${dbId}`, {
+              text: val,
+              image: cleanMedia && cleanMedia.length > 0 ? JSON.stringify(cleanMedia) : null
+            });
+          }
         }
         editingPostId = null;
         if (btn) btn.textContent = 'نشر';
@@ -5952,6 +5964,23 @@
           comments: []
         };
         posts.unshift(newPost);
+        sbIdxPost('posts', {
+          text: val,
+          image: cleanMedia && cleanMedia.length > 0 ? JSON.stringify(cleanMedia) : null,
+          author: session?.name || 'أنت',
+          avatar: session?.avatar || '👤',
+          likes: 0,
+          comments: JSON.stringify([])
+        }).then(res => {
+          if (res && res.id) {
+            newPost.dbId = res.id;
+            newPost.id = 'post_db_' + res.id;
+            try {
+              localStorage.setItem('kronos_posts', JSON.stringify(posts));
+              if (typeof renderPostsFeed === 'function') renderPostsFeed();
+            } catch(e){}
+          }
+        });
       }
 
       try {
@@ -5991,6 +6020,13 @@
     function deletePost(postId) {
       if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المنشور نهائياً؟')) return;
       let posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const target = posts.find(p => p.id === postId);
+      if (target) {
+        const dbId = target.dbId || (typeof target.id === 'string' && target.id.startsWith('post_db_') ? target.id.replace('post_db_', '') : null);
+        if (dbId) {
+          sbIdxDelete('posts', `id=eq.${dbId}`);
+        }
+      }
       posts = posts.filter(p => p.id !== postId);
       localStorage.setItem('kronos_posts', JSON.stringify(posts));
       if (editingPostId === postId) {
@@ -6014,6 +6050,10 @@
       if (post.likes < 0) post.likes = 0;
       localStorage.setItem('kronos_posts', JSON.stringify(posts));
       renderPostsFeed();
+      const dbId = post.dbId || (typeof post.id === 'string' && post.id.startsWith('post_db_') ? post.id.replace('post_db_', '') : null);
+      if (dbId) {
+        sbIdxPatch('posts', `id=eq.${dbId}`, { likes: post.likes });
+      }
     }
 
     function addPostComment(btn, postId) {
@@ -6034,6 +6074,10 @@
       localStorage.setItem('kronos_posts', JSON.stringify(posts));
       renderPostsFeed();
       showToast('💬 تم إضافة تعليقك!');
+      const dbId = post.dbId || (typeof post.id === 'string' && post.id.startsWith('post_db_') ? post.id.replace('post_db_', '') : null);
+      if (dbId) {
+        sbIdxPatch('posts', `id=eq.${dbId}`, { comments: JSON.stringify(post.comments) });
+      }
     }
 
     // ─── YOUTUBE ────────────────────────────────────────────────────────────────
@@ -6771,6 +6815,128 @@
         return [];
       }
     }
+
+    async function sbIdxPost(table, body) {
+      try {
+        const r = await fetch(`${SUPA_URL_IDX}/rest/v1/${table}`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPA_KEY_IDX,
+            'Authorization': `Bearer ${SUPA_KEY_IDX}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(body)
+        });
+        if (!r.ok) {
+          const txt = await r.text().catch(() => '');
+          console.warn('[sbIdxPost] error', r.status, table, txt.substring(0, 200));
+          return null;
+        }
+        const data = await r.json();
+        return Array.isArray(data) ? data[0] : data;
+      } catch (e) {
+        console.warn('[sbIdxPost] catch:', e.message, table);
+        return null;
+      }
+    }
+
+    async function sbIdxPatch(table, qs, body) {
+      try {
+        await fetch(`${SUPA_URL_IDX}/rest/v1/${table}?${qs}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPA_KEY_IDX,
+            'Authorization': `Bearer ${SUPA_KEY_IDX}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(body)
+        });
+      } catch (e) {
+        console.warn('[sbIdxPatch] catch:', e.message, table);
+      }
+    }
+
+    async function sbIdxDelete(table, qs) {
+      try {
+        await fetch(`${SUPA_URL_IDX}/rest/v1/${table}?${qs}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPA_KEY_IDX,
+            'Authorization': `Bearer ${SUPA_KEY_IDX}`,
+            'Prefer': 'return=minimal'
+          }
+        });
+      } catch (e) {
+        console.warn('[sbIdxDelete] catch:', e.message, table);
+      }
+    }
+
+    async function loadPostsFromSupabase() {
+      try {
+        const rows = await sbIdx('posts?select=*&order=created_at.desc&limit=200');
+        if (!Array.isArray(rows) || rows.length === 0) return;
+        
+        const localPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+        const supaPosts = rows.map(r => {
+          let media = [];
+          try {
+            if (r.image && (r.image.startsWith('[') || r.image.startsWith('{'))) {
+              media = JSON.parse(r.image);
+              if (!Array.isArray(media)) media = [media];
+            } else if (r.image && typeof r.image === 'string') {
+              media = [{ type: 'image', src: r.image }];
+            }
+          } catch(e) {
+            if (r.image) media = [{ type: 'image', src: r.image }];
+          }
+          let dateStr = r.created_at ? (`📅 تاريخ النشر: ` + formatRealDateTime(new Date(r.created_at), false)) : '📅 تاريخ النشر: الآن';
+          let postId = r.id ? ('post_db_' + r.id) : ('post_' + Date.now());
+          const existingLocal = localPosts.find(lp => lp.id === postId || (lp.text === r.text && lp.author === r.author));
+          let supaComments = [];
+          if (r.comments) {
+            if (typeof r.comments === 'string') {
+              try { supaComments = JSON.parse(r.comments); } catch(e){}
+            } else if (Array.isArray(r.comments)) {
+              supaComments = r.comments;
+            }
+          }
+          let mergedComments = (existingLocal?.comments?.length || 0) >= (supaComments.length || 0) ? (existingLocal?.comments || supaComments) : supaComments;
+          let maxLikes = Math.max(r.likes || 0, existingLocal?.likes || 0);
+          if (existingLocal && r.id && ((existingLocal.likes || 0) > (r.likes || 0) || (existingLocal.comments?.length || 0) > (supaComments.length || 0))) {
+            sbIdxPatch('posts', `id=eq.${r.id}`, { likes: maxLikes, comments: JSON.stringify(mergedComments) });
+          }
+          return {
+            id: postId,
+            dbId: r.id || null,
+            author: r.author || 'عضو في مجتمع كرونوس',
+            authorId: r.author || 'user',
+            avatar: r.avatar || '👤',
+            date: existingLocal?.date || dateStr,
+            text: r.text || '',
+            media: media,
+            likes: maxLikes,
+            comments: mergedComments
+          };
+        });
+
+        const merged = [...supaPosts];
+        localPosts.forEach(lp => {
+          if (!supaPosts.some(sp => sp.id === lp.id || (sp.text === lp.text && sp.author === lp.author))) {
+            merged.push(lp);
+          }
+        });
+
+        localStorage.setItem('kronos_posts', JSON.stringify(merged));
+        if (typeof renderPostsFeed === 'function') renderPostsFeed();
+      } catch (err) {
+        console.warn('[loadPostsFromSupabase] error:', err);
+      }
+    }
+
     function fmtSubsIdx(n) {
       n = parseInt(n) || 0;
       if (n >= 1e6) return (n / 1e6).toFixed(1) + ' م';
