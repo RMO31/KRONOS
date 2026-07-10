@@ -4182,6 +4182,7 @@
 
     function setLang(lang) {
       currentLang = lang;
+      window.currentLang = lang;
       document.documentElement.lang = lang;
       document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       const t = T[lang] || T.ar;
@@ -4194,6 +4195,7 @@
         if (t[key] !== undefined) el.placeholder = t[key];
       });
       if (typeof updateAboutStatistics === 'function') updateAboutStatistics();
+      if (typeof renderPostsFeed === 'function') renderPostsFeed();
     }
 
     // ─── NAVIGATION ────────────────────────────────────────────────────────────
@@ -4937,7 +4939,7 @@
       const id = typeof p === 'string' ? p : (p.id || '');
       const author = typeof p === 'string' ? p : (p.author || '');
       if (id.startsWith('post_comm_') || id.startsWith('post_sample_')) return true;
-      if (author === 'ZAMAKAN' || author === 'حساب وهمي' || author === '👑 Kronos_Admin' || author === 'عضو في مجتمع كرونوس') return true;
+      if (author === 'ZAMAKAN' || author === 'حساب وهمي' || author === '👑 Kronos_Admin') return true;
       if (author.includes('باحث في التاريخ الساساني') || author.includes('متخصص في الخرائط التاريخية') || author.includes('متخصصة في العمارة الأندلسية') || author.includes('أستاذ التاريخ المعاصر') || author.includes('د. يوسف المؤرخ')) return true;
       return false;
     }
@@ -6065,11 +6067,25 @@
                 </div>
               ` : ''}
             </div>
-            <div class="post-body selectable-text" style="white-space:pre-wrap; user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(post.text)}</div>
+            <div class="post-body selectable-text" id="post_body_${post.id}" style="white-space:pre-wrap; user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(post._isTranslated && post._translatedText ? post._translatedText : post.text)}</div>
+            ${post._isTranslated && post._translatedText ? `
+              <div class="post-translation-bar" style="margin-top:8px;padding:6px 10px;background:rgba(201,168,76,0.08);border:1px dashed rgba(201,168,76,0.35);border-radius:8px;font-size:12px;color:var(--gold);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.6rem">
+                <span style="display:flex;align-items:center;gap:4px">🌐 <span>تمت الترجمة إلى <b>${post._transTargetName || 'الإنجليزية'}</b></span></span>
+                <div style="display:flex;align-items:center;gap:5px">
+                  <span style="font-size:11px;color:var(--text-dim)">ترجمة إلى:</span>
+                  <button onclick="translatePostToLang('${post.id}', 'ar')" style="background:${post._transTarget === 'ar' ? 'var(--gold)' : 'transparent'};color:${post._transTarget === 'ar' ? '#000' : 'var(--gold)'};border:1px solid var(--gold);border-radius:4px;padding:2px 6px;font-size:10.5px;cursor:pointer;font-weight:bold">AR</button>
+                  <button onclick="translatePostToLang('${post.id}', 'en')" style="background:${post._transTarget === 'en' ? 'var(--gold)' : 'transparent'};color:${post._transTarget === 'en' ? '#000' : 'var(--gold)'};border:1px solid var(--gold);border-radius:4px;padding:2px 6px;font-size:10.5px;cursor:pointer;font-weight:bold">EN</button>
+                  <button onclick="translatePostToLang('${post.id}', 'fr')" style="background:${post._transTarget === 'fr' ? 'var(--gold)' : 'transparent'};color:${post._transTarget === 'fr' ? '#000' : 'var(--gold)'};border:1px solid var(--gold);border-radius:4px;padding:2px 6px;font-size:10.5px;cursor:pointer;font-weight:bold">FR</button>
+                  <button onclick="translatePostToLang('${post.id}', 'es')" style="background:${post._transTarget === 'es' ? 'var(--gold)' : 'transparent'};color:${post._transTarget === 'es' ? '#000' : 'var(--gold)'};border:1px solid var(--gold);border-radius:4px;padding:2px 6px;font-size:10.5px;cursor:pointer;font-weight:bold">ES</button>
+                  <button onclick="revertPostTranslation('${post.id}')" style="background:#ff6b6b;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:10.5px;cursor:pointer;font-weight:bold;margin-left:4px">🔄 النص الأصلي</button>
+                </div>
+              </div>
+            ` : ''}
             ${renderMediaGrid(post.media, post.id)}
             <div class="post-actions">
                <button class="post-action-btn ${post.isLiked ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">❤️ <span>${post.likes || 0}</span></button>
                <button class="post-action-btn" onclick="toggleComments(this)">💬 <span>${(post.comments || []).length}</span> تعليق</button>
+               <button class="post-action-btn" onclick="togglePostTranslation('${post.id}')" id="btn_trans_${post.id}" title="ترجمة المنشور للغتك أو للغات أخرى">🌐 <span data-i18n="posts.translate">${post._isTranslated ? 'النص الأصلي' : 'ترجمة'}</span></button>
                <button class="post-action-btn" onclick="copyPostLink('${post.id}')" title="نسخ رابط المنشور مباشرة">🔗 <span>رابط المنشور</span></button>
              </div>
             <div class="comments-section" id="${csId}">
@@ -6186,8 +6202,9 @@
           const dbId = p.dbId || (typeof p.id === 'string' && p.id.startsWith('post_db_') ? p.id.replace('post_db_', '') : null);
           if (dbId) {
             sbIdxPatch('posts', `id=eq.${dbId}`, {
-              text: val,
-              image: dbMediaPayload.length > 0 ? JSON.stringify(dbMediaPayload) : null
+              content: val || null,
+              media_type: dbMediaPayload.length > 0 ? 'json' : null,
+              media_url: dbMediaPayload.length > 0 ? JSON.stringify(dbMediaPayload) : null
             });
           }
         }
@@ -6209,12 +6226,10 @@
         };
         posts.unshift(newPost);
         sbIdxPost('posts', {
-          text: val,
-          image: dbMediaPayload.length > 0 ? JSON.stringify(dbMediaPayload) : null,
-          author: session?.name || 'أنت',
-          avatar: session?.avatar || '👤',
-          likes: 0,
-          comments: JSON.stringify([])
+          user_id: session?.userId || null,
+          content: val || null,
+          media_type: dbMediaPayload.length > 0 ? 'json' : null,
+          media_url: dbMediaPayload.length > 0 ? JSON.stringify(dbMediaPayload) : null
         }).then(res => {
           if (res && res.id) {
             newPost.dbId = res.id;
@@ -6328,6 +6343,104 @@
       if (dbId) {
         sbIdxPatch('posts', `id=eq.${dbId}`, { comments: JSON.stringify(post.comments) });
       }
+    }
+
+    async function togglePostTranslation(postId) {
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post || !post.text) return;
+
+      if (post._isTranslated) {
+        revertPostTranslation(postId);
+        return;
+      }
+
+      const currentUi = (window.currentLang || 'ar').toLowerCase();
+      const isArabicText = /[\u0600-\u06FF]/.test(post.text);
+      let target = 'en';
+      if (currentUi === 'ar') {
+        target = isArabicText ? 'en' : 'ar';
+      } else {
+        target = currentUi;
+      }
+      await translatePostToLang(postId, target);
+    }
+
+    async function translatePostToLang(postId, targetLang) {
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post || !post.text) return;
+
+      const btn = document.getElementById('btn_trans_' + postId);
+      if (btn) btn.innerHTML = '⏳ <span>جاري الترجمة...</span>';
+
+      const langNames = { ar: 'العربية', en: 'الإنجليزية', fr: 'الفرنسية', es: 'الإسبانية' };
+      
+      post._transCache = post._transCache || {};
+      if (post._transCache[targetLang]) {
+        post._isTranslated = true;
+        post._translatedText = post._transCache[targetLang];
+        post._transTarget = targetLang;
+        post._transTargetName = langNames[targetLang] || targetLang.toUpperCase();
+        localStorage.setItem('kronos_posts', JSON.stringify(posts));
+        renderPostsFeed();
+        showToast(`🌐 تم عرض الترجمة بـ ${post._transTargetName}`);
+        return;
+      }
+
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(post.text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let translated = '';
+        if (data && data[0] && Array.isArray(data[0])) {
+          translated = data[0].map(item => item[0] || '').join('');
+        }
+        if (!translated) throw new Error('Empty translation response');
+
+        post._transCache[targetLang] = translated;
+        post._isTranslated = true;
+        post._translatedText = translated;
+        post._transTarget = targetLang;
+        post._transTargetName = langNames[targetLang] || targetLang.toUpperCase();
+        localStorage.setItem('kronos_posts', JSON.stringify(posts));
+        renderPostsFeed();
+        showToast(`🌐 تمت ترجمة المنشور إلى ${post._transTargetName}`);
+      } catch (e) {
+        console.warn('Google Translate API error, trying fallback MyMemory:', e);
+        try {
+          const fbUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(post.text)}&langpair=autodetect|${targetLang}`;
+          const fbRes = await fetch(fbUrl);
+          const fbData = await fbRes.json();
+          if (fbData && fbData.responseData && fbData.responseData.translatedText) {
+            const translated = fbData.responseData.translatedText;
+            post._transCache[targetLang] = translated;
+            post._isTranslated = true;
+            post._translatedText = translated;
+            post._transTarget = targetLang;
+            post._transTargetName = langNames[targetLang] || targetLang.toUpperCase();
+            localStorage.setItem('kronos_posts', JSON.stringify(posts));
+            renderPostsFeed();
+            showToast(`🌐 تمت ترجمة المنشور إلى ${post._transTargetName}`);
+            return;
+          }
+          throw new Error('Fallback also failed');
+        } catch (err2) {
+          console.error('Translation failed:', err2);
+          showToast('⚠️ تعذر الاتصال بخدمة الترجمة الفورية حالياً. تحقق من اتصال الإنترنت.', 't-error');
+          if (btn) btn.innerHTML = '🌐 <span data-i18n="posts.translate">ترجمة</span>';
+        }
+      }
+    }
+
+    function revertPostTranslation(postId) {
+      const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+      post._isTranslated = false;
+      localStorage.setItem('kronos_posts', JSON.stringify(posts));
+      renderPostsFeed();
+      showToast('🔄 تم العودة لعرض النص الأصلي للمنشور');
     }
 
     // ─── YOUTUBE ────────────────────────────────────────────────────────────────
@@ -7127,35 +7240,56 @@
 
     async function loadPostsFromSupabase() {
       try {
-        let rows = await sbIdx('posts?select=*&order=created_at.desc&limit=500');
+        let [rows, profiles] = await Promise.all([
+          sbIdx('posts?select=*&order=created_at.desc&limit=500'),
+          sbIdx('profiles?select=id,username,full_name,avatar_url&limit=500')
+        ]);
         if (!Array.isArray(rows)) rows = [];
+        if (!Array.isArray(profiles)) profiles = [];
         
+        const localProfiles = JSON.parse(localStorage.getItem('kronos_users_profiles') || '{}');
         const localPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+        
         const supaPosts = rows.filter(r => {
-          if (isDummyUserOrPost(r)) {
-            if (r.id) sbIdxDelete('posts', `id=eq.${r.id}`);
-            return false;
-          }
+          if (isDummyUserOrPost(r)) return false;
           return true;
         }).map(r => {
           let media = [];
           let postEra = '';
+          const rawImgUrl = r.media_url || r.image;
           try {
-            if (r.image && (r.image.startsWith('[') || r.image.startsWith('{'))) {
-              media = JSON.parse(r.image);
+            if (rawImgUrl && (rawImgUrl.startsWith('[') || rawImgUrl.startsWith('{'))) {
+              media = JSON.parse(rawImgUrl);
               if (!Array.isArray(media)) media = [media];
               const eraItem = media.find(m => m && m.type === 'era_badge');
               if (eraItem && eraItem.era) postEra = eraItem.era;
               media = media.filter(m => !m || m.type !== 'era_badge');
-            } else if (r.image && typeof r.image === 'string') {
-              media = [{ type: 'image', src: r.image }];
+            } else if (rawImgUrl && typeof rawImgUrl === 'string') {
+              media = [{ type: 'image', src: rawImgUrl }];
             }
           } catch(e) {
-            if (r.image) media = [{ type: 'image', src: r.image }];
+            if (rawImgUrl) media = [{ type: 'image', src: rawImgUrl }];
           }
           let dateStr = r.created_at ? (`📅 تاريخ النشر: ` + formatRealDateTime(new Date(r.created_at), false)) : '📅 تاريخ النشر: الآن';
           let postId = r.id ? ('post_db_' + r.id) : ('post_' + Date.now());
-          const existingLocal = localPosts.find(lp => lp.id === postId || (lp.text === r.text && lp.author === r.author));
+          const rawText = r.content || r.text || '';
+          
+          let authorProfile = profiles.find(pr => pr.id === r.user_id) || {};
+          let authorName = authorProfile.username || authorProfile.full_name || r.author;
+          let authorAvatar = authorProfile.avatar_url ? `<img src="${authorProfile.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : (r.avatar || '👤');
+          
+          if (!authorName && r.user_id) {
+            for (let name in localProfiles) {
+              if (localProfiles[name].id === r.user_id) {
+                authorName = name;
+                if (localProfiles[name].avatar) authorAvatar = localProfiles[name].avatar;
+                break;
+              }
+            }
+          }
+          if (!authorName) authorName = r.author || (r.user_id ? ('عضو (' + r.user_id.substring(0, 8) + ')') : 'عضو في مجتمع كرونوس');
+          
+          const existingLocal = localPosts.find(lp => lp.id === postId || (lp.text === rawText && lp.author === authorName));
           let supaComments = [];
           if (r.comments) {
             if (typeof r.comments === 'string') {
@@ -7167,17 +7301,14 @@
           let mergedComments = (existingLocal?.comments?.length || 0) >= (supaComments.length || 0) ? (existingLocal?.comments || supaComments) : supaComments;
           mergedComments = (mergedComments || []).filter(c => !isDummyUserOrPost(c));
           let maxLikes = Math.max(r.likes || 0, existingLocal?.likes || 0);
-          if (existingLocal && r.id && ((existingLocal.likes || 0) > (r.likes || 0) || (existingLocal.comments?.length || 0) > (supaComments.length || 0))) {
-            sbIdxPatch('posts', `id=eq.${r.id}`, { likes: maxLikes, comments: JSON.stringify(mergedComments) });
-          }
           return {
             id: postId,
             dbId: r.id || null,
-            author: r.author || 'عضو في مجتمع كرونوس',
-            authorId: r.author || 'user',
-            avatar: r.avatar || '👤',
+            author: authorName,
+            authorId: r.user_id || r.author || 'user',
+            avatar: authorAvatar,
             date: existingLocal?.date || dateStr,
-            text: r.text || '',
+            text: rawText,
             media: media,
             era: postEra || existingLocal?.era || '',
             likes: maxLikes,
@@ -7186,9 +7317,26 @@
         });
 
         const merged = [...supaPosts];
+        const session = getSession();
         localPosts.forEach(lp => {
           if (!isDummyUserOrPost(lp) && !merged.some(sp => sp.id === lp.id || (sp.text === lp.text && sp.author === lp.author))) {
             merged.push(lp);
+            if (!lp.dbId && session && (lp.author === session.name || lp.author === 'أنت' || lp.authorId === session.userId)) {
+              const cleanMedia = (lp.media || []).map(m => ({ type: m.type, src: m.src }));
+              if (lp.era) cleanMedia.push({ type: 'era_badge', era: lp.era });
+              sbIdxPost('posts', {
+                user_id: session.userId || null,
+                content: lp.text || null,
+                media_type: cleanMedia.length > 0 ? 'json' : null,
+                media_url: cleanMedia.length > 0 ? JSON.stringify(cleanMedia) : null
+              }).then(res => {
+                if (res && res.id) {
+                  lp.dbId = res.id;
+                  lp.id = 'post_db_' + res.id;
+                  try { localStorage.setItem('kronos_posts', JSON.stringify(merged)); } catch(e){}
+                }
+              });
+            }
           }
         });
 
