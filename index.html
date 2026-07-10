@@ -4955,19 +4955,53 @@
     const HIDDEN_POST_IDS = [
       'eca6af90-fbeb-4c3d-aaf0-279297c5ce54',
       'fcb47d1b-6d83-40a9-966f-abc04dd3182f',
-      'ac86e78e-6b8f-4de1-aa60-bf1fa3c14e63'
+      'ac86e78e-6b8f-4de1-aa60-bf1fa3c14e63',
+      '7b2f1b1c-3246-4c30-9e4c-b9779216079c',
+      '7775f40c-c779-4e1d-b1db-78620bcc2cbf'
     ];
     function isDummyUserOrPost(p) {
       if (!p) return false;
       const id = typeof p === 'string' ? p : (p.id || '');
+      const dbId = typeof p === 'string' ? '' : (p.dbId || '');
       const author = typeof p === 'string' ? p : (p.author || '');
       const text = typeof p === 'string' ? '' : (p.text || p.content || '');
-      if (HIDDEN_POST_IDS.includes(id)) return true;
+      
+      if (HIDDEN_POST_IDS.some(hid => id === hid || id === ('post_db_' + hid) || id.includes(hid) || dbId === hid)) return true;
+      if (!text.trim() && (!p.media || p.media.length === 0)) return true;
       if (id.startsWith('post_comm_') || id.startsWith('post_sample_')) return true;
       if (author === 'ZAMAKAN' || author === 'حساب وهمي' || author === '👑 Kronos_Admin' || author.includes('عضو في مجتمع كرونوس') || author === 'عضو') return true;
-      if (text.trim() === 'هممم' || text.trim() === 'hmmm') return true;
+      if (text.trim() === 'هممم' || text.trim() === 'hmmm' || text.includes('تجربة نشر حقيقية') || text.includes('test \nnumber') || text.includes('meow\n\nthe world') || text.trim() === '????' || text.includes('????? ??? ??????')) return true;
       if (author.includes('باحث في التاريخ الساساني') || author.includes('متخصص في الخرائط التاريخية') || author.includes('متخصصة في العمارة الأندلسية') || author.includes('أستاذ التاريخ المعاصر') || author.includes('د. يوسف المؤرخ')) return true;
       return false;
+    }
+
+    // ─── POST & USER AUTHENTICITY VERIFICATION BOT (بوت التحقق من صحة المنشورات ومصداقية المستخدمين) ───
+    function verifyPostAuthenticity(p) {
+      if (!p) return { valid: false, reason: 'منشور فارغ' };
+      if (isDummyUserOrPost(p)) return { valid: false, reason: 'منشور تجريبي أو وهمي' };
+      
+      const author = typeof p === 'string' ? p : (p.author || '');
+      const authorId = typeof p === 'string' ? '' : (p.authorId || p.user_id || '');
+      const text = (typeof p === 'string' ? '' : (p.text || p.content || '')).trim();
+      const media = p.media || [];
+      
+      if (!author || author === 'عضو' || author.includes('عضو في مجتمع كرونوس')) {
+        return { valid: false, reason: 'حساب غير معرف أو غير مسجل' };
+      }
+      if (!text && media.length === 0) {
+        return { valid: false, reason: 'لا يوجد محتوى أو وسائط' };
+      }
+      if (text && text.length < 3 && media.length === 0) {
+        return { valid: false, reason: 'المحتوى قصير جداً أو غير مفهوم' };
+      }
+      if (/^([?.!,_-])\1{2,}$/.test(text)) {
+        return { valid: false, reason: 'رموز متكررة بدون نص مفهوم' };
+      }
+      const lower = text.toLowerCase();
+      if (lower === 'test' || lower === 'asdf' || lower === 'check' || lower === 'hello' || lower === 'تجربة' || lower === 'تجريبي') {
+        return { valid: false, reason: 'منشور تجريبي' };
+      }
+      return { valid: true, verified: Boolean(authorId && authorId !== 'me' && authorId !== 'user') };
     }
 
     function initPostsSystem() {
@@ -5497,8 +5531,11 @@
       document.getElementById('upmPosts').textContent = userPostsCount.toLocaleString();
 
       const badge = document.getElementById('upmBadge');
+      const isUserVerified = posts.some(p => (p.author === userName || p.authorId === userId) && verifyPostAuthenticity(p).valid);
       if (userName.includes('Kronos') || userName.includes('Admin')) {
-        badge.textContent = '👑 إدارة ومؤسس كرونوس الملكي';
+        badge.innerHTML = '👑 إدارة ومؤسس كرونوس الملكي';
+      } else if (isUserVerified) {
+        badge.innerHTML = '<span style="color:#22c55e;font-weight:bold;">✅ مستخدم حقيقي موثق ومنشوراته أصلية</span>';
       } else {
         badge.textContent = '✨ عضو مؤكد في مجتمع كرونوس';
       }
@@ -5806,12 +5843,9 @@
         if (isOnlyDate) {
           return `${y}/${m}/${day}`;
         }
-        let h = d.getHours();
+        const h = String(d.getHours()).padStart(2, '0');
         const min = String(d.getMinutes()).padStart(2, '0');
-        const ampm = h >= 12 ? 'م' : 'ص';
-        let h12 = h % 12;
-        h12 = h12 ? h12 : 12;
-        return `${day}/${m}/${y} - ${String(h12).padStart(2, '0')}:${min} ${ampm}`;
+        return `${day}/${m}/${y} - ${h}:${min}`;
       }
 
       if (typeof input === 'string') {
@@ -5823,12 +5857,23 @@
           if (p1 > 1000) { y = p1; m = p2; day = p3; }
           else if (p3 > 1000) { y = p3; m = p2; day = p1; }
           else { y = 2026; m = p2; day = p1; }
-          const h = match[4] ? String(parseInt(match[4])).padStart(2, '0') : '12';
+          
+          let hVal = match[4] ? parseInt(match[4]) : 12;
+          if ((stdStr.includes('م') || stdStr.toLowerCase().includes('pm')) && hVal < 12) {
+            hVal += 12;
+          } else if ((stdStr.includes('ص') || stdStr.toLowerCase().includes('am')) && hVal === 12) {
+            hVal = 0;
+          }
+          const h = String(hVal).padStart(2, '0');
           const min = match[5] ? match[5] : '00';
           const yStr = y;
           const mStr = String(m).padStart(2, '0');
           const dStr = String(day).padStart(2, '0');
-          return isOnlyDate ? `${yStr}/${mStr}/${dStr}` : `${dStr}/${mStr}/${yStr} - ${h}:${min}`;
+          
+          const suffixMatch = stdStr.match(/(\s*\(.*?\))/);
+          const suffix = suffixMatch ? suffixMatch[1] : '';
+          
+          return isOnlyDate ? `${yStr}/${mStr}/${dStr}` : `${dStr}/${mStr}/${yStr} - ${h}:${min}${suffix}`;
         }
         return stdStr.replace('📅 تاريخ النشر: ', '').replace('📅 ', '').trim();
       }
@@ -5939,7 +5984,7 @@
       const feed = document.getElementById('postsFeed');
       const paginationWrap = document.getElementById('postsPaginationWrap');
       if (!feed) return;
-      const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+      const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]').filter(p => !isDummyUserOrPost(p) && verifyPostAuthenticity(p).valid);
       updateSidebarStats(allPosts);
       if (!allPosts.length) {
         feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد — كن أول من ينشر!</div>`;
@@ -6067,10 +6112,10 @@
             }
             pubDateDisplay = `📅 تاريخ النشر: ${dStr}${relativePart}`;
           } else {
-            pubDateDisplay = `📅 تاريخ النشر: ${convertDigitsToWestern(pubDateDisplay)}`;
+            pubDateDisplay = `📅 تاريخ النشر: ${formatRealDateTime(pubDateDisplay, false) || convertDigitsToWestern(pubDateDisplay)}`;
           }
         } else {
-          pubDateDisplay = convertDigitsToWestern(pubDateDisplay);
+          pubDateDisplay = formatRealDateTime(pubDateDisplay, false) || convertDigitsToWestern(pubDateDisplay);
           if (!pubDateDisplay.includes('📅') && !pubDateDisplay.includes('تاريخ النشر')) {
             pubDateDisplay = `📅 تاريخ النشر: ${pubDateDisplay}`;
           }
@@ -6081,7 +6126,10 @@
               <div style="display:flex;align-items:center;gap:.7rem">
                 <div class="post-avatar" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.avatar || '👤'}</div>
                 <div>
-                  <div class="post-username" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.author}</div>
+                  <div class="post-username" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex-wrap:wrap;" onclick="openUserProfileByPost('${post.id}')">
+                    <span>${post.author}</span>
+                    ${verifyPostAuthenticity(post).valid ? `<span title="${verifyPostAuthenticity(post).reason}" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.4);border-radius:12px;padding:1px 8px;font-size:11px;display:inline-flex;align-items:center;gap:3px;font-weight:bold;">✅ مستخدم حقيقي موثق</span>` : ''}
+                  </div>
                   <div class="post-date" style="color:var(--gold,#c9a84c);font-weight:bold;margin-top:2px;font-size:12px;">${pubDateDisplay}</div>
                   ${post.era ? `<div class="post-era-badge" style="display:inline-block;margin-top:4px;padding:2px 8px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:12px;font-size:11px;color:var(--gold)">${(/^[🏛️⚔️🏰⛵🚂🌐📜⏳🌟]/.test(post.era) || /[\uD800-\uDBFF]/.test(post.era.charAt(0))) ? '' : (post.era.includes('قديم') ? '🏛️ ' : (post.era.includes('وسطى') ? '🏰 ' : '⏳ '))}${escapeHtml(post.era)}</div>` : ''}
                 </div>
