@@ -3559,7 +3559,6 @@
               <button class="powers-ptab active" onclick="switchPowersTab('list',this)">⚡ القوى العشر الكبرى</button>
               <button class="powers-ptab" onclick="switchPowersTab('golden',this)">✨ في عصرها الذهبي</button>
             </div>
-            <button class="era-back-btn" style="margin-inline-start:auto" onclick="closeEra()">← رجوع للعصور</button>
           </div>
 
           <!-- Top 10 powers list -->
@@ -3584,8 +3583,6 @@
         <div id="archivePostsPanel" style="display:none">
           <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;flex-wrap:wrap">
             <button class="archive-filter-btn active" onclick="togglePowersPanel(true)">⚡ القوى العظمى</button>
-            <div style="flex:1"></div>
-            <button class="era-back-btn" onclick="closeEra()">← رجوع للعصور</button>
           </div>
 
           <!-- Search & Filter bar -->
@@ -4938,8 +4935,10 @@
       if (!p) return false;
       const id = typeof p === 'string' ? p : (p.id || '');
       const author = typeof p === 'string' ? p : (p.author || '');
+      const text = typeof p === 'string' ? '' : (p.text || p.content || '');
       if (id.startsWith('post_comm_') || id.startsWith('post_sample_')) return true;
-      if (author === 'ZAMAKAN' || author === 'حساب وهمي' || author === '👑 Kronos_Admin') return true;
+      if (author === 'ZAMAKAN' || author === 'حساب وهمي' || author === '👑 Kronos_Admin' || author.includes('عضو في مجتمع كرونوس') || author === 'عضو') return true;
+      if (text.trim() === 'هممم' || text.trim() === 'hmmm') return true;
       if (author.includes('باحث في التاريخ الساساني') || author.includes('متخصص في الخرائط التاريخية') || author.includes('متخصصة في العمارة الأندلسية') || author.includes('أستاذ التاريخ المعاصر') || author.includes('د. يوسف المؤرخ')) return true;
       return false;
     }
@@ -6160,6 +6159,12 @@
     }
 
     function submitPost() {
+      const session = getSession();
+      if (!session || !session.userId || session.userId === 'me') {
+        showToast('⚠️ لا يمكن النشر دون تسجيل الدخول! يرجى تسجيل الدخول أو إنشاء حساب أولاً في الموقع.', 't-warning');
+        if (typeof openAuth === 'function') openAuth();
+        return;
+      }
       const input = document.getElementById('postInput');
       const btn = document.getElementById('submitPostBtn');
       if (!input) return;
@@ -6169,7 +6174,6 @@
         return;
       }
       const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
-      const session = getSession();
 
       const cleanMedia = composeMediaList.map(m => {
         const isSafeSrc = m.src && (m.src.startsWith('http') || m.src.startsWith('data:')) && m.src.length < 50000;
@@ -6322,6 +6326,12 @@
     }
 
     function addPostComment(btn, postId) {
+      const session = getSession();
+      if (!session || !session.userId || session.userId === 'me') {
+        showToast('⚠️ لا يمكن إضافة تعليق دون تسجيل الدخول! يرجى تسجيل الدخول أو إنشاء حساب أولاً.', 't-warning');
+        if (typeof openAuth === 'function') openAuth();
+        return;
+      }
       const input = btn.previousElementSibling;
       if (!input) return;
       const val = input.value.trim();
@@ -6329,7 +6339,6 @@
       const posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       const post = posts.find(p => p.id === postId);
       if (!post) return;
-      const session = getSession();
       if (!post.comments) post.comments = [];
       post.comments.push({
         author: session?.name || 'أنت',
