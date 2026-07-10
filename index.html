@@ -3644,6 +3644,16 @@
                 </label>
                 <input type="file" id="postMediaInput" accept="image/*,video/*" multiple style="display:none"
                   onchange="handlePostMediaSelect(event)">
+                <select id="postEraSelect" class="post-type-btn" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);color:var(--text);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;outline:none;">
+                  <option value="">⏳ تصنيف المنشور حسب العصر (اختياري)</option>
+                  <option value="🏛️ العصور القديمة (ما قبل 476 م)">🏛️ العصور القديمة (ما قبل 476 م)</option>
+                  <option value="⚔️ العصور الوسطى المبكرة (476 — 900 م)">⚔️ العصور الوسطى المبكرة (476 — 900 م)</option>
+                  <option value="🏰 العصور الوسطى المتأخرة (900 — 1453 م)">🏰 العصور الوسطى المتأخرة (900 — 1453 م)</option>
+                  <option value="⛵ العصور الحديثة المبكرة (1453 — 1789 م)">⛵ العصور الحديثة المبكرة (1453 — 1789 م)</option>
+                  <option value="🚂 العصر الحديث (1789 — 1945 م)">🚂 العصر الحديث (1789 — 1945 م)</option>
+                  <option value="🌐 العصر المعاصر (1945 — اليوم)">🌐 العصر المعاصر (1945 — اليوم)</option>
+                  <option value="📜 تاريخ عام / أبحاث ومقارنات">📜 تاريخ عام / أبحاث ومقارنات</option>
+                </select>
               </div>
               <button class="btn-gold" id="submitPostBtn" onclick="submitPost()"
                 data-i18n="posts.compose.submit">نشر</button>
@@ -4920,91 +4930,17 @@
     let currentViewerIndex = 0;
     let editingPostId = null;
 
-    const DEFAULT_COMMUNITY_POSTS = [
-      {
-        id: 'post_comm_1',
-        author: 'د. خالد العتيبي — باحث في التاريخ الساساني والبيزنطي',
-        authorId: 'user_khalid',
-        avatar: '🏛',
-        date: '📅 تاريخ النشر: منذ ساعتين',
-        text: 'هل يُمكن اعتبار الحروب الفارسية الرومانية الطويلة (التي استمرت لأكثر من سبعة قرون) السبب الرئيسي والوحيد في إنهاك القوتين العظمتين مما مهد الطريق لاحقاً لسرعة انتشار الفتوحات الإسلامية في القرن السابع الميلادي؟ أم أن هناك أسباباً ديموغرافية واقتصادية داخلية أعمق في كلا الإمبراطوريتين؟ شاركوني آرائكم وتحليلاتكم العلميّة.',
-        media: [],
-        likes: 34,
-        comments: [
-          {
-            id: 'c_comm_1_1',
-            author: 'د. يوسف المؤرخ',
-            avatar: '📚',
-            date: 'منذ ساعة',
-            text: 'طرح ممتاز دكتور خالد. العامل العسكري والإرهاق المالي العنيف بعد حرب 602-628 م كان بلا شك القشة التي قصمت ظهر البعير، لكن يجب ألا نغفل أيضاً عن العامل العقائدي والضرائب الباهظة التي فرضتها بيزنطة والساسانيون على شعوب الشام والعراق ومصر، مما جعل السكّان المحليين يرحبون ببديل جديد عادل.'
-          },
-          {
-            id: 'c_comm_1_2',
-            author: 'أ. نور الهدى',
-            avatar: '🌸',
-            date: 'منذ 45 دقيقة',
-            text: 'أتفق تماماً مع د. يوسف، كما أن وباء الطاعون (طاعون جستنيان) ترك آثاراً ديموغرافية مدمرة استمرت لعقود طويلة وأضعفت البنية البشرية للجيوش البيزنطية والساسانية.'
-          }
-        ]
-      },
-      {
-        id: 'post_comm_2',
-        author: 'م. طارق الحمصي — متخصص في الخرائط التاريخية والديموغرافيا',
-        authorId: 'user_tariq',
-        avatar: '🗺️',
-        date: '📅 تاريخ النشر: منذ 5 ساعات',
-        text: 'أعمل حالياً على تصميم خريطة رقمية تفاعلية توضح تطور خطوط التجارة القديمة (طريق الحرير البري والبحري، وطريق البخور في الجزيرة العربية) وتأثيرها على نشأة المدن والمراكز الحضارية الكبرى في العصور القديمة والوسطى. ما هي أهم المدن والمحطات التجارية التي ترون ضرورة إبرازها وتحليل بياناتها التاريخية؟',
-        media: [],
-        likes: 42,
-        comments: [
-          {
-            id: 'c_comm_2_1',
-            author: 'سارة الأنصاري',
-            avatar: '🎓',
-            date: 'منذ 3 ساعات',
-            text: 'مشروع رائع جداً م. طارق! أقترح التركيز على محطات: تدمر والبتراء وسمرقند وبغداد والقسطنطينية، وبالتأكيد موانئ اليمن القديمة (مثل عدن والمخا) لدورها المحوري في تجارة التوابل والبخور العابرة للمحيط الهندي.'
-          }
-        ]
-      },
-      {
-        id: 'post_comm_3',
-        author: 'أ. نور الهدى — متخصصة في العمارة الأندلسية والتراث',
-        authorId: 'user_noor',
-        avatar: '🌹',
-        date: '📅 تاريخ النشر: منذ يوم واحد',
-        text: 'تُظهر العمارة الأندلسية، خاصة في قصر الحمراء بغرناطة ومسجد قرطبة الكبير، مزيجاً فريداً وعبقرياً بين الهندسة الفلكية والجماليات الرياضية ونظم توزيع المياه والضوء الطبيعي. إنها ليست مجرد زخارف، بل تطبيق عملي لعلوم الهندسة والفلك والفيزياء في تصميم البيئة الإنسانية. ما هو أكثر أثر تاريخي أو عمراني أثار إعجابكم بعبقريته الهندسية؟',
-        media: [],
-        likes: 58,
-        comments: [
-          {
-            id: 'c_comm_3_1',
-            author: 'د. رشيد الأندلسي',
-            avatar: '🔬',
-            date: 'منذ يوم واحد',
-            text: 'بالتأكيد قاعة الأسود في قصر الحمراء ونظام النافورة الهيدروليكي الذي كان يتدفق بنظام زمني دقيق يعكس ساعات اليوم، قبل أن يتعطل لاحقاً عند محاولة تفكيكه للتعرف على سره!'
-          }
-        ]
-      },
-      {
-        id: 'post_comm_4',
-        author: 'د. يوسف المؤرخ — أستاذ التاريخ المعاصر والجغرافيا السياسية',
-        authorId: 'user_yousef',
-        avatar: '🌍',
-        date: '📅 تاريخ النشر: منذ يومين',
-        text: 'في دراسة الجغرافيا السياسية المعاصرة، يتضح جلياً أن مضائق الملاحة الدولية (مثل مضيق ملقا، هرمز، باب المندب، وقناة السويس) تتحكم بما يقرب من 60% من التجارة والطاقة العالمية. كيف ترون مستقبل أمن الطاقة وخطوط الإمداد العالمية في ظل التحولات الجيوسياسية الراهنة والمنافسة بين القوى الكبرى في القرن الحادي والعشرين؟',
-        media: [],
-        likes: 67,
-        comments: [
-          {
-            id: 'c_comm_4_1',
-            author: 'د. خالد العتيبي',
-            avatar: '🏛',
-            date: 'منذ يومين',
-            text: 'تحليل دقيق دكتور يوسف. الموقع الجغرافي للعالم العربي يجعله قلب التوازنات العالمية، ومن هنا تأتي أهمية فهم أطروحات جمال حمدان حول "عبقرية المكان" وتوظيف الجغرافيا السياسية في حماية الأمن الإقليمي.'
-          }
-        ]
-      }
-    ];
+    const DEFAULT_COMMUNITY_POSTS = [];
+
+    function isDummyUserOrPost(p) {
+      if (!p) return false;
+      const id = typeof p === 'string' ? p : (p.id || '');
+      const author = typeof p === 'string' ? p : (p.author || '');
+      if (id.startsWith('post_comm_') || id.startsWith('post_sample_')) return true;
+      if (author === 'ZAMAKAN' || author === 'حساب وهمي' || author === '👑 Kronos_Admin' || author === 'عضو في مجتمع كرونوس') return true;
+      if (author.includes('باحث في التاريخ الساساني') || author.includes('متخصص في الخرائط التاريخية') || author.includes('متخصصة في العمارة الأندلسية') || author.includes('أستاذ التاريخ المعاصر') || author.includes('د. يوسف المؤرخ')) return true;
+      return false;
+    }
 
     function initPostsSystem() {
       if (!localStorage.getItem('kronos_posts')) {
@@ -5016,21 +4952,13 @@
         let modified = false;
         // Remove dummy accounts / fake info from stored posts or comments
         const origPostsLen = existingPosts.length;
-        existingPosts = existingPosts.filter(p => p.author !== 'ZAMAKAN' && p.author !== 'حساب وهمي' && p.id !== 'post_sample_1' && p.id !== 'post_sample_2');
+        existingPosts = existingPosts.filter(p => !isDummyUserOrPost(p));
         if (existingPosts.length !== origPostsLen) modified = true;
-
-        // Ensure DEFAULT_COMMUNITY_POSTS are always merged and present for every user
-        DEFAULT_COMMUNITY_POSTS.forEach(dp => {
-          if (!existingPosts.some(ep => ep.id === dp.id || (ep.text === dp.text && ep.author === dp.author))) {
-            existingPosts.push(dp);
-            modified = true;
-          }
-        });
 
         for (let p of existingPosts) {
           if (p.comments && Array.isArray(p.comments)) {
             let origLen = p.comments.length;
-            p.comments = p.comments.filter(c => c.author !== 'ZAMAKAN' && c.author !== 'حساب وهمي' && c.author !== '👑 Kronos_Admin');
+            p.comments = p.comments.filter(c => !isDummyUserOrPost(c));
             if (p.comments.length !== origLen) modified = true;
           }
           if (p.media && Array.isArray(p.media)) {
@@ -5695,6 +5623,7 @@
 
       const normContent = normalizeSearchText(post.text || '');
       const normAuthor = normalizeSearchText(post.author || '');
+      const normEra = normalizeSearchText(post.era || '');
       const normComments = normalizeSearchText((post.comments || []).map(c => (c.text || '') + ' ' + (c.author || '')).join(' '));
 
       let score = 0;
@@ -5702,6 +5631,7 @@
       // 1. Exact phrase match
       if (filterType === 'content' || filterType === 'all') {
         if (normContent.includes(query)) score += 50;
+        if (normEra.includes(query)) score += 40;
         if (normComments.includes(query)) score += 20;
       }
       if (filterType === 'author' || filterType === 'all') {
@@ -5716,6 +5646,7 @@
           let tokenFound = false;
           if (filterType === 'content' || filterType === 'all') {
             if (normContent.includes(token)) { score += 15; tokenFound = true; }
+            else if (normEra.includes(token)) { score += 12; tokenFound = true; }
             else if (normComments.includes(token)) { score += 8; tokenFound = true; }
           }
           if (filterType === 'author' || filterType === 'all') {
@@ -6124,6 +6055,7 @@
                 <div>
                   <div class="post-username" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.author}</div>
                   <div class="post-date" style="color:var(--gold,#c9a84c);font-weight:bold;margin-top:2px;font-size:12px;">${pubDateDisplay}</div>
+                  ${post.era ? `<div class="post-era-badge" style="display:inline-block;margin-top:4px;padding:2px 8px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:12px;font-size:11px;color:var(--gold)">${(/^[🏛️⚔️🏰⛵🚂🌐📜⏳🌟]/.test(post.era) || /[\uD800-\uDBFF]/.test(post.era.charAt(0))) ? '' : (post.era.includes('قديم') ? '🏛️ ' : (post.era.includes('وسطى') ? '🏰 ' : '⏳ '))}${escapeHtml(post.era)}</div>` : ''}
                 </div>
               </div>
               ${isOwner ? `
@@ -6235,11 +6167,18 @@
         };
       });
 
+      const eraVal = document.getElementById('postEraSelect')?.value || '';
+      const dbMediaPayload = [...cleanMedia];
+      if (eraVal) {
+        dbMediaPayload.push({ type: 'era_badge', era: eraVal });
+      }
+
       if (editingPostId) {
         const idx = posts.findIndex(p => p.id === editingPostId);
         if (idx !== -1) {
           posts[idx].text = val;
           posts[idx].media = cleanMedia;
+          posts[idx].era = eraVal;
           const nowStr = formatRealDateTime(new Date(), false);
           posts[idx].date = `📅 تاريخ النشر: ${nowStr} (تم التعديل)`;
           showToast('✅ تم تعديل المنشور بنجاح!');
@@ -6248,7 +6187,7 @@
           if (dbId) {
             sbIdxPatch('posts', `id=eq.${dbId}`, {
               text: val,
-              image: cleanMedia && cleanMedia.length > 0 ? JSON.stringify(cleanMedia) : null
+              image: dbMediaPayload.length > 0 ? JSON.stringify(dbMediaPayload) : null
             });
           }
         }
@@ -6264,13 +6203,14 @@
           date: `📅 تاريخ النشر: ${nowStr}`,
           text: val,
           media: cleanMedia,
+          era: eraVal,
           likes: 0,
           comments: []
         };
         posts.unshift(newPost);
         sbIdxPost('posts', {
           text: val,
-          image: cleanMedia && cleanMedia.length > 0 ? JSON.stringify(cleanMedia) : null,
+          image: dbMediaPayload.length > 0 ? JSON.stringify(dbMediaPayload) : null,
           author: session?.name || 'أنت',
           avatar: session?.avatar || '👤',
           likes: 0,
@@ -6294,6 +6234,8 @@
           showToast('🎉 تم نشر منشورك بنجاح!');
         }
         input.value = '';
+        const eraSel = document.getElementById('postEraSelect');
+        if (eraSel) eraSel.value = '';
         composeMediaList = [];
         renderComposeMediaPreview();
         renderPostsFeed();
@@ -6314,6 +6256,8 @@
         input.value = post.text || '';
         input.focus();
       }
+      const eraSel = document.getElementById('postEraSelect');
+      if (eraSel) eraSel.value = post.era || '';
       composeMediaList = [...(post.media || [])];
       renderComposeMediaPreview();
       if (btn) btn.textContent = '💾 حفظ التعديلات';
@@ -6336,6 +6280,8 @@
       if (editingPostId === postId) {
         editingPostId = null;
         document.getElementById('postInput').value = '';
+        const eraSel = document.getElementById('postEraSelect');
+        if (eraSel) eraSel.value = '';
         composeMediaList = [];
         renderComposeMediaPreview();
         const btn = document.getElementById('submitPostBtn');
@@ -7185,12 +7131,22 @@
         if (!Array.isArray(rows)) rows = [];
         
         const localPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
-        const supaPosts = rows.map(r => {
+        const supaPosts = rows.filter(r => {
+          if (isDummyUserOrPost(r)) {
+            if (r.id) sbIdxDelete('posts', `id=eq.${r.id}`);
+            return false;
+          }
+          return true;
+        }).map(r => {
           let media = [];
+          let postEra = '';
           try {
             if (r.image && (r.image.startsWith('[') || r.image.startsWith('{'))) {
               media = JSON.parse(r.image);
               if (!Array.isArray(media)) media = [media];
+              const eraItem = media.find(m => m && m.type === 'era_badge');
+              if (eraItem && eraItem.era) postEra = eraItem.era;
+              media = media.filter(m => !m || m.type !== 'era_badge');
             } else if (r.image && typeof r.image === 'string') {
               media = [{ type: 'image', src: r.image }];
             }
@@ -7209,6 +7165,7 @@
             }
           }
           let mergedComments = (existingLocal?.comments?.length || 0) >= (supaComments.length || 0) ? (existingLocal?.comments || supaComments) : supaComments;
+          mergedComments = (mergedComments || []).filter(c => !isDummyUserOrPost(c));
           let maxLikes = Math.max(r.likes || 0, existingLocal?.likes || 0);
           if (existingLocal && r.id && ((existingLocal.likes || 0) > (r.likes || 0) || (existingLocal.comments?.length || 0) > (supaComments.length || 0))) {
             sbIdxPatch('posts', `id=eq.${r.id}`, { likes: maxLikes, comments: JSON.stringify(mergedComments) });
@@ -7222,6 +7179,7 @@
             date: existingLocal?.date || dateStr,
             text: r.text || '',
             media: media,
+            era: postEra || existingLocal?.era || '',
             likes: maxLikes,
             comments: mergedComments
           };
@@ -7229,28 +7187,10 @@
 
         const merged = [...supaPosts];
         localPosts.forEach(lp => {
-          if (!merged.some(sp => sp.id === lp.id || (sp.text === lp.text && sp.author === lp.author))) {
+          if (!isDummyUserOrPost(lp) && !merged.some(sp => sp.id === lp.id || (sp.text === lp.text && sp.author === lp.author))) {
             merged.push(lp);
           }
         });
-
-        if (typeof DEFAULT_COMMUNITY_POSTS !== 'undefined' && Array.isArray(DEFAULT_COMMUNITY_POSTS)) {
-          DEFAULT_COMMUNITY_POSTS.forEach(dp => {
-            if (!merged.some(sp => sp.id === dp.id || (sp.text === dp.text && sp.author === dp.author))) {
-              merged.push(dp);
-            }
-            // Background seed to Supabase table posts so all visitors across different devices fetch them directly from DB
-            if (!supaPosts.some(sp => sp.text === dp.text && sp.author === dp.author)) {
-              sbIdxPost('posts', {
-                text: dp.text,
-                author: dp.author,
-                avatar: dp.avatar,
-                likes: dp.likes,
-                comments: JSON.stringify(dp.comments)
-              }).catch(() => {});
-            }
-          });
-        }
 
         localStorage.setItem('kronos_posts', JSON.stringify(merged));
         if (typeof renderPostsFeed === 'function') renderPostsFeed();
