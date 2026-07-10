@@ -2795,10 +2795,15 @@
       color: var(--text-dim);
       font-family: var(--font-ar);
       font-size: 12px;
-      padding: .5rem .4rem;
+      padding: .5rem .3rem;
       cursor: pointer;
       text-align: center;
       transition: all .2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
     }
 
     .lang-pref-btn:hover {
@@ -2820,10 +2825,15 @@
       color: var(--text-dim);
       font-family: var(--font-ar);
       font-size: 12px;
-      padding: .5rem .4rem;
+      padding: .5rem .3rem;
       cursor: pointer;
       text-align: center;
       transition: all .2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
     }
 
     .translate-pref-btn:hover {
@@ -3883,25 +3893,20 @@
           <div class="form-group" style="margin-bottom:.8rem;">
             <label style="font-size:12px;">لغة الموقع المفضلة</label>
             <div class="lang-pref-grid" id="siteLangPrefGrid" style="gap:.4rem;">
-              <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)">🇩🇿
-                العربية</button>
-              <button class="lang-pref-btn" data-lang="en" onclick="selectSiteLang('en',this)">🇬🇧 English</button>
-              <button class="lang-pref-btn" data-lang="fr" onclick="selectSiteLang('fr',this)">🇫🇷 Français</button>
-              <button class="lang-pref-btn" data-lang="es" onclick="selectSiteLang('es',this)">🇪🇸 Español</button>
+              <button class="lang-pref-btn active" data-lang="ar" onclick="selectSiteLang('ar',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">AR</span><span>العربية</span></button>
+              <button class="lang-pref-btn" data-lang="en" onclick="selectSiteLang('en',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">EN</span><span>English</span></button>
+              <button class="lang-pref-btn" data-lang="fr" onclick="selectSiteLang('fr',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">FR</span><span>Français</span></button>
+              <button class="lang-pref-btn" data-lang="es" onclick="selectSiteLang('es',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">ES</span><span>Español</span></button>
             </div>
           </div>
 
           <div class="form-group" style="margin-bottom:0;">
             <label style="font-size:12px;">ترجمة المنشورات تلقائياً إلى</label>
             <div class="lang-pref-grid" id="translateLangGrid" style="gap:.4rem;">
-              <button class="translate-pref-btn" data-lang="ar" onclick="selectTranslateLang('ar',this)">🇩🇿
-                العربية</button>
-              <button class="translate-pref-btn" data-lang="en" onclick="selectTranslateLang('en',this)">🇬🇧
-                English</button>
-              <button class="translate-pref-btn" data-lang="fr" onclick="selectTranslateLang('fr',this)">🇫🇷
-                Français</button>
-              <button class="translate-pref-btn" data-lang="es" onclick="selectTranslateLang('es',this)">🇪🇸
-                Español</button>
+              <button class="translate-pref-btn" data-lang="ar" onclick="selectTranslateLang('ar',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">AR</span><span>العربية</span></button>
+              <button class="translate-pref-btn" data-lang="en" onclick="selectTranslateLang('en',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">EN</span><span>English</span></button>
+              <button class="translate-pref-btn" data-lang="fr" onclick="selectTranslateLang('fr',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">FR</span><span>Français</span></button>
+              <button class="translate-pref-btn" data-lang="es" onclick="selectTranslateLang('es',this)"><span style="font-weight:800;font-size:13px;letter-spacing:1px;">ES</span><span>Español</span></button>
             </div>
             <div style="font-size:11px;color:var(--text-dimmer);margin-top:.3rem">💡 اختر لغة لترجمة المنشورات تلقائياً
             </div>
@@ -4019,7 +4024,10 @@
         'yt.v5.title': 'العصر الجليدي وتشكّل القارات', 'yt.v6.title': 'الحروب العالمية في خرائط',
         'yt.close': 'إغلاق',
         'about.title': 'من نحن', 'about.intro': 'كرونوس هو منصة رقمية متخصصة في التاريخ والجغرافيا، تسعى إلى جعل المعرفة التاريخية في متناول الجميع.',
-        'about.v1.title': 'أرشيف شامل', 'about.v2.title': 'جغرافيا تفاعلية', 'about.v3.title': 'مجتمع باحثين', 'about.v4.title': 'تعليم ممتع',
+        'about.v1.title': 'أرشيف شامل', 'about.v1.desc': 'وثائق ومقالات وتحليلات منظّمة حسب العصور التاريخية، من الحضارات القديمة حتى العصر المعاصر.',
+        'about.v2.title': 'جغرافيا تفاعلية', 'about.v2.desc': 'خرائط وتحليلات جغرافية تربط الأماكن بأحداثها التاريخية وتطورها عبر الزمن.',
+        'about.v3.title': 'مجتمع باحثين', 'about.v3.desc': 'مساحة للمهتمين والباحثين لتبادل الأفكار والأبحاث والنقاشات العلمية البناءة.',
+        'about.v4.title': 'تعليم ممتع', 'about.v4.desc': 'محتوى مرئي وتفاعلي يجعل دراسة التاريخ والجغرافيا تجربة شيقة ومثيرة.',
         'about.quote': '"من لا يعرف تاريخه محكومٌ عليه بتكراره — ومن لا يعرف جغرافيته محكومٌ عليه بالضياع."',
         'about.stat1': 'وثيقة ومقال في الأرشيف', 'about.stat2': 'عضو مسجّل', 'about.stat3': 'فيديو توثيقي', 'about.stat4': 'لغات مدعومة',
         'auth.welcome': 'مرحباً بك', 'auth.sub': 'سجّل دخولك أو أنشئ حساباً جديداً',
@@ -4059,7 +4067,10 @@
         'yt.v5.title': 'Ice Age & Continental Formation', 'yt.v6.title': 'World Wars in Maps',
         'yt.close': 'Close',
         'about.title': 'About Us', 'about.intro': 'Kronos is a digital platform specialized in History & Geography, making historical knowledge accessible to everyone.',
-        'about.v1.title': 'Comprehensive Archive', 'about.v2.title': 'Interactive Geography', 'about.v3.title': 'Research Community', 'about.v4.title': 'Fun Learning',
+        'about.v1.title': 'Comprehensive Archive', 'about.v1.desc': 'Documents, articles, and analyses organized by historical eras, from ancient civilizations to contemporary times.',
+        'about.v2.title': 'Interactive Geography', 'about.v2.desc': 'Maps and geographical analyses connecting locations with their historical events and evolution across time.',
+        'about.v3.title': 'Research Community', 'about.v3.desc': 'A collaborative space for researchers and enthusiasts to exchange ideas, studies, and constructive scientific discussions.',
+        'about.v4.title': 'Fun Learning', 'about.v4.desc': 'Interactive and engaging visual content making the study of History and Geography an exciting and rewarding experience.',
         'about.quote': '"Those who cannot remember the past are condemned to repeat it. Those who do not know their geography are condemned to wander."',
         'about.stat1': 'documents in archive', 'about.stat2': 'registered members', 'about.stat3': 'documentary videos', 'about.stat4': 'supported languages',
         'auth.welcome': 'Welcome', 'auth.sub': 'Sign in or create a new account',
@@ -4099,7 +4110,10 @@
         'yt.v5.title': 'Ère Glaciaire & Formation des Continents', 'yt.v6.title': 'Guerres Mondiales en Cartes',
         'yt.close': 'Fermer',
         'about.title': 'À propos', 'about.intro': 'Kronos est une plateforme numérique spécialisée en Histoire et Géographie, rendant le savoir historique accessible à tous.',
-        'about.v1.title': 'Archive Complète', 'about.v2.title': 'Géographie Interactive', 'about.v3.title': 'Communauté de Chercheurs', 'about.v4.title': 'Apprentissage Ludique',
+        'about.v1.title': 'Archive Complète', 'about.v1.desc': 'Documents, articles et analyses organisés par ères historiques, des civilisations antiques aux temps contemporains.',
+        'about.v2.title': 'Géographie Interactive', 'about.v2.desc': 'Cartes et analyses géographiques reliant les lieux à leurs événements historiques et à leur évolution dans le temps.',
+        'about.v3.title': 'Communauté de Chercheurs', 'about.v3.desc': 'Un espace collaboratif pour les chercheurs et passionnés afin d\'échanger des idées, des études et des discussions scientifiques constructives.',
+        'about.v4.title': 'Apprentissage Ludique', 'about.v4.desc': 'Un contenu visuel interactif et attrayant qui fait de l\'étude de l\'histoire et de la géographie une expérience passionnante et enrichissante.',
         'about.quote': '"Ceux qui oublient leur histoire sont condamnés à la revivre. Ceux qui ignorent leur géographie sont condamnés à se perdre."',
         'about.stat1': 'documents dans l\'archive', 'about.stat2': 'membres inscrits', 'about.stat3': 'vidéos documentaires', 'about.stat4': 'langues supportées',
         'auth.welcome': 'Bienvenue', 'auth.sub': 'Connectez-vous ou créez un nouveau compte',
@@ -4139,7 +4153,10 @@
         'yt.v5.title': 'Era Glacial y Formación de Continentes', 'yt.v6.title': 'Guerras Mundiales en Mapas',
         'yt.close': 'Cerrar',
         'about.title': 'Acerca de', 'about.intro': 'Kronos es una plataforma digital especializada en Historia y Geografía, haciendo el conocimiento histórico accesible para todos.',
-        'about.v1.title': 'Archivo Completo', 'about.v2.title': 'Geografía Interactiva', 'about.v3.title': 'Comunidad de Investigadores', 'about.v4.title': 'Aprendizaje Divertido',
+        'about.v1.title': 'Archivo Completo', 'about.v1.desc': 'Documentos, artículos y análisis organizados por eras históricas, desde las civilizaciones antiguas hasta la era contemporánea.',
+        'about.v2.title': 'Geografía Interactiva', 'about.v2.desc': 'Mapas y análisis geográficos que conectan los lugares con sus eventos históricos y su evolución a lo largo del tiempo.',
+        'about.v3.title': 'Comunidad de Investigadores', 'about.v3.desc': 'Un espacio colaborativo para que investigadores y apasionados intercambien ideas, estudios y debates científicos constructivos.',
+        'about.v4.title': 'Aprendizaje Divertido', 'about.v4.desc': 'Contenido visual interactivo y atractivo que convierte el estudio de la historia y la geografía en una experiencia emocionante y enriquecedora.',
         'about.quote': '"Los que no conocen su historia están condenados a repetirla. Los que no conocen su geografía están condenados a perderse."',
         'about.stat1': 'documentos en el archivo', 'about.stat2': 'miembros registrados', 'about.stat3': 'videos documentales', 'about.stat4': 'idiomas admitidos',
         'auth.welcome': 'Bienvenido', 'auth.sub': 'Inicia sesión o crea una nueva cuenta',
@@ -4489,7 +4506,7 @@
       },
       contemporary: {
         name: 'العصر المعاصر', range: '1945 م — الآن',
-        branches: ['🔻 حرب باردة', '🌐 جيوسياسة', '📰 تاريخ راهن', '👥 جغرافيا بشرية', '🌱 بيئة', '💻 تكنولوجيا', '🕊️ سلام'],
+        branches: ['🌟 أعلام العصر', '🔻 حرب باردة', '🌐 جيوسياسة', '📰 تاريخ راهن', '👥 جغرافيا بشرية', '🌱 بيئة', '💻 تكنولوجيا', '🕊️ سلام'],
         powers: [
           { rank: 1, flag: '🇺🇸', name: 'الولايات المتحدة', period: '1945 — الآن', area: '9,833,000 كم²', gdp: '~25 تريليون $', continents: ['أمريكا الشمالية'], desc: 'القوة الأعظم — ناتو والدولار وهوليوود وسيليكون فالي.' },
           { rank: 2, flag: '🇨🇳', name: 'الصين الشعبية', period: '1949 — الآن', area: '9,597,000 كم²', gdp: '~18 تريليون $', continents: ['آسيا'], desc: 'أسرع صعود اقتصادي في التاريخ — المصنع الأول للعالم.' },
@@ -4512,7 +4529,198 @@
 
     // Sample posts per era
     const ARCHIVE_POSTS = {
-      ancient: [], early_medieval: [], high_medieval: [], early_modern: [], modern: [], contemporary: []
+      ancient: [
+        {
+          id: 'anc_1',
+          avatar: '🏛',
+          author: 'د. سليم حسن — موسوعة مصر القديمة',
+          date: '3100 ق.م — توثيق الأرشيف',
+          type: 'دراسة وتوثيق أثري',
+          branch: '🔱 مصر القديمة',
+          title: 'توحيد القطرين وتأسيس الأسرة الأولى على يد الملك مينا (نعرمر)',
+          body: 'تُعد لوحة نعرمر الأثرية الشهيرة أول وثيقة تاريخية مكتوبة في العالم تُسجل لحظة توحيد القطرين (الشمال والجنوب) وتأسيس الدولة المركزية المصرية الأولى حوالي عام 3100 ق.م. وضعت هذه اللحظة حجر الأساس لأعظم وأطول حضارة استمرت آلاف السنين على ضفاف النيل.',
+          likes: 245,
+          comments: 42
+        },
+        {
+          id: 'anc_2',
+          avatar: '📜',
+          author: 'أرشيف الفلسفة اليونانية',
+          date: '380 ق.م — توثيق الأرشيف',
+          type: 'وثيقة فكرية وفلسفية',
+          branch: '📜 فلسفة',
+          title: 'جمهورية أفلاطون ونظرية المثل العُليا في تنظيم الدولة والمجتمع',
+          body: 'قدّم الفيلسوف اليوناني أفلاطون في محاورته الشهيرة «الجمهورية» أول دراسة منهجية شاملة لنظرية الدولة العادلة، رابطاً بين العدالة في الفرد والعدالة في المجتمع، ومؤسساً لمفهوم حكم الحكماء والفلاسفة كشرط أساسي لاستقرار المدن واندهارها الحضاري.',
+          likes: 189,
+          comments: 29
+        }
+      ],
+      early_medieval: [
+        {
+          id: 'em_1',
+          avatar: '📚',
+          author: 'بيت الحكمة — أرشيف بغداد',
+          date: '830 م — العصر العباسي',
+          type: 'وثيقة علمية وتاريخية',
+          branch: '📚 علوم إسلامية',
+          title: 'الخوارزمي وتأسيس علم الجبر والمقابلة وثورة الرياضيات الخوارزمية',
+          body: 'أحدث العالم محمد بن موسى الخوارزمي في بغداد ثورة علمية كبرى بتأليفه كتاب «المختصر في حساب الجبر والمقابلة»، حيث فصل الجبر كعلم مستقل عن الحساب والهندسة لأول مرة في التاريخ، ووضع الأسس الرياضية والخوارزميات التي يقوم عليها عالمنا الرقمي اليوم.',
+          likes: 312,
+          comments: 55
+        }
+      ],
+      high_medieval: [
+        {
+          id: 'hm_1',
+          avatar: '🌹',
+          author: 'أرشيف الأندلس والحضارة الإسلامية',
+          date: '1190 م — قرطبة',
+          type: 'دراسة فكرية وفلسفية',
+          branch: '🌹 الأندلس',
+          title: 'ابن رشد الشارح الأكبر وفصل المقال بين الحكمة والشريعة',
+          body: 'مثّل أبو الوليد ابن رشد قمة النضج الفلسفي في الأندلس، حيث أعاد تقديم وشرح الفلسفة الأرسطية بدقة علمية فائقة، وأرسى قواعد التفكير العقلاني ونظرية التوافق بين العقل والنقل في كتابه «فصل المقال»، وهو ما ألهم حركة التنوير في أوروبا لاحقاً.',
+          likes: 278,
+          comments: 48
+        }
+      ],
+      early_modern: [
+        {
+          id: 'e_mod_1',
+          avatar: '🗺️',
+          author: 'أرشيف الخرائط والاكتشافات الجغرافية',
+          date: '1513 م — العصر العثماني',
+          type: 'وثيقة خرائطية نادرة',
+          branch: '🗺️ خرائط',
+          title: 'خريطة بيري ريس العالم المذهلة ورسم سواحل قارة أمريكا ودقة الإحداثيات',
+          body: 'رسم الأدميرال ورسام الخرائط العثماني بيري ريس عام 1513م خريطة مذهلة للعالم تُظهر بدقة متناهية سواحل المحيط الأطلسي وأمريكا الجنوبية وأفريقيا وأجزاء من القارة القطبية الجنوبية، معتمداً على خرائط قديمة ومشاهدات فلكية وملاحية متطورة للغاية.',
+          likes: 340,
+          comments: 64
+        }
+      ],
+      modern: [
+        {
+          id: 'mod_1',
+          avatar: '🏭',
+          author: 'أرشيف الثورة الصناعية والعلوم',
+          date: '1869 م — العصر الحديث',
+          type: 'دراسة وتحليل اقتصادي',
+          branch: '🏭 ثورة صناعية',
+          title: 'افتتاح قناة السويس وتحول طرق التجارة العالمية والجغرافيا السياسية',
+          body: 'شكل افتتاح قناة السويس للملاحة الدولية في تشرين الثاني (نوفمبر) 1869 حدثاً جيوبوليتيكياً واقتصادياً غيّر وجه الجغرافيا والتجارة العالمية، حيث اختصر المسافة بين أوروبا وآسيا بآلاف الأميال البحرية، وجعل من الممر المائي الشريان الأهم للاقتصاد العالمي العابر للقارات.',
+          likes: 295,
+          comments: 51
+        }
+      ],
+      contemporary: [
+        {
+          id: 'cont_1',
+          avatar: '🌟',
+          author: 'د. جمال حمدان — الأرشيف الجغرافي والفكري',
+          date: '1984 م — العصر المعاصر',
+          type: 'سيرة وموسوعة جيوستراتيجية',
+          branch: '🌟 أعلام العصر',
+          title: 'جمال حمدان.. راهب الجغرافيا السياسية وصاحب موسوعة «شخصية مصر» عبقرية المكان والزمان',
+          body: 'يُعد الدكتور جمال حمدان (1928 - 1993) أحد أهم أقطاب الجغرافيا السياسية والفكر الإنساني في العصر المعاصر. كرس حياته في عزلة علمية كاملة لدراسة العلاقة العضوية بين الأرض والتاريخ والإنسان، وتوج ذلك بموسوعته الخالدة «شخصية مصر.. دراسة في عبقرية المكان» في أربعة مجلدات ضخمة، حيث قدّم نظريات غير مسبوقة في تحليل الجغرافيا السياسية للعالم العربي وحوض المتوسط وتنبؤات دقيقة بالتحولات الإقليمية والدولية المعاصرة.',
+          likes: 412,
+          comments: 87
+        },
+        {
+          id: 'cont_2',
+          avatar: '🌟',
+          author: 'إدوارد سعيد — أرشيف الفكر ما بعد الاستعمار',
+          date: '1978 م — العصر المعاصر',
+          type: 'دراسة فكرية وتاريخية نقدية',
+          branch: '🌟 أعلام العصر',
+          title: 'إدوارد سعيد وتفكيك «الاستشراق».. كيف أعاد تعريف الخطاب والتمثيل الثقافي بين الشرق والغرب؟',
+          body: 'أحدث المفكر والفيلسوف الفلسطيني الأمريكي إدوارد سعيد (1935 - 2003) هزة فكرية كبرى بصدور كتابه المفصلي «الاستشراق» (Orientalism) عام 1978، والذي أسس من خلاله لمدرسة دراسات ما بعد الاستعمار (Postcolonial Studies). كشف سعيد عبر تحليل دقيق للأدب والوثائق التاريخية كيف صاغت المؤسسات الغربية صورة نمطية ومُختزلة عن "الشرق" لخدمة الهيمنة الاستعمارية، مؤكداً على ضرورة الفهم الإنساني المتبادل المتجرد من المركزية والهيمنة.',
+          likes: 389,
+          comments: 74
+        },
+        {
+          id: 'cont_3',
+          avatar: '🌟',
+          author: 'د. أحمد زويل — الأرشيف العلمي المعاصر',
+          date: '1999 م — العصر المعاصر',
+          type: 'سيرة علمية وتوثيقية وإنجاز نوبل',
+          branch: '🌟 أعلام العصر',
+          title: 'أحمد زويل وثورة الفيمتو ثانية.. رصد حركة الذرات وتغيير وجه الكيمياء والفيزياء المعاصرة',
+          body: 'نال العالم المصري والأمريكي الدكتور أحمد زويل (1946 - 2016) جائزة نوبل في الكيمياء عام 1999 منفرداً عن إنجازه الرائد في ابتكار نظام تصوير فائق السرعة يعمل بـ «الفيمتو ثانية» (جزء من كوادريليون من الثانية)، مما أتاح للعلماء لأول مرة في تاريخ البشرية مشاهدة الجزيئات ورصد حركة الذرات أثناء التفاعلات الكيميائية في الوقت الفعلي. أسس زويل مدرسة علمية عالمية ومدينة علمية حديثة في مصر، ليبقى أحد أعظم أيقونات العلم المعاصر.',
+          likes: 465,
+          comments: 92
+        },
+        {
+          id: 'cont_4',
+          avatar: '🌟',
+          author: 'عبد الرحمن بدوي — أرشيف الفلسفة والفكر الإنساني',
+          date: '1965 م — العصر المعاصر',
+          type: 'سيرة فكرية وفلسفية موسوعية',
+          branch: '🌟 أعلام العصر',
+          title: 'عبد الرحمن بدوي.. أول دكتور في الفلسفة وموسوعة الفكر الوجودي والإسلامي واليوناني',
+          body: 'يُلقب الفيلسوف والمؤرخ الدكتور عبد الرحمن بدوي (1917 - 2002) بعميد الفلسفة العربية في القرن العشرين وأول من نال درجة الدكتوراه في الفلسفة من جامعة القاهرة عام 1944 تحت إشراف ألكسندر كويريه وطه حسين. ترك بدوي إرثاً موسوعياً هائلاً يتجاوز 150 كتاباً بين تأليف وترجمة وتحقيق، حيث نقل أمهات الفلسفة اليونانية والوجودية والمسرح العالمي إلى اللغة العربية، ودافع عن الفلسفة والمنطق كركيزة للنهضة الحضارية العقلانية.',
+          likes: 310,
+          comments: 58
+        },
+        {
+          id: 'cont_5',
+          avatar: '🌟',
+          author: 'أرشيف حركة التحرر والمصالحة العالمية',
+          date: '1994 م — العصر المعاصر',
+          type: 'وثيقة تاريخية وسيرة سياسية',
+          branch: '🌟 أعلام العصر',
+          title: 'نيلسون مانديلا.. من زنزانة «روبن آيلاند» إلى إنهاء الأبارتهايد وتأسيس نهج التسامح الإنساني',
+          body: 'يُعد الزعيم الأفريقي والمناضل الإنساني نيلسون مانديلا (1918 - 2013) أحد أرفع رموز الحرية والسلام في العصر المعاصر. أمضى مانديلا 27 عاماً في السجون لرفضه نظام الفصل العنصري (الأبارتهايد) في جنوب أفريقيا، ليخرج عام 1990 ويقود مفاوضات تاريخية أدت لأول انتخابات ديمقراطية متعددة الأعراق عام 1994، ويتولى رئاسة البلاد مؤسساً للجنة الحقيقة والمصالحة الوطنية متجاوزاً منطق الانتقام إلى بناء وطن يتسع للجميع.',
+          likes: 520,
+          comments: 114
+        },
+        {
+          id: 'cont_6',
+          avatar: '🌟',
+          author: 'المهاتما غاندي — أرشيف الفلسفة والمقاومة السلمية',
+          date: '1947 م — العصر المعاصر',
+          type: 'تحليل تاريخي وفلسفة سياسية',
+          branch: '🌟 أعلام العصر',
+          title: 'المهاتما غاندي وفلسفة «الساتياغراها».. كيف أسقطت المقاومة السلمية واللاعنف أكبر إمبراطورية في التاريخ؟',
+          body: 'شكل المهاتما موهانداس كرمشاند غاندي (1869 - 1948) في مطلع العصر المعاصر مدرسة ثورية فريدة تعتمد على اللاعنف والمقاومة المدنية السلمية (الساتياغراها - التمسك بالحق). قاد غاندي مسيرة استقلال الهند عن الإمبراطورية البريطانية عام 1947 عبر مقاطعة البضائع ومسيرة الملح والصمود الأخلاقي، ليصبح ملهماً لأبرز حركات الحقوق المدنية والتحرر الإنساني في العالم ومثلاً أعلى لقوة الضمير الإنساني في مواجهة الظلم.',
+          likes: 430,
+          comments: 81
+        },
+        {
+          id: 'cont_7',
+          avatar: '🌟',
+          author: 'ألبرت أينشتاين — أرشيف الفيزياء والتكنولوجيا',
+          date: '1955 م — العصر المعاصر',
+          type: 'توثيق علمي وفلسفي وتكنولوجي',
+          branch: '🌟 أعلام العصر',
+          title: 'ألبرت أينشتاين.. من النسبية إلى عصر الطاقة الذرية واستكشاف الكون وثورة التكنولوجيا المعاصرة',
+          body: 'يُمثل الفيزيائي والمفكر ألبرت أينشتاين (1879 - 1955) الشخصية العلمية الأكثر تأثيراً في صياغة العصر المعاصر. غيرت نظريتاه النسبية الخاصة والعامة المفاهيم التقليدية للزمان والمكان والجاذبية والطاقة (E = mc²)، ومهدت أبحاثه لثورة ميكانيكا الكم والليزر والطاقة النووية وتقنيات تحديد المواقع عبر الأقمار الصناعية (GPS)، كما كان صوتاً إنسانياً بارزاً يدعو للسلام ونزع السلاح النووي العالمي.',
+          likes: 490,
+          comments: 96
+        },
+        {
+          id: 'cont_8',
+          avatar: '🔻',
+          author: 'أرشيف التاريخ السياسي المعاصر',
+          date: '1989 م — العصر المعاصر',
+          type: 'تحليل تاريخي وجيوسياسي',
+          branch: '🔻 حرب باردة',
+          title: 'سقوط جدار برلين ونهاية الحرب الباردة وتحول النظام العالمي المعاصر',
+          body: 'شكل انهيار جدار برلين في 9 تشرين الثاني (نوفمبر) 1989 نقطة تحول كبرى في التاريخ المعاصر، مُعلناً نهاية تقسيم ألمانيا وانتهاء الحرب الباردة والصراع الأيديولوجي الثنائي القطب الذي استمر لأكثر من أربعة عقود منذ نهاية الحرب العالمية الثانية، ومُمهداً لإعادة تشكيل الخريطة الجيوسياسية لأوروبا والعالم الديمقراطي والتكتلات الإقليمية الحديثة.',
+          likes: 310,
+          comments: 44
+        },
+        {
+          id: 'cont_9',
+          avatar: '💻',
+          author: 'أرشيف ثورة الاتصالات والمعلومات',
+          date: '1991 م — العصر المعاصر',
+          type: 'توثيق تكنولوجي وتاريخي',
+          branch: '💻 تكنولوجيا',
+          title: 'تيم بيرنرز لي وإطلاق شبكة الويب العالمية (www).. الثورة الرقمية العابرة للقارات والزمن',
+          body: 'في عام 1991، أطلق العالم البريطاني تيم بيرنرز لي في المنظمة الأوروبية للأبحاث النووية (CERN) أول متصفح وخادم لشبكة الويب العالمية (World Wide Web). حول هذا الابتكار التكنولوجي جهاز الكمبيوتر من أداة حسابية إلى منصة اتصال وتواصل إنساني ومعرفي واقتصادي كونية أحدثت أكبر ثورة معلوماتية وتغير اجتماعي واقتصادي في العصر المعاصر.',
+          likes: 355,
+          comments: 62
+        }
+      ]
     };
 
     let currentEra = null;
@@ -4712,17 +4920,113 @@
     let currentViewerIndex = 0;
     let editingPostId = null;
 
+    const DEFAULT_COMMUNITY_POSTS = [
+      {
+        id: 'post_comm_1',
+        author: 'د. خالد العتيبي — باحث في التاريخ الساساني والبيزنطي',
+        authorId: 'user_khalid',
+        avatar: '🏛',
+        date: '📅 تاريخ النشر: منذ ساعتين',
+        text: 'هل يُمكن اعتبار الحروب الفارسية الرومانية الطويلة (التي استمرت لأكثر من سبعة قرون) السبب الرئيسي والوحيد في إنهاك القوتين العظمتين مما مهد الطريق لاحقاً لسرعة انتشار الفتوحات الإسلامية في القرن السابع الميلادي؟ أم أن هناك أسباباً ديموغرافية واقتصادية داخلية أعمق في كلا الإمبراطوريتين؟ شاركوني آرائكم وتحليلاتكم العلميّة.',
+        media: [],
+        likes: 34,
+        comments: [
+          {
+            id: 'c_comm_1_1',
+            author: 'د. يوسف المؤرخ',
+            avatar: '📚',
+            date: 'منذ ساعة',
+            text: 'طرح ممتاز دكتور خالد. العامل العسكري والإرهاق المالي العنيف بعد حرب 602-628 م كان بلا شك القشة التي قصمت ظهر البعير، لكن يجب ألا نغفل أيضاً عن العامل العقائدي والضرائب الباهظة التي فرضتها بيزنطة والساسانيون على شعوب الشام والعراق ومصر، مما جعل السكّان المحليين يرحبون ببديل جديد عادل.'
+          },
+          {
+            id: 'c_comm_1_2',
+            author: 'أ. نور الهدى',
+            avatar: '🌸',
+            date: 'منذ 45 دقيقة',
+            text: 'أتفق تماماً مع د. يوسف، كما أن وباء الطاعون (طاعون جستنيان) ترك آثاراً ديموغرافية مدمرة استمرت لعقود طويلة وأضعفت البنية البشرية للجيوش البيزنطية والساسانية.'
+          }
+        ]
+      },
+      {
+        id: 'post_comm_2',
+        author: 'م. طارق الحمصي — متخصص في الخرائط التاريخية والديموغرافيا',
+        authorId: 'user_tariq',
+        avatar: '🗺️',
+        date: '📅 تاريخ النشر: منذ 5 ساعات',
+        text: 'أعمل حالياً على تصميم خريطة رقمية تفاعلية توضح تطور خطوط التجارة القديمة (طريق الحرير البري والبحري، وطريق البخور في الجزيرة العربية) وتأثيرها على نشأة المدن والمراكز الحضارية الكبرى في العصور القديمة والوسطى. ما هي أهم المدن والمحطات التجارية التي ترون ضرورة إبرازها وتحليل بياناتها التاريخية؟',
+        media: [],
+        likes: 42,
+        comments: [
+          {
+            id: 'c_comm_2_1',
+            author: 'سارة الأنصاري',
+            avatar: '🎓',
+            date: 'منذ 3 ساعات',
+            text: 'مشروع رائع جداً م. طارق! أقترح التركيز على محطات: تدمر والبتراء وسمرقند وبغداد والقسطنطينية، وبالتأكيد موانئ اليمن القديمة (مثل عدن والمخا) لدورها المحوري في تجارة التوابل والبخور العابرة للمحيط الهندي.'
+          }
+        ]
+      },
+      {
+        id: 'post_comm_3',
+        author: 'أ. نور الهدى — متخصصة في العمارة الأندلسية والتراث',
+        authorId: 'user_noor',
+        avatar: '🌹',
+        date: '📅 تاريخ النشر: منذ يوم واحد',
+        text: 'تُظهر العمارة الأندلسية، خاصة في قصر الحمراء بغرناطة ومسجد قرطبة الكبير، مزيجاً فريداً وعبقرياً بين الهندسة الفلكية والجماليات الرياضية ونظم توزيع المياه والضوء الطبيعي. إنها ليست مجرد زخارف، بل تطبيق عملي لعلوم الهندسة والفلك والفيزياء في تصميم البيئة الإنسانية. ما هو أكثر أثر تاريخي أو عمراني أثار إعجابكم بعبقريته الهندسية؟',
+        media: [],
+        likes: 58,
+        comments: [
+          {
+            id: 'c_comm_3_1',
+            author: 'د. رشيد الأندلسي',
+            avatar: '🔬',
+            date: 'منذ يوم واحد',
+            text: 'بالتأكيد قاعة الأسود في قصر الحمراء ونظام النافورة الهيدروليكي الذي كان يتدفق بنظام زمني دقيق يعكس ساعات اليوم، قبل أن يتعطل لاحقاً عند محاولة تفكيكه للتعرف على سره!'
+          }
+        ]
+      },
+      {
+        id: 'post_comm_4',
+        author: 'د. يوسف المؤرخ — أستاذ التاريخ المعاصر والجغرافيا السياسية',
+        authorId: 'user_yousef',
+        avatar: '🌍',
+        date: '📅 تاريخ النشر: منذ يومين',
+        text: 'في دراسة الجغرافيا السياسية المعاصرة، يتضح جلياً أن مضائق الملاحة الدولية (مثل مضيق ملقا، هرمز، باب المندب، وقناة السويس) تتحكم بما يقرب من 60% من التجارة والطاقة العالمية. كيف ترون مستقبل أمن الطاقة وخطوط الإمداد العالمية في ظل التحولات الجيوسياسية الراهنة والمنافسة بين القوى الكبرى في القرن الحادي والعشرين؟',
+        media: [],
+        likes: 67,
+        comments: [
+          {
+            id: 'c_comm_4_1',
+            author: 'د. خالد العتيبي',
+            avatar: '🏛',
+            date: 'منذ يومين',
+            text: 'تحليل دقيق دكتور يوسف. الموقع الجغرافي للعالم العربي يجعله قلب التوازنات العالمية، ومن هنا تأتي أهمية فهم أطروحات جمال حمدان حول "عبقرية المكان" وتوظيف الجغرافيا السياسية في حماية الأمن الإقليمي.'
+          }
+        ]
+      }
+    ];
+
     function initPostsSystem() {
       if (!localStorage.getItem('kronos_posts')) {
         localStorage.setItem('kronos_posts', JSON.stringify([]));
       }
       try {
         let existingPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+        if (!Array.isArray(existingPosts)) existingPosts = [];
         let modified = false;
         // Remove dummy accounts / fake info from stored posts or comments
         const origPostsLen = existingPosts.length;
         existingPosts = existingPosts.filter(p => p.author !== 'ZAMAKAN' && p.author !== 'حساب وهمي' && p.id !== 'post_sample_1' && p.id !== 'post_sample_2');
         if (existingPosts.length !== origPostsLen) modified = true;
+
+        // Ensure DEFAULT_COMMUNITY_POSTS are always merged and present for every user
+        DEFAULT_COMMUNITY_POSTS.forEach(dp => {
+          if (!existingPosts.some(ep => ep.id === dp.id || (ep.text === dp.text && ep.author === dp.author))) {
+            existingPosts.push(dp);
+            modified = true;
+          }
+        });
+
         for (let p of existingPosts) {
           if (p.comments && Array.isArray(p.comments)) {
             let origLen = p.comments.length;
@@ -6877,8 +7181,8 @@
 
     async function loadPostsFromSupabase() {
       try {
-        const rows = await sbIdx('posts?select=*&order=created_at.desc&limit=200');
-        if (!Array.isArray(rows) || rows.length === 0) return;
+        let rows = await sbIdx('posts?select=*&order=created_at.desc&limit=500');
+        if (!Array.isArray(rows)) rows = [];
         
         const localPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
         const supaPosts = rows.map(r => {
@@ -6925,10 +7229,28 @@
 
         const merged = [...supaPosts];
         localPosts.forEach(lp => {
-          if (!supaPosts.some(sp => sp.id === lp.id || (sp.text === lp.text && sp.author === lp.author))) {
+          if (!merged.some(sp => sp.id === lp.id || (sp.text === lp.text && sp.author === lp.author))) {
             merged.push(lp);
           }
         });
+
+        if (typeof DEFAULT_COMMUNITY_POSTS !== 'undefined' && Array.isArray(DEFAULT_COMMUNITY_POSTS)) {
+          DEFAULT_COMMUNITY_POSTS.forEach(dp => {
+            if (!merged.some(sp => sp.id === dp.id || (sp.text === dp.text && sp.author === dp.author))) {
+              merged.push(dp);
+            }
+            // Background seed to Supabase table posts so all visitors across different devices fetch them directly from DB
+            if (!supaPosts.some(sp => sp.text === dp.text && sp.author === dp.author)) {
+              sbIdxPost('posts', {
+                text: dp.text,
+                author: dp.author,
+                avatar: dp.avatar,
+                likes: dp.likes,
+                comments: JSON.stringify(dp.comments)
+              }).catch(() => {});
+            }
+          });
+        }
 
         localStorage.setItem('kronos_posts', JSON.stringify(merged));
         if (typeof renderPostsFeed === 'function') renderPostsFeed();
