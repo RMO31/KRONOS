@@ -3617,10 +3617,10 @@
       <div class="posts-search-box" style="display:flex;align-items:center;gap:.5rem;background:linear-gradient(145deg, rgba(24,20,12,0.8), rgba(13,10,6,0.9));border:1.5px solid rgba(201,168,76,0.4);border-radius:14px;padding:.4rem .8rem;box-shadow:0 6px 20px rgba(0,0,0,0.5), 0 0 15px rgba(201,168,76,0.1);flex:1;min-width:280px;max-width:480px">
         <button onclick="filterPostsFeed(true)" title="ابحث الآن" style="background:transparent;border:none;color:var(--gold,#c9a84c);font-size:18px;cursor:pointer;padding:0 .2rem;transition:all 0.2s;display:flex;align-items:center;justify-content:center" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">🔍</button>
         <input type="text" id="postsSearchInput" placeholder="ابحث في المنشورات..." style="background:transparent;border:none;color:#fff;outline:none;font-family:var(--font-ar);font-size:13.5px;flex:1;min-width:120px" oninput="filterPostsFeed()" onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();filterPostsFeed(true);}">
-        <select id="postsSearchFilterType" onchange="filterPostsFeed()" style="background:#16130c;color:var(--gold,#c9a84c);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:.3rem .6rem;font-family:var(--font-ar);font-size:12.5px;outline:none;cursor:pointer">
-          <option value="all">🌐 الكل (المحتوى والكاتب)</option>
-          <option value="content">📝 المنشورات (النص)</option>
-          <option value="author">👤 المستخدم (الكاتب)</option>
+        <select id="postsSearchFilterType" onchange="filterPostsFeed()" style="background:#16130c;color:var(--gold,#c9a84c);border:1px solid rgba(201,168,76,0.4);border-radius:8px;padding:.3rem .6rem;font-family:var(--font-ar);font-size:12.5px;outline:none;cursor:pointer;color-scheme:dark;">
+          <option value="all" style="background:#161410;color:#e8dfc8;">🌐 الكل (المحتوى والكاتب)</option>
+          <option value="content" style="background:#161410;color:#e8dfc8;">📝 المنشورات (النص)</option>
+          <option value="author" style="background:#161410;color:#e8dfc8;">👤 المستخدم (الكاتب)</option>
         </select>
         <button onclick="clearPostsSearch()" title="مسح البحث" style="background:transparent;border:none;color:#ff6b6b;cursor:pointer;font-size:16px;display:none;padding:0 .3rem;font-weight:bold" id="clearPostsSearchBtn">✕</button>
       </div>
@@ -3644,15 +3644,15 @@
                 </label>
                 <input type="file" id="postMediaInput" accept="image/*,video/*" multiple style="display:none"
                   onchange="handlePostMediaSelect(event)">
-                <select id="postEraSelect" class="post-type-btn" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);color:var(--text);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;outline:none;">
-                  <option value="">⏳ تصنيف المنشور حسب العصر (اختياري)</option>
-                  <option value="🏛️ العصور القديمة (ما قبل 476 م)">🏛️ العصور القديمة (ما قبل 476 م)</option>
-                  <option value="⚔️ العصور الوسطى المبكرة (476 — 900 م)">⚔️ العصور الوسطى المبكرة (476 — 900 م)</option>
-                  <option value="🏰 العصور الوسطى المتأخرة (900 — 1453 م)">🏰 العصور الوسطى المتأخرة (900 — 1453 م)</option>
-                  <option value="⛵ العصور الحديثة المبكرة (1453 — 1789 م)">⛵ العصور الحديثة المبكرة (1453 — 1789 م)</option>
-                  <option value="🚂 العصر الحديث (1789 — 1945 م)">🚂 العصر الحديث (1789 — 1945 م)</option>
-                  <option value="🌐 العصر المعاصر (1945 — اليوم)">🌐 العصر المعاصر (1945 — اليوم)</option>
-                  <option value="📜 تاريخ عام / أبحاث ومقارنات">📜 تاريخ عام / أبحاث ومقارنات</option>
+                <select id="postEraSelect" class="post-type-btn" style="background:#161410;border:1px solid rgba(201,168,76,0.5);color:#e8dfc8;border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;outline:none;color-scheme:dark;">
+                  <option value="" style="background:#161410;color:#e8dfc8;">⏳ تصنيف المنشور حسب العصر (اختياري)</option>
+                  <option value="🏛️ العصور القديمة (ما قبل 476 م)" style="background:#161410;color:#e8dfc8;">🏛️ العصور القديمة (ما قبل 476 م)</option>
+                  <option value="⚔️ العصور الوسطى المبكرة (476 — 900 م)" style="background:#161410;color:#e8dfc8;">⚔️ العصور الوسطى المبكرة (476 — 900 م)</option>
+                  <option value="🏰 العصور الوسطى المتأخرة (900 — 1453 م)" style="background:#161410;color:#e8dfc8;">🏰 العصور الوسطى المتأخرة (900 — 1453 م)</option>
+                  <option value="⛵ العصور الحديثة المبكرة (1453 — 1789 م)" style="background:#161410;color:#e8dfc8;">⛵ العصور الحديثة المبكرة (1453 — 1789 م)</option>
+                  <option value="🚂 العصر الحديث (1789 — 1945 م)" style="background:#161410;color:#e8dfc8;">🚂 العصر الحديث (1789 — 1945 م)</option>
+                  <option value="🌐 العصر المعاصر (1945 — اليوم)" style="background:#161410;color:#e8dfc8;">🌐 العصر المعاصر (1945 — اليوم)</option>
+                  <option value="📜 تاريخ عام / أبحاث ومقارنات" style="background:#161410;color:#e8dfc8;">📜 تاريخ عام / أبحاث ومقارنات</option>
                 </select>
               </div>
               <button class="btn-gold" id="submitPostBtn" onclick="submitPost()"
