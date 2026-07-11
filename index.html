@@ -4239,10 +4239,12 @@
       try {
         const storedPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
         if (Array.isArray(storedPosts)) {
+          const deletedPosts = JSON.parse(localStorage.getItem('kronos_deleted_posts') || '[]');
           const realPosts = storedPosts.filter(p => {
             if (typeof isDummyUserOrPost === 'function' && isDummyUserOrPost(p)) return false;
             if (typeof verifyPostAuthenticity === 'function' && !verifyPostAuthenticity(p).valid) return false;
             if (typeof HIDDEN_POST_IDS !== 'undefined' && HIDDEN_POST_IDS.includes(String(p.id))) return false;
+            if (deletedPosts.some(dp => dp.id === p.id || (dp.dbId && String(dp.dbId) === String(p.dbId)) || (dp.text && dp.text === p.text))) return false;
             return true;
           });
           totalDocs = realPosts.length;
@@ -5405,6 +5407,13 @@
       }
     }
 
+    function decodeHtmlEntities(str) {
+      if (!str && str !== 0) return '';
+      const txt = document.createElement('textarea');
+      txt.innerHTML = str;
+      return txt.value;
+    }
+
     function escapeHtml(str) {
       if (!str && str !== 0) return '';
       return String(str)
@@ -5417,13 +5426,14 @@
 
     function parsePostTags(text) {
       if (!text) return '';
-      let escaped = escapeHtml(text);
-      escaped = escaped.replace(/@(?:ALL|الجميع|everyone)/gi, `<span class="post-tag-badge everyone" title="إشارة لجميع المتابعين في هذه الغرفة" onclick="showToast('👑 إشارة عامة: تم تنبيه كافة المتابعين والأعضاء في الغرفة للتفاعل!')">👑 @ALL (الجميع)</span>`);
+      let decoded = decodeHtmlEntities(text);
+      let escaped = escapeHtml(decoded);
+      escaped = escaped.replace(/@(?:ALL|الجميع|everyone)/gi, `<span class="post-tag-badge everyone" style="unicode-bidi:isolate;display:inline-block;direction:auto;margin:0 2px;" title="إشارة لجميع المتابعين في هذه الغرفة" onclick="showToast('👑 إشارة عامة: تم تنبيه كافة المتابعين والأعضاء في الغرفة للتفاعل!')">👑 @ALL (الجميع)</span>`);
       escaped = escaped.replace(/@([a-zA-Z0-9_ء-ي]+)/g, (m, u) => {
         if (u.toUpperCase() === 'ALL' || u === 'الجميع') return m;
-        return `<span class="post-tag-badge user" style="cursor:pointer" title="عرض ملف وعدد متابعي @${u}" onclick="openUserProfileByAuthorName('${u}')">👤 @${u}</span>`;
+        return `<span class="post-tag-badge user" style="cursor:pointer;unicode-bidi:isolate;display:inline-block;direction:auto;margin:0 2px;" title="عرض ملف وعدد متابعي @${u}" onclick="openUserProfileByAuthorName('${u}')">👤 @${u}</span>`;
       });
-      escaped = escaped.replace(/#([a-zA-Z0-9_ء-ي]+)/g, `<span class="post-hashtag" style="cursor:pointer" title="انقر للبحث وعرض جميع المنشورات بوسم #$1" onclick="searchByHashtag('$1')">#$1</span>`);
+      escaped = escaped.replace(/#([a-zA-Z0-9_ء-ي]+)/g, `<span class="post-hashtag" style="cursor:pointer;unicode-bidi:isolate;display:inline-block;direction:auto;margin:0 2px;" title="انقر للبحث وعرض جميع المنشورات بوسم #$1" onclick="searchByHashtag('$1')">#$1</span>`);
       return escaped;
     }
 
@@ -6001,8 +6011,14 @@
       const feed = document.getElementById('postsFeed');
       const paginationWrap = document.getElementById('postsPaginationWrap');
       if (!feed) return;
-      const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]').filter(p => !isDummyUserOrPost(p) && verifyPostAuthenticity(p).valid);
+      const deletedPosts = JSON.parse(localStorage.getItem('kronos_deleted_posts') || '[]');
+      const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]').filter(p => {
+        if (isDummyUserOrPost(p) || !verifyPostAuthenticity(p).valid) return false;
+        if (deletedPosts.some(dp => dp.id === p.id || (dp.dbId && String(dp.dbId) === String(p.dbId)) || (dp.text && dp.text === p.text))) return false;
+        return true;
+      });
       updateSidebarStats(allPosts);
+      if (typeof updateAboutStatistics === 'function') updateAboutStatistics();
       if (!allPosts.length) {
         feed.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text-dimmer);font-size:14px">لا توجد منشورات بعد — كن أول من ينشر!</div>`;
         if (paginationWrap) paginationWrap.innerHTML = '';
@@ -6400,9 +6416,17 @@
       let posts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
       const target = posts.find(p => p.id === postId);
       if (target) {
+        const delList = JSON.parse(localStorage.getItem('kronos_deleted_posts') || '[]');
+        delList.push({ id: target.id, dbId: target.dbId || null, text: target.text });
+        localStorage.setItem('kronos_deleted_posts', JSON.stringify(delList));
         const dbId = target.dbId || (typeof target.id === 'string' && target.id.startsWith('post_db_') ? target.id.replace('post_db_', '') : null);
         if (dbId) {
           sbIdxDelete('posts', `id=eq.${dbId}`);
+        } else if (target.text) {
+          const session = getSession();
+          if (session && session.userId && session.userId !== 'me') {
+            sbIdxDelete('posts', `user_id=eq.${session.userId}&content=eq.${encodeURIComponent(target.text)}`);
+          }
         }
       }
       posts = posts.filter(p => p.id !== postId);
@@ -6501,7 +6525,8 @@
       post._transCache = post._transCache || {};
       if (post._transCache[targetLang]) {
         post._isTranslated = true;
-        post._translatedText = post._transCache[targetLang];
+        post._translatedText = decodeHtmlEntities(post._transCache[targetLang]);
+        post._transCache[targetLang] = post._translatedText;
         post._transTarget = targetLang;
         post._transTargetName = langNames[targetLang] || targetLang.toUpperCase();
         localStorage.setItem('kronos_posts', JSON.stringify(posts));
@@ -6520,6 +6545,7 @@
         }
         if (!translated) throw new Error('Empty translation response');
 
+        translated = decodeHtmlEntities(translated);
         post._transCache[targetLang] = translated;
         post._isTranslated = true;
         post._translatedText = translated;
@@ -6535,7 +6561,7 @@
           const fbRes = await fetch(fbUrl);
           const fbData = await fbRes.json();
           if (fbData && fbData.responseData && fbData.responseData.translatedText) {
-            const translated = fbData.responseData.translatedText;
+            let translated = decodeHtmlEntities(fbData.responseData.translatedText);
             post._transCache[targetLang] = translated;
             post._isTranslated = true;
             post._translatedText = translated;
@@ -7701,6 +7727,62 @@
         } catch (err) { }
       }
     });
+
+    // ─── KRONOS HYBRID REALTIME & SILENT WATCHER BOT (نظام المزامنة اللحظية الشامل والبوت الخفي) ───
+    function initKronosRealtimeAndWatcher() {
+      // 1. الاتصال اللحظي المباشر (Supabase Realtime WebSockets) للسرعة الفائقة
+      try {
+        const sb = window.supabase || window.sbClient;
+        if (sb && typeof sb.channel === 'function') {
+          const postsChannel = sb.channel('kronos_public_posts_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, async (payload) => {
+              console.log('[Kronos Realtime] Post change event detected:', payload.eventType);
+              if (typeof loadPostsFromSupabase === 'function') {
+                await loadPostsFromSupabase();
+              }
+            })
+            .subscribe((status) => {
+              console.log('[Kronos Realtime] Subscription status:', status);
+            });
+        }
+      } catch (err) {
+        console.warn('[Kronos Realtime] WebSocket subscription error/limit:', err);
+      }
+
+      // 2. البوت الخفي للاستشعار الدوري السريع (Silent Background Watcher Bot - يعمل دائماً لجميع المستخدمين)
+      let _isWatchingSync = false;
+      setInterval(async () => {
+        if (_isWatchingSync || document.hidden) return;
+        _isWatchingSync = true;
+        try {
+          const rows = await sbIdx('posts?select=id,created_at&order=created_at.desc&limit=6');
+          if (Array.isArray(rows) && rows.length > 0) {
+            const localPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]');
+            const delPosts = JSON.parse(localStorage.getItem('kronos_deleted_posts') || '[]');
+            const localIds = new Set(localPosts.map(p => p.id));
+            const delIds = new Set(delPosts.map(d => d + ''));
+
+            const hasNewPost = rows.some(r => {
+              const dbIdStr = r.id + '';
+              const postId = 'post_db_' + r.id;
+              return !localIds.has(postId) && !delIds.has(dbIdStr) && !delIds.has(postId);
+            });
+
+            if (hasNewPost && typeof loadPostsFromSupabase === 'function') {
+              console.log('[Kronos Silent Bot] New post discovered in background! Syncing feed seamlessly...');
+              await loadPostsFromSupabase();
+            }
+          }
+        } catch (botErr) {
+          // Silent catch to prevent console clutter during connection drops
+        } finally {
+          _isWatchingSync = false;
+        }
+      }, 15000); // يفحص بهدوء وخفة كل 15 ثانية بدون أي ريفريش للصفحة
+    }
+
+    // تشغيل المحرك الذكي فوراً عند تحميل التطبيق
+    setTimeout(initKronosRealtimeAndWatcher, 1200);
 
   </script>
 </body>
