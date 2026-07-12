@@ -11,6 +11,10 @@ token*.json
 *.key
 # Admin Panel (Local Only)
 admin.html
+admin.json
+admin_*.json
+google_api_*.json
+config_admin*.json
 
 # Python & Temp
 __pycache__/
