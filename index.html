@@ -7730,10 +7730,60 @@
 
     // ─── KRONOS HYBRID REALTIME & SILENT WATCHER BOT (نظام المزامنة اللحظية الشامل والبوت الخفي) ───
     function initKronosRealtimeAndWatcher() {
-      // 0. تسجيل وحساب زيارات الموقع الحقيقية (Real Site Visits Counter)
+      // 0. تسجيل وحساب إحصائيات الموقع الحقيقية (Real Analytics Tracker)
       try {
-        let vCount = parseInt(localStorage.getItem('kronos_site_views') || 1420) + 1;
+        let vCount = parseInt(localStorage.getItem('kronos_site_views') || 0) + 1;
         localStorage.setItem('kronos_site_views', vCount);
+
+        // تسجيل مصادر الزوار الحقيقية
+        let sources = JSON.parse(localStorage.getItem('kronos_analytics_sources') || '{"direct":0,"search":0,"social":0}');
+        const ref = (document.referrer || '').toLowerCase();
+        if (ref.includes('google.') || ref.includes('bing.') || ref.includes('yahoo.')) {
+          sources.search = (sources.search || 0) + 1;
+        } else if (ref.includes('facebook.') || ref.includes('twitter.') || ref.includes('x.com') || ref.includes('instagram.') || ref.includes('t.me') || ref.includes('whatsapp')) {
+          sources.social = (sources.social || 0) + 1;
+        } else {
+          sources.direct = (sources.direct || 0) + 1;
+        }
+        localStorage.setItem('kronos_analytics_sources', JSON.stringify(sources));
+
+        // تسجيل زيارات الأيام الحقيقية
+        let days = JSON.parse(localStorage.getItem('kronos_analytics_days') || '{"0":0,"1":0,"2":0,"3":0,"4":0,"5":0,"6":0}');
+        const dayIdx = new Date().getDay();
+        days[dayIdx] = (days[dayIdx] || 0) + 1;
+        localStorage.setItem('kronos_analytics_days', JSON.stringify(days));
+
+        // تسجيل الدولة الحقيقية إن أمكن
+        let countries = JSON.parse(localStorage.getItem('kronos_analytics_countries') || '{}');
+        const prof = JSON.parse(localStorage.getItem('kronos_profile') || 'null');
+        let cName = prof?.country || prof?.pref_country || '';
+        if (!cName && typeof Intl !== 'undefined') {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+          if (tz.includes('Algiers')) cName = 'الجزائر';
+          else if (tz.includes('Riyadh')) cName = 'السعودية';
+          else if (tz.includes('Cairo')) cName = 'مصر';
+          else if (tz.includes('Casablanca')) cName = 'المغرب';
+          else if (tz.includes('Paris')) cName = 'فرنسا';
+          else if (tz.includes('Baghdad')) cName = 'العراق';
+        }
+        if (cName) {
+          countries[cName] = (countries[cName] || 0) + 1;
+          localStorage.setItem('kronos_analytics_countries', JSON.stringify(countries));
+        }
+
+        // تسجيل زيارة الأقسام
+        let secs = JSON.parse(localStorage.getItem('kronos_analytics_sections') || '{"home":1,"library":0,"posts":0,"videos":0}');
+        secs.home = (secs.home || 0) + 1;
+        localStorage.setItem('kronos_analytics_sections', JSON.stringify(secs));
+
+        window.addEventListener('hashchange', () => {
+          let s = JSON.parse(localStorage.getItem('kronos_analytics_sections') || '{"home":0,"library":0,"posts":0,"videos":0}');
+          const h = window.location.hash.replace('#', '') || 'home';
+          if (s[h] !== undefined) {
+            s[h] = (s[h] || 0) + 1;
+            localStorage.setItem('kronos_analytics_sections', JSON.stringify(s));
+          }
+        });
       } catch (ve) {}
 
       // 1. الاتصال اللحظي المباشر (Supabase Realtime WebSockets) للسرعة الفائقة
