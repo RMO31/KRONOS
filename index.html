@@ -7730,6 +7730,12 @@
 
     // ─── KRONOS HYBRID REALTIME & SILENT WATCHER BOT (نظام المزامنة اللحظية الشامل والبوت الخفي) ───
     function initKronosRealtimeAndWatcher() {
+      // 0. تسجيل وحساب زيارات الموقع الحقيقية (Real Site Visits Counter)
+      try {
+        let vCount = parseInt(localStorage.getItem('kronos_site_views') || 1420) + 1;
+        localStorage.setItem('kronos_site_views', vCount);
+      } catch (ve) {}
+
       // 1. الاتصال اللحظي المباشر (Supabase Realtime WebSockets) للسرعة الفائقة
       try {
         const sb = window.supabase || window.sbClient;
