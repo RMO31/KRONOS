@@ -6011,12 +6011,21 @@
       const feed = document.getElementById('postsFeed');
       const paginationWrap = document.getElementById('postsPaginationWrap');
       if (!feed) return;
-      const deletedPosts = JSON.parse(localStorage.getItem('kronos_deleted_posts') || '[]');
-      const allPosts = JSON.parse(localStorage.getItem('kronos_posts') || '[]').filter(p => {
+      const allPostsRaw = JSON.parse(localStorage.getItem('kronos_posts') || '[]').filter(p => {
         if (isDummyUserOrPost(p) || !verifyPostAuthenticity(p).valid) return false;
         if (deletedPosts.some(dp => dp.id === p.id || (dp.dbId && String(dp.dbId) === String(p.dbId)) || (dp.text && dp.text === p.text))) return false;
+        if ((p.content || p.text || '').includes('[HIDDEN]')) return false;
         return true;
       });
+      
+      const pinnedPosts = [];
+      const normalPosts = [];
+      allPostsRaw.forEach(p => {
+        if ((p.content || p.text || '').includes('[PINNED]')) pinnedPosts.push(p);
+        else normalPosts.push(p);
+      });
+      const allPosts = [...pinnedPosts, ...normalPosts];
+      
       updateSidebarStats(allPosts);
       if (typeof updateAboutStatistics === 'function') updateAboutStatistics();
       if (!allPosts.length) {
@@ -6165,8 +6174,14 @@
           }
         }
         const transTargetDisplay = curLNames[post._transTarget] || post._transTargetName || post._transTarget || 'EN';
+        
+        const isPinned = (post.content || post.text || '').includes('[PINNED]');
+        let rawContentText = post._isTranslated && post._translatedText ? post._translatedText : post.text;
+        if (rawContentText && rawContentText.includes('[PINNED]')) rawContentText = rawContentText.replace('[PINNED]', '').trim();
+        if (rawContentText && rawContentText.includes('[HIDDEN]')) rawContentText = rawContentText.replace('[HIDDEN]', '').trim();
+
         return `
-          <div class="post-card" id="card_${post.id}">
+          <div class="post-card" id="card_${post.id}" style="${isPinned ? 'border: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(201,168,76,0.3);' : ''}">
             <div class="post-user" style="display:flex;align-items:center;justify-content:space-between">
               <div style="display:flex;align-items:center;gap:.7rem">
                 <div class="post-avatar" style="cursor:pointer" onclick="openUserProfileByPost('${post.id}')">${post.avatar || '👤'}</div>
@@ -6174,6 +6189,8 @@
                   <div class="post-username" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex-wrap:wrap;" onclick="openUserProfileByPost('${post.id}')">
                     <span>${post.author}</span>
                     ${verifyPostAuthenticity(post).valid ? `<span title="${verifyPostAuthenticity(post).reason}" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.4);border-radius:12px;padding:1px 8px;font-size:11px;display:inline-flex;align-items:center;gap:3px;font-weight:bold;">✅ مستخدم حقيقي موثق</span>` : ''}
+                    ${post.role === 'admin' ? '<span style="background:var(--gold);color:#000;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:bold;">👑 الإدارة</span>' : ''}
+                    ${isPinned ? '<span style="background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid var(--gold);border-radius:12px;padding:1px 8px;font-size:11px;font-weight:bold;"><i class="fas fa-thumbtack"></i> 📌 مثبت</span>' : ''}
                   </div>
                   <div class="post-date" style="color:var(--gold,#c9a84c);font-weight:bold;margin-top:2px;font-size:12px;">${pubDateDisplay}</div>
                   ${post.era ? `<div class="post-era-badge" style="display:inline-block;margin-top:4px;padding:2px 8px;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:12px;font-size:11px;color:var(--gold)">${(/^[🏛️⚔️🏰⛵🚂🌐📜⏳🌟]/.test(post.era) || /[\uD800-\uDBFF]/.test(post.era.charAt(0))) ? '' : (post.era.includes('قديم') ? '🏛️ ' : (post.era.includes('وسطى') ? '🏰 ' : '⏳ '))}${escapeHtml(post.era)}</div>` : ''}
@@ -6186,7 +6203,7 @@
                 </div>
               ` : ''}
             </div>
-            <div class="post-body selectable-text" id="post_body_${post.id}" style="white-space:pre-wrap; user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(post._isTranslated && post._translatedText ? post._translatedText : post.text)}</div>
+            <div class="post-body selectable-text" id="post_body_${post.id}" style="white-space:pre-wrap; user-select:text !important; -webkit-user-select:text !important;">${parsePostTags(rawContentText)}</div>
             ${post._isTranslated && post._translatedText ? `
               <div class="post-translation-bar" style="margin-top:8px;padding:6px 10px;background:rgba(201,168,76,0.08);border:1px dashed rgba(201,168,76,0.35);border-radius:8px;font-size:12px;color:var(--gold);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.6rem">
                 <span style="display:flex;align-items:center;gap:4px">🌐 <span>${tDict['posts.translatedTo'] || 'تمت الترجمة إلى'} <b>${transTargetDisplay}</b></span></span>
